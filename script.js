@@ -667,7 +667,7 @@ function renderSip(force = false) {
 function renderSipItems() {
   const p = $('ms-items');
   p.innerHTML = '';
-  
+
   // Sadece silinmemiş aktif kalemleri filtreleyip gösteriyoruz
   const visibleItems = tempSipItems.filter(it => !it.silindi);
 
@@ -1399,6 +1399,8 @@ function stopCam() {
   closeM('mo-cam');
 }
 
+
+
 // --- PDF MOTORU ---
 // --- PDF MOTORU GÜNCELLENDİ ---
 const PDF_CSS = `
@@ -1701,8 +1703,6 @@ function processPull(e) {
   e.target.value = '';
 }
 
-// --- YEDEKLEME & TAM OTOMATİK EŞİTLEME ---
-
 function exportDB() {
   const data = JSON.stringify(DB);
   const blob = new Blob([data], { type: "application/json" });
@@ -1715,168 +1715,344 @@ function exportDB() {
   showToast("Veriler cihaza indirildi.");
 }
 
-// Google Drive Klasör ID'n (URL'den alındı)
+// --- DİNAMİK CLIENT ID VE EŞİTLEME BAŞLATICISI ---
 const DRIVE_FOLDER_ID = '1cgeuSHmzhfYdX9pDGAc4pxvaYNWt1_X2';
 const DRIVE_FILE_NAME = 'oztoptan_sync_db.json'; // Klasörde aranacak/oluşturulacak dosya
 
 let tokenClient;
 let driveAccessToken = null;
+let lastUsedClientId = null; // YENİ EKLENDİ: Son kullanılan ID'yi hafızada tutacak
 
-function startAutoSync() {
-      // 1. GİRİŞ KONTROLÜ
-      if (!tokenClient) {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          // Kendi Client ID'n burada kalacak (değiştirme)
-          client_id: '1016249661078-r3dsg3v3edhno3plkhenrr01gft654rc.apps.googleusercontent.com', 
-          scope: 'https://www.googleapis.com/auth/drive.file',
-          // DİKKAT: "hint" satırını buradan tamamen sildik ki tek bir maile zorlamasın!
-          callback: async (response) => {
-            if (response.error) {
-              return alert("❌ Drive Girişi Başarısız: " + response.error);
-            }
-            driveAccessToken = response.access_token;
-            await executePullMergePush();
-          },
-        });
-      }
-      
-      // 2. Token isteme / 'select_account' komutu eklendi.
-      if (!driveAccessToken) {
-        // Bu komut Google'a zorla "Hesap Seçme Ekranını" açtırır.
-        tokenClient.requestAccessToken({prompt: 'select_account consent'}); 
-      } else {
-        executePullMergePush();
-      }
+function openSyncModal() {
+  // Hafızada önceden girilmiş ID varsa direkt kutuya yazdır
+  const savedId = localStorage.getItem('ozsecer_client_id') || '';
+  $('sync-client-id').value = savedId;
+  openM('mo-sync-config');
+}
+
+function saveClientIdAndSync() {
+  const cId = $('sync-client-id').value.trim();
+  if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
+
+  localStorage.setItem('ozsecer_client_id', cId);
+  closeM('mo-sync-config');
+
+  showSpinner("Google hesabı ile iletişim kuruluyor...");
+
+  try {
+    // İŞTE ÇÖZÜM BURASI: Eğer textbox'taki ID değiştiyse, elimizdeki eski Google iznini (token) çöpe at!
+    if (cId !== lastUsedClientId) {
+      driveAccessToken = null;
+      lastUsedClientId = cId;
     }
 
-// --- AKILLI MERGE (BİRLEŞTİRME) ALGORİTMASI ---
-    function mergeDatabases(remoteDB) {
-      if (!remoteDB) return;
-
-      // Sistemdeki tüm tablolar (Cari, Ürün, Sipariş, Kasa, Gruplar, Katalog vb.)
-      const collections = ['c', 'u', 's', 't', 'g', 'ug', 'k']; 
-
-      // Tarih formatını (DD.MM.YYYY HH:mm:ss veya ISO) kıyaslanabilir sayısal süreye çevirir
-      function parseTRDate(str) {
-        if (!str) return 0;
-        if (str.includes('T')) return new Date(str).getTime();
-        const parts = str.split(' ');
-        if(parts.length !== 2) return 0;
-        const d = parts[0].split('.');
-        const t = parts[1].split(':');
-        if(d.length !== 3 || t.length !== 3) return 0;
-        return new Date(d[2], d[1]-1, d[0], t[0], t[1], t[2]).getTime();
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: cId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: async (response) => {
+        if (response.error) {
+          hideSpinner();
+          driveAccessToken = null; // Hata durumunda kilitlenmemesi için izni temizle
+          return showCustomAlert("İşlem İptal Edildi!\n\nGoogle giriş ekranını kapattınız veya yetki vermediniz.\n\nDetay: " + response.error, false);
+        }
+        driveAccessToken = response.access_token;
+        await executePullMergePush();
+      },
+      error_callback: (err) => {
+        hideSpinner();
+        driveAccessToken = null; // Hata durumunda kilitlenmemesi için izni temizle
+        showCustomAlert("Google bağlantısı kurulamadı!\n\nOlası Sebepler:\n1- Client ID'nizi eksik veya hatalı girdiniz.\n2- Tarayıcınız açılır pencereleri (popup) engelliyor.\n\nDetay: " + (err.type || JSON.stringify(err)), false);
       }
+    });
 
-      // Bir kaydın en son ne zaman dokunulduğunu (değiştirildiğini) bulur
-      function getLastMod(item) {
-        if (item.silinmeTarihi) return parseTRDate(item.silinmeTarihi);
-        if (item.guncellenmeTarihi) return parseTRDate(item.guncellenmeTarihi);
-        if (item.olusturmaTarihi) return parseTRDate(item.olusturmaTarihi);
-        return 0; // Tarih yoksa 0 döner
-      }
+    // Elimde geçerli bir izin yoksa (veya ID değiştiği için az önce sildiysek) yeni izin iste
+    if (!driveAccessToken) {
+      tokenClient.requestAccessToken({ prompt: 'select_account consent' });
+    } else {
+      // İzin hala geçerliyse ve ID (textbox'taki) bir öncekiyle AYNIYSA hiç sormadan direkt eşitle
+      executePullMergePush();
+    }
 
-      collections.forEach(col => {
-        if (!remoteDB[col]) return; // Drive'da bu tablo yoksa atla
-        if (!DB[col]) DB[col] = []; // Cihazda bu tablo yoksa boş oluştur
+  } catch (err) {
+    hideSpinner();
+    showCustomAlert("Beklenmeyen bir sistem hatası oluştu:\n" + err.message, false);
+  }
+}
 
-        const localMap = new Map();
-        DB[col].forEach(item => localMap.set(String(item.id), item));
+async function executePullMergePush() {
+  updateSpinner("Eşitleme başladı: Drive'a bağlanılıyor...");
 
-        remoteDB[col].forEach(remoteItem => {
-          const id = String(remoteItem.id);
-          
-          if (localMap.has(id)) {
-            // KAYIT HER İKİ CİHAZDA DA VAR: Hangisi daha güncelse o kazanır
-            const localItem = localMap.get(id);
-            const remoteTime = getLastMod(remoteItem);
-            const localTime = getLastMod(localItem);
+  try {
+    const query = encodeURIComponent(`'${DRIVE_FOLDER_ID}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
+    const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
+      headers: { 'Authorization': `Bearer ${driveAccessToken}` }
+    });
+    const searchData = await searchRes.json();
 
-            // Eğer Drive'daki (başka cihazdan gelen) kayıt daha yeniyse, bendeki (local) veriyi güncelle
-            if (remoteTime > localTime) {
-               Object.assign(localItem, remoteItem); 
-            }
-            // Eğer bendeki daha yeniyse (localTime > remoteTime), hiçbir şeye dokunma.
-            // Aşağıdaki PUSH işlemi sırasında benim güncel verim Drive'a gidecektir.
+    if (searchData.error) throw new Error("Klasör bulunamadı veya yetkiniz yok.");
 
-          } else {
-            // KAYIT SADECE DRIVE'DA VAR: (Demek ki diğer cihaz yeni eklemiş), o zaman bendeki listeye de ekle
-            DB[col].push(remoteItem);
-            localMap.set(id, remoteItem);
-          }
-        });
+    let fileId = null;
+    let remoteDB = null;
+
+    if (searchData.files && searchData.files.length > 0) {
+      fileId = searchData.files[0].id;
+      updateSpinner("Buluttaki verileriniz çekiliyor (Pull)...");
+
+      const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: { 'Authorization': `Bearer ${driveAccessToken}` }
       });
+      remoteDB = await getRes.json();
     }
 
-    // --- GÜNCELLENMİŞ EŞİTLEME (PULL & PUSH) FONKSİYONU ---
-    async function executePullMergePush() {
-      showToast("Eşitleme başladı: Drive'a bağlanılıyor...");
+    if (remoteDB) {
+      updateSpinner("Cihazınızdaki verilerle bulut birleştiriliyor (Merge)...");
+      try {
+        mergeDatabases(remoteDB);
+      } catch (mergeErr) {
+        throw new Error("Veri çakışması tespit edildi! Algoritma güvenliğiniz için durduruldu.\nDetay: " + mergeErr);
+      }
+    }
+
+    updateSpinner("Güncel verileriniz güvenle buluta yükleniyor (Push)...");
+    const pushData = JSON.stringify(DB);
+
+    if (fileId) {
+      const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' },
+        body: pushData
+      });
+      if (!patchRes.ok) throw new Error("Push (Güncelleme) işlemi başarısız oldu.");
+    } else {
+      const metadata = { name: DRIVE_FILE_NAME, parents: [DRIVE_FOLDER_ID] };
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', new Blob([pushData], { type: 'application/json' }));
+
+      const postRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${driveAccessToken}` },
+        body: form
+      });
+      if (!postRes.ok) throw new Error("Push (Yeni Oluşturma) işlemi başarısız oldu.");
+    }
+
+    // Bütün işlemler başarılıysa
+    saveDB();
+    renderHome();
+    hideSpinner();
+    showCustomAlert("Tüm verileriniz cihazınızla bulut arasında saniyesi saniyesine kıyaslandı, hiçbir kayıp yaşanmadan birleştirildi ve güvenle yedeklendi!", true);
+
+  } catch (err) {
+    // Herhangi bir hata durumunda spinner'ı kaldırıp hatayı ekrana bas
+    hideSpinner();
+    showCustomAlert(err.message, false);
+  }
+}
+
+function mergeDatabases(remoteDB) {
+  if (!remoteDB) return;
+
+  // Sistemdeki tüm tablolar (Cari, Ürün, Sipariş, Kasa, Gruplar, Katalog vb.)
+  const collections = ['c', 'u', 's', 't', 'g', 'ug', 'k'];
+
+  // Tarih formatını (DD.MM.YYYY HH:mm:ss veya ISO) kıyaslanabilir sayısal süreye çevirir
+  function parseTRDate(str) {
+    if (!str) return 0;
+    if (str.includes('T')) return new Date(str).getTime();
+    const parts = str.split(' ');
+    if (parts.length !== 2) return 0;
+    const d = parts[0].split('.');
+    const t = parts[1].split(':');
+    if (d.length !== 3 || t.length !== 3) return 0;
+    return new Date(d[2], d[1] - 1, d[0], t[0], t[1], t[2]).getTime();
+  }
+
+  // Bir kaydın en son ne zaman dokunulduğunu (değiştirildiğini) bulur
+  function getLastMod(item) {
+    if (item.silinmeTarihi) return parseTRDate(item.silinmeTarihi);
+    if (item.guncellenmeTarihi) return parseTRDate(item.guncellenmeTarihi);
+    if (item.olusturmaTarihi) return parseTRDate(item.olusturmaTarihi);
+    return 0; // Tarih yoksa 0 döner
+  }
+
+  collections.forEach(col => {
+    if (!remoteDB[col]) return; // Drive'da bu tablo yoksa atla
+    if (!DB[col]) DB[col] = []; // Cihazda bu tablo yoksa boş oluştur
+
+    const localMap = new Map();
+    DB[col].forEach(item => localMap.set(String(item.id), item));
+
+    remoteDB[col].forEach(remoteItem => {
+      const id = String(remoteItem.id);
+
+      if (localMap.has(id)) {
+        // KAYIT HER İKİ CİHAZDA DA VAR: Hangisi daha güncelse o kazanır
+        const localItem = localMap.get(id);
+        const remoteTime = getLastMod(remoteItem);
+        const localTime = getLastMod(localItem);
+
+        // Eğer Drive'daki (başka cihazdan gelen) kayıt daha yeniyse, bendeki (local) veriyi güncelle
+        if (remoteTime > localTime) {
+          Object.assign(localItem, remoteItem);
+        }
+        // Eğer bendeki daha yeniyse (localTime > remoteTime), hiçbir şeye dokunma.
+        // Aşağıdaki PUSH işlemi sırasında benim güncel verim Drive'a gidecektir.
+
+      } else {
+        // KAYIT SADECE DRIVE'DA VAR: (Demek ki diğer cihaz yeni eklemiş), o zaman bendeki listeye de ekle
+        DB[col].push(remoteItem);
+        localMap.set(id, remoteItem);
+      }
+    });
+  });
+}
+
+// --- SIFIRLAMA VE GÜVENLİK DOĞRULAMASI MANTIĞI ---
+    let currentResetTarget = '';
+
+    function openResetAuthModal(target) {
+      currentResetTarget = target;
+      const uInp = $('reset-user');
+      const pInp = $('reset-pass');
+      
+      uInp.value = '';
+      pInp.value = '';
+      uInp.setAttribute('readonly', 'readonly');
+      pInp.setAttribute('readonly', 'readonly');
+      
+      openM('mo-reset-auth');
+    }
+
+    // 1. ZİNCİR: DRIVE SIFIRLAMAK İÇİN ÖNCE GOOGLE CLIENT ID İSTE
+    function openDriveResetClientModal() {
+      const savedId = localStorage.getItem('ozsecer_client_id') || '';
+      $('reset-client-id-input').value = savedId;
+      openM('mo-reset-client');
+    }
+
+    function verifyClientForReset() {
+      const cId = $('reset-client-id-input').value.trim();
+      if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
+      
+      closeM('mo-reset-client');
+      showSpinner("Google kimliği doğrulanıyor...");
 
       try {
+        if (cId !== lastUsedClientId) {
+          driveAccessToken = null;
+          lastUsedClientId = cId;
+        }
+
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: cId,
+          scope: 'https://www.googleapis.com/auth/drive.file',
+          callback: async (response) => {
+            if (response.error) {
+              hideSpinner();
+              driveAccessToken = null; 
+              return showCustomAlert("İşlem İptal Edildi!\nGoogle kimliğinizi onaylamadınız.", false);
+            }
+            driveAccessToken = response.access_token;
+            hideSpinner();
+            
+            // GOOGLE ONAYLANDI! ŞİMDİ 2. ZİNCİRE GEÇ (Sistem Şifresini Sor)
+            openResetAuthModal('drive'); 
+          },
+          error_callback: (err) => {
+            hideSpinner();
+            driveAccessToken = null;
+            showCustomAlert("Google bağlantısı kurulamadı!\nClient ID'niz hatalı olabilir.", false);
+          }
+        });
+
+        // Eğer elimizde hazır token yoksa Google'dan iste
+        if (!driveAccessToken) {
+          tokenClient.requestAccessToken({prompt: 'select_account consent'}); 
+        } else {
+          hideSpinner();
+          // Token zaten varsa ve ID doğruysa direkt 2. zincire geç
+          openResetAuthModal('drive');
+        }
+      } catch (err) {
+        hideSpinner(); 
+        showCustomAlert("Hata oluştu:\n" + err.message, false);
+      }
+    }
+
+    // 2. ZİNCİR: KENDİ KULLANICI ADI VE ŞİFREMİZİN DOĞRULANMASI
+    function confirmResetAuth() {
+      const u = $('reset-user').value.trim();
+      const p = $('reset-pass').value.trim();
+      
+      if (u !== 'oztoptantedarik' || p !== 'Oztoptan6595.') {
+        return showToast('❌ Hatalı kullanıcı adı veya şifre!');
+      }
+      
+      closeM('mo-reset-auth'); 
+      
+      if (currentResetTarget === 'local') {
+        if(confirm("⚠️ DİKKAT!\nCihazınızdaki (tarayıcıdaki) TÜM VERİLER silinecek.\nBu işlemi onaylıyor musunuz?")) {
+           DB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] };
+           saveDB();
+           renderHome();
+           showCustomAlert("Cihazınızdaki tüm veriler başarıyla sıfırlandı!", true);
+        }
+      } else if (currentResetTarget === 'drive') {
+        // İki güvenlik kapısından da başarıyla geçti. Şimdi son onay ve silme!
+        if(confirm("🚨 KRİTİK İŞLEM!\nGoogle Drive üzerindeki TÜM YEDEK VERİLERİNİZ kalıcı olarak silinecek.\nEmin misiniz?")) {
+           executeDriveReset();
+        }
+      }
+    }
+
+    // 3. ZİNCİR: ASIL SİLME İŞLEMİ (GOOLGE DRIVE API ÇAĞRISI)
+    async function executeDriveReset() {
+      showSpinner("Bulut üzerindeki veritabanı sıfırlanıyor...");
+      try {
+        const emptyDB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] };
+        const pushData = JSON.stringify(emptyDB);
+        
         const query = encodeURIComponent(`'${DRIVE_FOLDER_ID}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
         const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
           headers: { 'Authorization': `Bearer ${driveAccessToken}` }
         });
         const searchData = await searchRes.json();
 
-        if (searchData.error) throw new Error("Klasör bulunamadı veya erişim reddedildi.");
-
-        let fileId = null;
-        let remoteDB = null;
-
         if (searchData.files && searchData.files.length > 0) {
-          fileId = searchData.files[0].id;
-          showToast("Veriler çekiliyor (Pull)...");
-
-          const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-            headers: { 'Authorization': `Bearer ${driveAccessToken}` }
-          });
-          remoteDB = await getRes.json();
-        }
-
-        // 3. AKILLI MERGE (BİRLEŞTİRME) İŞLEMİ
-        if (remoteDB) {
-          showToast("Veriler akıllı şekilde birleştiriliyor (Merge)...");
-          try {
-            mergeDatabases(remoteDB);
-          } catch(mergeErr) {
-            throw new Error("Merge algoritmasında kritik hata! İşlem güvenlik için durduruldu.\nDetay: " + mergeErr);
-          }
-        }
-
-        // 4. PUSH (GÖNDERME) İŞLEMİ
-        showToast("Birleştirilmiş veriler Drive'a yazılıyor (Push)...");
-        const pushData = JSON.stringify(DB);
-
-        if (fileId) {
+          const fileId = searchData.files[0].id;
           const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' },
             body: pushData
           });
-          if(!patchRes.ok) throw new Error("Push (Güncelleme) işlemi başarısız.");
+          if(!patchRes.ok) throw new Error("Google Drive veritabanı ezilemedi.");
         } else {
-          const metadata = { name: DRIVE_FILE_NAME, parents: [DRIVE_FOLDER_ID] };
-          const form = new FormData();
-          form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-          form.append('file', new Blob([pushData], { type: 'application/json' }));
-
-          const postRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${driveAccessToken}` },
-            body: form
-          });
-          if(!postRes.ok) throw new Error("Push (Yeni Oluşturma) işlemi başarısız.");
+          throw new Error("Sıfırlanacak bir bulut yedeği bulunamadı.");
         }
 
-        // 5. BAŞARILI BİTİŞ
-        saveDB(); 
-        renderHome();
-        alert("✅ EŞİTLEME BAŞARILI!\nCihazınızdaki verilerle Drive'daki veriler saniyesi saniyesine kıyaslanıp kayıpsız olarak birleştirildi!");
-
+        hideSpinner();
+        showCustomAlert("Drive üzerindeki tüm yedekleriniz başarıyla sıfırlandı!", true);
       } catch(err) {
-        alert("❌ EŞİTLEME İPTAL EDİLDİ:\n" + err.message);
+        hideSpinner();
+        showCustomAlert(err.message, false);
       }
     }
+
+// --- UI GÖRSEL YARDIMCILARI (SPINNER & ALERT) ---
+function showSpinner(msg) {
+  $('spinner-msg').innerText = msg || 'Lütfen bekleyin...';
+  openM('mo-spinner');
+}
+function updateSpinner(msg) { $('spinner-msg').innerText = msg; }
+function hideSpinner() { closeM('mo-spinner'); }
+
+function showCustomAlert(msg, isSuccess = true) {
+  $('alert-icon').innerText = isSuccess ? '✅' : '❌';
+  $('alert-title').innerText = isSuccess ? 'Eşitleme Başarılı' : 'Hata Oluştu';
+  $('alert-title').style.color = isSuccess ? 'var(--green)' : 'var(--red)';
+  $('alert-msg').innerText = msg;
+  openM('mo-alert');
+}
 
 window.onload = checkAuth;

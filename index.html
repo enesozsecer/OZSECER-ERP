@@ -76,7 +76,7 @@
           <div class="card card-gradient mb-4" onclick="goTo('ayarlar')"
             style="background: linear-gradient(135deg, #34495e, #2c3e50);">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Sistem Yönetimi</div>
-            <div class="card-value" style="font-size:1.2rem;">Ayarlar &amp; Yedekleme ➔</div>
+            <div class="card-value" style="font-size:1.2rem;">Sistem &amp; Admin ➔</div>
           </div>
         </div>
       </div>
@@ -180,31 +180,49 @@
               </div>
             </div>
 
-            <input type="text" id="filter-kasa-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
-<input type="text" id="filter-kasa-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <input type="text" id="filter-kasa-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
+            <input type="text" id="filter-kasa-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
             <button class="btn-primary" onclick="renderKasa(true)">Ara</button>
           </div>
         </div>
         <div id="kasa-list"></div>
       </div>
 
+      <!-- AYARLAR -->
       <div id="view-ayarlar" class="view hidden">
-        <div class="mo-header" style="margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border);">
-          <div class="mo-title" style="font-size:1.3rem;">Sistem Yönetimi</div>
-          <button class="btn-outline" style="padding:0.3rem 0.8rem;" onclick="goTo('home')">Geri Dön</button>
-        </div>
 
         <div class="card mb-4">
           <div class="grid-2">
+            <button class="btn-primary" style="padding: 1rem; font-size: 1rem;" onclick="openSyncModal()">
+              ☁️ Yedekle ve Güncelle
+            </button>
             <button class="btn-outline" style="padding: 1rem; font-size: 1rem;" onclick="exportDB()">
-              ⬇️ Cihaza İndir
+              ⬇️ Verileri İndir
             </button>
-            <button class="btn-primary" style="padding: 1rem; font-size: 1rem;" onclick="startAutoSync()">
-              ☁️ Eşitle (Pull & Push)
+
+          </div>
+        </div>
+        <div class="card mb-4" style="border: 1px solid var(--red);">
+          <h3 style="color: var(--red); margin-bottom: 1rem; font-size: 1.1rem;">⚠️ Tehlikeli İşlemler</h3>
+          <p class="text-muted mb-4" style="font-size: 0.85rem;">Bu alandaki butonlar verilerinizi kalıcı olarak siler
+            ve bu işlem asla geri alınamaz.</p>
+          <div class="grid-2">
+            <button class="btn-danger" style="padding: 1rem; font-size: 1rem; background: var(--red);"
+              onclick="openDriveResetClientModal()">
+              🔥 Yedek Verilerini Sil
             </button>
+            <button class="btn-outline"
+              style="padding: 1rem; font-size: 1rem; border-color: var(--red); color: var(--red);"
+              onclick="openResetAuthModal('local')">
+              🗑️ Cihaz Verilerini Sil
+            </button>
+
           </div>
         </div>
       </div>
+
 
       <!-- ANALİZ -->
       <div id="view-analiz" class="view hidden">
@@ -213,8 +231,10 @@
             <select id="filter-an-grup">
               <option value="">Tüm Gruplar</option>
             </select>
-            <input type="text" id="an-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
-<input type="text" id="an-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <input type="text" id="an-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
+            <input type="text" id="an-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
             <button class="btn-primary" onclick="renderAnaliz(true)">Hesapla</button>
           </div>
         </div>
@@ -235,6 +255,68 @@
   </div>
 
   <!-- MODALS -->
+   <div id="mo-reset-client" class="mo" onclick="closeOnOutside(event, 'mo-reset-client')" style="z-index: 450;">
+      <div class="mo-content">
+        <div class="mo-header">
+          <div class="mo-title" style="color: var(--red);">Drive Bağlantısını Doğrula</div>
+          <button class="icon-btn" onclick="closeM('mo-reset-client')">✕</button>
+        </div>
+        <p class="text-muted mb-4" style="font-size:0.85rem">Drive sıfırlama işlemi yapabilmek için önce geçerli bir Client ID ile Google onayından geçmelisiniz.</p>
+        <input type="text" id="reset-client-id-input" placeholder="12345...apps.googleusercontent.com" style="margin-bottom: 1.5rem;">
+        <button class="btn-danger w-full" onclick="verifyClientForReset()">Doğrula ve İlerle</button>
+      </div>
+    </div>
+
+  <div id="mo-reset-auth" class="mo" onclick="closeOnOutside(event, 'mo-reset-auth')" style="z-index: 500;">
+    <div class="mo-content">
+      <div class="mo-header">
+        <div class="mo-title" style="color: var(--red);">Güvenlik Doğrulaması</div>
+        <button class="icon-btn" onclick="closeM('mo-reset-auth')">✕</button>
+      </div>
+      <p class="text-muted mb-4" style="font-size:0.85rem">Bu yıkıcı işlemi gerçekleştirebilmek için yetkili giriş
+        bilgilerinizi manuel olarak giriniz.</p>
+
+      <input type="text" id="reset-user" placeholder="Kullanıcı Adı" autocomplete="new-password" readonly
+        onfocus="this.removeAttribute('readonly');" style="margin-bottom: 0.75rem;">
+
+      <input type="password" id="reset-pass" placeholder="Şifre" autocomplete="new-password" readonly
+        onfocus="this.removeAttribute('readonly');" style="margin-bottom: 1.5rem;">
+
+      <button class="btn-danger w-full" onclick="confirmResetAuth()">Doğrula ve Sıfırla</button>
+    </div>
+  </div>
+
+  <div id="mo-sync-config" class="mo" onclick="closeOnOutside(event, 'mo-sync-config')" style="z-index: 400;">
+    <div class="mo-content">
+      <div class="mo-header">
+        <div class="mo-title">Drive Bağlantı Ayarları</div>
+        <button class="icon-btn" onclick="closeM('mo-sync-config')">✕</button>
+      </div>
+      <p class="text-muted mb-4" style="font-size:0.85rem">Google Cloud sistemine bağlanmak için "Client ID" (İstemci
+        Kimliği) bilginizi giriniz.</p>
+      <input type="text" id="sync-client-id" placeholder="12345...apps.googleusercontent.com">
+      <button class="btn-primary" onclick="saveClientIdAndSync()">Onayla</button>
+    </div>
+  </div>
+
+  <div id="mo-spinner" class="mo" style="z-index: 9999; background: rgba(0,0,0,0.85);">
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
+      <div class="spinner"></div>
+      <div id="spinner-msg"
+        style="margin-top:20px; font-weight:bold; font-size:1.1rem; text-align:center; padding: 0 20px;">Lütfen
+        bekleyin...</div>
+    </div>
+  </div>
+
+  <div id="mo-alert" class="mo" style="z-index: 99999;">
+    <div class="mo-content" style="text-align:center; padding: 2rem 1.5rem;">
+      <div id="alert-icon" style="font-size:3.5rem; margin-bottom:10px;">✅</div>
+      <h3 id="alert-title" class="mb-4" style="font-size:1.4rem;">İşlem Başarılı</h3>
+      <p id="alert-msg" class="mb-4 text-muted" style="font-size:0.95rem; line-height: 1.5;">Mesaj detayları.</p>
+      <button class="btn-primary" style="padding: 0.8rem; font-size:1rem;" onclick="closeM('mo-alert')">Tamam</button>
+    </div>
+  </div>
+
   <div id="mo-confirm" class="mo" onclick="closeOnOutside(event, 'mo-confirm')">
     <div class="mo-content">
       <h3 id="conf-title" class="mb-4">Onay</h3>
