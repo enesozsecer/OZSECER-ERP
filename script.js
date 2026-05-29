@@ -667,9 +667,11 @@ function renderSip(force = false) {
 function renderSipItems() {
   const p = $('ms-items');
   p.innerHTML = '';
+  
+  // Sadece silinmemiş aktif kalemleri filtreleyip gösteriyoruz
+  const visibleItems = tempSipItems.filter(it => !it.silindi);
 
-  // Kalem varsa sütun başlıklarını en üste ekle
-  if (tempSipItems.length > 0) {
+  if (visibleItems.length > 0) {
     p.innerHTML += `
           <div style="display:flex; gap:0.4rem; margin-bottom:0.4rem; padding:0 0.5rem; font-size:0.8rem; font-weight:bold; color:var(--text-muted);">
             <div style="flex:3;">Ürün Adı</div>
@@ -681,25 +683,26 @@ function renderSipItems() {
         `;
   }
 
-  tempSipItems.forEach((it, idx) => {
+  visibleItems.forEach((it) => {
     p.innerHTML += `
           <div style="display:flex; gap:0.4rem; margin-bottom:0.5rem; align-items:center; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
+            
             <div style="flex:3; position:relative;">
-              <input type="text" value="${it.ad}" placeholder="Ürün Ara (İçeren)..." onkeyup="ddUrunSearch(${idx}, this)" onchange="updateSipItem(${idx}, 'ad', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem" autocomplete="off">
+              <input type="text" value="${it.ad}" placeholder="Ürün Ara (İçeren)..." onkeyup="ddUrunSearch('${it.id}', this)" onchange="findSipItem('${it.id}').ad = this.value; findSipItem('${it.id}').guncellenmeTarihi = tsNow();" style="margin:0; padding:0.4rem; font-size:0.85rem" autocomplete="off">
             </div>
             
             <div style="flex:2; position:relative;">
-              <input type="number" id="sip-mik-${idx}" value="${it.miktar || ''}" placeholder="Miktar" oninput="handleSipRowChange(${idx}, 'miktar', this.value)" style="margin:0; padding:0.4rem; padding-right:2.4rem; font-size:0.85rem; width:100%; box-sizing:border-box;">
+              <input type="number" id="sip-mik-${it.id}" value="${it.miktar || ''}" placeholder="Miktar" oninput="handleSipRowChange('${it.id}', 'miktar', this.value)" style="margin:0; padding:0.4rem; padding-right:2.4rem; font-size:0.85rem; width:100%; box-sizing:border-box;">
               <span style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:0.75rem; color:var(--text-muted); font-weight:bold; pointer-events:none;">${getBirimAd(it.birim)}</span>
             </div>
 
             <div style="flex:2">
-              <input type="text" id="sip-fiy-${idx}" value="${formatTR(it.fiyat)}" placeholder="Birim Fiyat" onfocus="this.value=toRawTR(tempSipItems[${idx}].fiyat)" onblur="this.value=formatTR(tempSipItems[${idx}].fiyat)" oninput="handleSipRowChangeText(${idx}, 'fiyat', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+              <input type="text" id="sip-fiy-${it.id}" value="${formatTR(it.fiyat)}" placeholder="Birim Fiyat" onfocus="this.value=toRawTR(findSipItem('${it.id}').fiyat)" onblur="this.value=formatTR(findSipItem('${it.id}').fiyat)" oninput="handleSipRowChangeText('${it.id}', 'fiyat', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
             </div>
             <div style="flex:2">
-              <input type="text" id="sip-top-${idx}" value="${formatTR(it.toplam)}" placeholder="Toplam Fiyat" onfocus="this.value=toRawTR(tempSipItems[${idx}].toplam)" onblur="this.value=formatTR(tempSipItems[${idx}].toplam)" oninput="handleSipRowChangeText(${idx}, 'toplam', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+              <input type="text" id="sip-top-${it.id}" value="${formatTR(it.toplam)}" placeholder="Toplam Fiyat" onfocus="this.value=toRawTR(findSipItem('${it.id}').toplam)" onblur="this.value=formatTR(findSipItem('${it.id}').toplam)" oninput="handleSipRowChangeText('${it.id}', 'toplam', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
             </div>
-            <button class="icon-btn text-red" style="padding:0; font-size:1.1rem; margin-left:4px;" onclick="delSipItem(${idx})">✕</button>
+            <button class="icon-btn text-red" style="padding:0; font-size:1.1rem; margin-left:4px;" onclick="delSipItem('${it.id}')">✕</button>
           </div>
         `;
   });
