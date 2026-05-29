@@ -24,8 +24,19 @@
     .text-red { color: var(--red); } .text-green { color: var(--green); }
     
     input, select, textarea { 
-      width: 100%; padding: 0.6rem; border-radius: 0.4rem; border: 1px solid var(--border);
-      background: var(--bg); color: var(--text); outline: none; margin-bottom: 0.75rem; font-size: 0.9rem;
+      width: 100%; 
+      padding: 0.6rem; 
+      border-radius: 0.4rem; 
+      border: 1px solid var(--border);
+      background: var(--bg); 
+      color: var(--text); 
+      outline: none; 
+      margin-bottom: 0.75rem; 
+      font-size: 0.9rem;
+      /* iOS'un kendi şişkin tasarımını ve taşmaları tüm uygulamada ezer */
+      -webkit-appearance: none; 
+      appearance: none;
+      font-family: inherit;
     }
     input:focus, select:focus, textarea:focus { border-color: var(--accent); }
     button { 
@@ -39,9 +50,31 @@
     .icon-btn { background: transparent; border: none; font-size: 1.25rem; color: var(--text); padding: 0.4rem; }
     
     /* COMPACT FILTERS */
-    .compact-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; align-items: center;}
-    .compact-filters input, .compact-filters select, .compact-filters .c-select { margin-bottom: 0 !important; }
-    .compact-filters button { height: 100%; margin: 0; }
+    .compact-filters { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
+      gap: 0.5rem; 
+      margin-bottom: 1rem; 
+      align-items: center;
+    }
+    
+    /* Filtre içindeki tüm kutuları (Tarih, Yazı, Seçim) aynı boyda kilitler ve iOS tasarımını ezer */
+    .compact-filters input, 
+    .compact-filters select, 
+    .compact-filters .c-select-display { 
+      margin-bottom: 0 !important; 
+      height: 42px; 
+      -webkit-appearance: none; 
+      appearance: none; 
+      box-sizing: border-box;
+    }
+    
+    .compact-filters .c-select { margin-bottom: 0 !important; }
+    
+    .compact-filters button { 
+      height: 42px; 
+      margin: 0; 
+    }
 
     /* C-SELECT (CUSTOM DROPDOWN WITH SEARCH) */
     .c-select { position: relative; width: 100%; user-select: none; margin-bottom: 0.75rem; }

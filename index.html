@@ -73,460 +73,464 @@
             <div class="card-title">Kayıtlı Kampanyalar</div>
             <div class="card-value" id="home-kampanya-count" style="font-size:1.1rem;">0 Geçmiş ➔</div>
           </div>
-          <div class="card card-gradient mb-4" onclick="goTo('ayarlar')" style="background: linear-gradient(135deg, #34495e, #2c3e50);">
+          <div class="card card-gradient mb-4" onclick="goTo('ayarlar')"
+            style="background: linear-gradient(135deg, #34495e, #2c3e50);">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Sistem Yönetimi</div>
             <div class="card-value" style="font-size:1.2rem;">Ayarlar &amp; Yedekleme ➔</div>
           </div>
         </div>
       </div>
 
-        <!-- CARİ -->
-        <div id="view-cari" class="view hidden">
-          <div class="card mb-4">
-            <div class="compact-filters">
-              <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..."
-                onkeypress="if(event.key === 'Enter') renderCari(true)">
-              <select id="filter-cari-durum">
-                <option value="hepsi">Tüm Durumlar</option>
-                <option value="alacakli">Alacaklı</option>
-                <option value="borclu">Borçlu</option>
-              </select>
-              <button class="btn-primary" onclick="renderCari(true)">Ara</button>
-              <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);"
-                onclick="openGrupModal()">Cari Grup</button>
-            </div>
-          </div>
-          <div id="cari-list"></div>
-        </div>
-
-        <!-- ÜRÜNLER -->
-        <div id="view-urun" class="view hidden">
-          <div class="card mb-4">
-            <div class="compact-filters">
-              <select id="filter-urun-grup">
-                <option value="">Tüm Gruplar</option>
-              </select>
-              <input type="text" id="filter-urun-q" placeholder="Ad, Barkod, Açıklama..."
-                onkeypress="if(event.key === 'Enter') renderUrun(true)">
-              <button class="icon-btn" onclick="startCam('urun-arama')"
-                style="background:var(--bg); border-radius:0.4rem;">📷</button>
-              <button class="btn-primary" onclick="renderUrun(true)">Ara</button>
-              <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);"
-                onclick="openUrunGrupModal()">Ürün Grup</button>
-            </div>
-          </div>
-          <div id="urun-list"></div>
-        </div>
-
-        <!-- SİPARİŞLER -->
-        <div id="view-sip" class="view hidden">
-          <div class="card mb-4">
-            <div class="compact-filters">
-              <select id="filter-sip-tur">
-                <option value="">Tüm Türler</option>
-                <option value="2">Satış</option>
-                <option value="1">Alış</option>
-              </select>
-
-              <div class="c-select" id="cs-wrap-filter-sip-cari">
-                <div class="c-select-display" onclick="toggleCSelect('filter-sip-cari', 'c')">
-                  <span id="csd-filter-sip-cari"
-                    style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span>
-                  <span style="font-size:0.7rem; margin-left:8px;">▼</span>
-                </div>
-                <input type="hidden" id="filter-sip-cari">
-                <div class="c-select-menu" id="csm-filter-sip-cari">
-                  <input type="text" class="c-select-search" id="css-filter-sip-cari" placeholder="Cari Ara (İçeren)..."
-                    onkeyup="renderCSelectList('filter-sip-cari', 'c', this.value)" onclick="event.stopPropagation()">
-                  <div class="c-select-list" id="csl-filter-sip-cari"></div>
-                </div>
-              </div>
-
-              <input type="date" id="filter-sip-start" title="Başlangıç Tarihi">
-              <input type="date" id="filter-sip-end" title="Bitiş Tarihi">
-              <button class="btn-primary" onclick="renderSip(true)">Ara</button>
-            </div>
-          </div>
-          <div id="sip-list"></div>
-        </div>
-
-        <!-- KASA -->
-        <div id="view-kasa" class="view hidden">
-          <div class="card mb-4">
-            <div class="compact-filters">
-              <select id="filter-kasa-tur">
-                <option value="">Tüm Türler</option>
-                <option value="1">Tahsilat</option>
-                <option value="2">Ödeme</option>
-              </select>
-              <select id="filter-kasa-grup">
-                <option value="">Tüm Gruplar</option>
-              </select>
-
-              <div class="c-select" id="cs-wrap-filter-kasa-cari">
-                <div class="c-select-display" onclick="toggleCSelect('filter-kasa-cari', 'c')">
-                  <span id="csd-filter-kasa-cari"
-                    style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span>
-                  <span style="font-size:0.7rem; margin-left:8px;">▼</span>
-                </div>
-                <input type="hidden" id="filter-kasa-cari">
-                <div class="c-select-menu" id="csm-filter-kasa-cari">
-                  <input type="text" class="c-select-search" id="css-filter-kasa-cari"
-                    placeholder="Cari Ara (İçeren)..." onkeyup="renderCSelectList('filter-kasa-cari', 'c', this.value)"
-                    onclick="event.stopPropagation()">
-                  <div class="c-select-list" id="csl-filter-kasa-cari"></div>
-                </div>
-              </div>
-
-              <input type="date" id="filter-kasa-start" title="Başlangıç Tarihi">
-              <input type="date" id="filter-kasa-end" title="Bitiş Tarihi">
-              <button class="btn-primary" onclick="renderKasa(true)">Ara</button>
-            </div>
-          </div>
-          <div id="kasa-list"></div>
-        </div>
-
-        <div id="view-ayarlar" class="view hidden">
-          <div class="mo-header"
-            style="margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border);">
-            <div class="mo-title" style="font-size:1.3rem;">Sistem Yönetimi</div>
-            <button class="btn-outline" style="padding:0.3rem 0.8rem;" onclick="goTo('home')">Geri Dön</button>
-          </div>
-
-          <div class="card mb-4">
-            <div class="grid-2">
-              <button class="btn-outline" style="padding: 1rem; font-size: 1rem;" onclick="exportDB()">
-                ⬇️ Cihaza İndir
-              </button>
-              <button class="btn-primary" style="padding: 1rem; font-size: 1rem;" onclick="startAutoSync()">
-                ☁️ Eşitle (Pull & Push)
-              </button>
-            </div>
+      <!-- CARİ -->
+      <div id="view-cari" class="view hidden">
+        <div class="card mb-4">
+          <div class="compact-filters">
+            <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..."
+              onkeypress="if(event.key === 'Enter') renderCari(true)">
+            <select id="filter-cari-durum">
+              <option value="hepsi">Tüm Durumlar</option>
+              <option value="alacakli">Alacaklı</option>
+              <option value="borclu">Borçlu</option>
+            </select>
+            <button class="btn-primary" onclick="renderCari(true)">Ara</button>
+            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);"
+              onclick="openGrupModal()">Cari Grup</button>
           </div>
         </div>
-
-        <!-- ANALİZ -->
-        <div id="view-analiz" class="view hidden">
-          <div class="card mb-4">
-            <div class="compact-filters">
-              <select id="filter-an-grup">
-                <option value="">Tüm Gruplar</option>
-              </select>
-              <input type="date" id="an-start" title="Başlangıç Tarihi">
-              <input type="date" id="an-end" title="Bitiş Tarihi">
-              <button class="btn-primary" onclick="renderAnaliz(true)">Hesapla</button>
-            </div>
-          </div>
-          <div class="grid-2" id="analiz-grid"></div>
-        </div>
-
+        <div id="cari-list"></div>
       </div>
 
-      <!-- BOTTOM NAV -->
-      <div class="bottom-nav">
-        <div class="nav-item active" onclick="goTo('home')" id="nav-home"><span>🏠</span><span>Ana Sayfa</span></div>
-        <div class="nav-item" onclick="goTo('cari')" id="nav-cari"><span>👥</span><span>Cari</span></div>
-        <div class="nav-item" onclick="goTo('urun')" id="nav-urun"><span>📦</span><span>Ürün</span></div>
-        <div class="nav-item" onclick="goTo('sip')" id="nav-sip"><span>📋</span><span>Sipariş</span></div>
-        <div class="nav-item" onclick="goTo('kasa')" id="nav-kasa"><span>💰</span><span>Kasa</span></div>
-        <div class="nav-item" onclick="goTo('analiz')" id="nav-analiz"><span>📊</span><span>Analiz</span></div>
-      </div>
-    </div>
-
-    <!-- MODALS -->
-    <div id="mo-confirm" class="mo" onclick="closeOnOutside(event, 'mo-confirm')">
-      <div class="mo-content">
-        <h3 id="conf-title" class="mb-4">Onay</h3>
-        <p id="conf-msg" class="mb-4 text-muted" style="font-size:0.95rem">Emin misiniz?</p>
-        <div class="flex justify-between gap-4">
-          <button class="btn-outline" onclick="closeM('mo-confirm')">İptal</button>
-          <button class="btn-danger" id="conf-yes" style="width:100%">Evet</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="mo-grup" class="mo" onclick="closeOnOutside(event, 'mo-grup')">
-      <div class="mo-content" style="max-width: 400px;">
-        <div class="mo-header">
-          <div class="mo-title">Cari Grupları</div>
-          <button class="icon-btn" onclick="closeM('mo-grup')">✕</button>
-        </div>
-        <div id="mg-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
-
-        <div class="flex gap-2 mb-4">
-          <input type="text" id="mg-new-ad" placeholder="Yeni Grup Adı" style="margin-bottom:0;">
-          <button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;" onclick="addTempGrup()">+</button>
-        </div>
-
-        <button class="btn-primary" onclick="saveGrup()">Değişiklikleri Kaydet</button>
-      </div>
-    </div>
-
-    <div id="mo-cari" class="mo" onclick="closeOnOutside(event, 'mo-cari')">
-      <div class="mo-content">
-        <div class="mo-header">
-          <div class="mo-title" id="mc-title">Yeni Cari</div>
-          <div class="flex gap-2">
-            <button id="mc-ekstre" class="icon-btn hidden">⬇️</button>
-            <button id="mc-del" class="icon-btn text-red hidden">🗑️</button>
-            <button class="icon-btn" onclick="closeM('mo-cari')">✕</button>
-          </div>
-        </div>
-        <input type="hidden" id="mc-id">
-        <input type="text" id="mc-ad" placeholder="Firma / Şahıs Adı*">
-        <select id="mc-grup">
-          <option value="">Grup Yok</option>
-        </select>
-        <input type="text" id="mc-tel" placeholder="Telefon">
-        <input type="text" id="mc-vkn" placeholder="VKN / TCKN">
-        <textarea id="mc-adres" placeholder="Adres" rows="2"></textarea>
-        <button class="btn-primary" onclick="saveCari()">Kaydet</button>
-      </div>
-    </div>
-
-    <div id="mo-urun-grup" class="mo" onclick="closeOnOutside(event, 'mo-urun-grup')">
-      <div class="mo-content" style="max-width: 400px;">
-        <div class="mo-header">
-          <div class="mo-title">Ürün Grupları</div>
-          <button class="icon-btn" onclick="closeM('mo-urun-grup')">✕</button>
-        </div>
-        <div id="mug-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
-        <div class="flex gap-2 mb-4">
-          <input type="text" id="mug-new-ad" placeholder="Yeni Grup Adı" style="margin-bottom:0;">
-          <button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;" onclick="addTempUrunGrup()">+</button>
-        </div>
-        <button class="btn-primary" onclick="saveUrunGrup()">Değişiklikleri Kaydet</button>
-      </div>
-    </div>
-
-    <div id="mo-urun" class="mo" onclick="closeOnOutside(event, 'mo-urun')">
-      <div class="mo-content">
-        <div class="mo-header">
-          <div class="mo-title">Ürün Detayı</div>
-          <div class="flex gap-2">
-            <button id="mu-del" class="icon-btn text-red hidden">🗑️</button>
-            <button class="icon-btn" onclick="closeM('mo-urun')">✕</button>
-          </div>
-        </div>
-        <input type="hidden" id="mu-id">
-        <input type="text" id="mu-ad" placeholder="Ürün Adı*">
-
-        <select id="mu-grup">
-          <option value="">Grup Yok</option>
-        </select>
-
-        <div class="flex gap-2">
-          <input type="text" id="mu-barkod" placeholder="Barkod">
-          <button class="icon-btn" onclick="startCam('urun-form')"
-            style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
-        </div>
-
-        <div style="margin-bottom:0.75rem; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
-          <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün Fotoğrafı
-            (Opsiyonel)</label>
-          <input type="file" id="mu-foto-input" accept="image/*" onchange="previewUrunFoto(event)"
-            style="padding:0.2rem; font-size:0.8rem; margin:0;">
-          <img id="mu-foto-preview"
-            style="width:100px; height:100px; object-fit:cover; display:none; margin-top:8px; border-radius:0.4rem; border:1px solid var(--border);">
-        </div>
-
-        <div class="grid-2">
-          <input type="text" id="mu-alis" placeholder="Alış Fiyatı"
-            onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
-            onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):'';">
-          <input type="text" id="mu-satis" placeholder="Satış Fiyatı"
-            onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';"
-            onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):'';">
-        </div>
-        <div class="grid-2">
-          <input type="number" id="mu-stok" placeholder="Stok Miktarı">
-          <select id="mu-birim">
-            <option value="1">Ad</option>
-            <option value="2">Kg</option>
-            <option value="3">Gr</option>
-            <option value="4">Lt</option>
-            <option value="5">Mt</option>
-            <option value="6">Pk</option>
-            <option value="7">Koli</option>
-          </select>
-        </div>
-        <input type="text" id="mu-desc" placeholder="Açıklama">
-        <button class="btn-primary" onclick="saveUrun()">Kaydet</button>
-      </div>
-    </div>
-
-    <div id="mo-sip" class="mo" onclick="closeOnOutside(event, 'mo-sip')">
-      <div class="mo-content" style="max-width: 650px;">
-        <div class="mo-header">
-          <div class="mo-title" id="ms-title">Sipariş Formu</div>
-          <div class="flex gap-2">
-            <button id="ms-pdf" class="icon-btn hidden">⬇️</button>
-            <button id="ms-del" class="icon-btn text-red hidden">🗑️</button>
-            <button class="icon-btn" onclick="closeM('mo-sip')">✕</button>
-          </div>
-        </div>
-
-        <input type="hidden" id="ms-id">
-        <div class="grid-2">
-          <select id="ms-tur">
-            <option value="2" selected>Satış</option>
-            <option value="1">Alış</option>
-          </select>
-          <input type="datetime-local" id="ms-tarih">
-        </div>
-
-        <!-- Cari Custom Dropdown -->
-        <div class="c-select" id="cs-wrap-ms-cari" style="z-index: 70;">
-          <div class="c-select-display" onclick="toggleCSelect('ms-cari', 'c')">
-            <span id="csd-ms-cari" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
-              Seçiniz...</span>
-            <span style="font-size:0.7rem; margin-left:8px;">▼</span>
-          </div>
-          <input type="hidden" id="ms-cari">
-          <div class="c-select-menu" id="csm-ms-cari">
-            <input type="text" class="c-select-search" id="css-ms-cari" placeholder="Cari Ara (İçeren)..."
-              onkeyup="renderCSelectList('ms-cari', 'c', this.value)" onclick="event.stopPropagation()">
-            <div class="c-select-list" id="csl-ms-cari"></div>
-          </div>
-        </div>
-
-        <div class="flex justify-between items-center mt-4 mb-2">
-          <h4 style="font-size:0.95rem;">Kalemler</h4>
-          <div class="flex gap-2">
-            <button class="btn-outline" style="padding:0.4rem 0.5rem; font-size:0.8rem;"
-              onclick="startCam('sip-item')">📷 Seri Okut</button>
-            <button class="btn-primary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;"
-              onclick="addSipItem()">+ Ekle</button>
-          </div>
-        </div>
-
-        <div id="ms-items" class="mb-4"></div>
-
-        <div class="flex justify-end gap-4 mb-4 text-right">
-          <div>
-            <div class="text-muted" style="font-size:0.8rem">Ara Toplam:</div>
-            <div class="text-muted" style="font-size:0.8rem">İndirim:</div>
-            <div style="font-weight:bold; font-size:1.1rem; margin-top:4px">Genel Toplam:</div>
-          </div>
-          <div>
-            <div id="ms-ara" style="font-size:0.9rem">₺0,00</div>
-            <div><input type="number" id="ms-indirim" value="0"
-                style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;"
-                onkeyup="calcSipTotal()"></div>
-            <div id="ms-genel" style="font-weight:bold; color:var(--accent); font-size:1.1rem;">₺0,00</div>
-          </div>
-        </div>
-        <textarea id="ms-not" placeholder="Sipariş Notu" rows="2"></textarea>
-        <button class="btn-primary" onclick="saveSip()">Siparişi Kaydet</button>
-      </div>
-    </div>
-
-    <div id="mo-kasa" class="mo" onclick="closeOnOutside(event, 'mo-kasa')">
-      <div class="mo-content">
-        <div class="mo-header">
-          <div class="mo-title" id="mk-title">Kasa İşlemi</div>
-          <div class="flex gap-2">
-            <button id="mk-pdf" class="icon-btn hidden">⬇️</button>
-            <button id="mk-del" class="icon-btn text-red hidden">🗑️</button>
-            <button class="icon-btn" onclick="closeM('mo-kasa')">✕</button>
-          </div>
-        </div>
-        <input type="hidden" id="mk-id">
-
-        <select id="mk-tur">
-          <option value="1" selected>Tahsilat</option>
-          <option value="2">Ödeme</option>
-        </select>
-
-        <!-- Cari Custom Dropdown -->
-        <div class="c-select" id="cs-wrap-mk-cari" style="z-index: 70;">
-          <div class="c-select-display" onclick="toggleCSelect('mk-cari', 'c')">
-            <span id="csd-mk-cari" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
-              Seçiniz...</span>
-            <span style="font-size:0.7rem; margin-left:8px;">▼</span>
-          </div>
-          <input type="hidden" id="mk-cari">
-          <div class="c-select-menu" id="csm-mk-cari">
-            <input type="text" class="c-select-search" id="css-mk-cari" placeholder="Cari Ara (İçeren)..."
-              onkeyup="renderCSelectList('mk-cari', 'c', this.value)" onclick="event.stopPropagation()">
-            <div class="c-select-list" id="csl-mk-cari"></div>
-          </div>
-        </div>
-
-        <input type="text" id="mk-tutar" placeholder="Tutar*"
-          onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';"
-          onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):'';">
-        <input type="datetime-local" id="mk-tarih">
-        <textarea id="mk-aciklama" placeholder="Açıklama" rows="2"></textarea>
-        <button class="btn-primary" onclick="saveKasa()">Kaydet</button>
-      </div>
-    </div>
-
-    <div id="mo-katalog" class="mo" onclick="closeOnOutside(event, 'mo-katalog')" style="z-index: 80;">
-      <div class="mo-content"
-        style="max-width: 800px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
-        <div class="mo-header">
-          <div class="mo-title">Katalog & Kampanya Hazırla</div>
-          <button class="icon-btn" onclick="closeM('mo-katalog')">✕</button>
-        </div>
-
-        <input type="hidden" id="kat-id">
-
-        <div style="flex:1; overflow-y:auto; padding-right:5px;">
-          <input type="text" id="kat-ad" placeholder="Kampanya / Katalog Adı*">
-          <textarea id="kat-desc" placeholder="Kampanya Açıklaması (Müşteriye Görünür)" rows="2"></textarea>
-
-          <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
-
-          <h4 style="margin-bottom:10px;">Ürün Seçimi</h4>
-          <div class="compact-filters" style="grid-template-columns: 1fr 2fr auto;">
-            <select id="filter-kat-grup" onchange="renderKatUrun()">
+      <!-- ÜRÜNLER -->
+      <div id="view-urun" class="view hidden">
+        <div class="card mb-4">
+          <div class="compact-filters">
+            <select id="filter-urun-grup">
               <option value="">Tüm Gruplar</option>
             </select>
-            <input type="text" id="filter-kat-q" placeholder="Ad, Barkod, Açıklama Ara..." onkeyup="renderKatUrun()">
-            <button class="btn-outline" onclick="selectAllKat()">Tümünü Ekle</button>
+            <input type="text" id="filter-urun-q" placeholder="Ad, Barkod, Açıklama..."
+              onkeypress="if(event.key === 'Enter') renderUrun(true)">
+            <button class="icon-btn" onclick="startCam('urun-arama')"
+              style="background:var(--bg); border-radius:0.4rem;">📷</button>
+            <button class="btn-primary" onclick="renderUrun(true)">Ara</button>
+            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);"
+              onclick="openUrunGrupModal()">Ürün Grup</button>
           </div>
+        </div>
+        <div id="urun-list"></div>
+      </div>
 
-          <div id="kat-urun-list"
-            style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:0.4rem; padding:0.5rem; margin-bottom:15px;">
+      <!-- SİPARİŞLER -->
+      <div id="view-sip" class="view hidden">
+        <div class="card mb-4">
+          <div class="compact-filters">
+            <select id="filter-sip-tur">
+              <option value="">Tüm Türler</option>
+              <option value="2">Satış</option>
+              <option value="1">Alış</option>
+            </select>
+
+            <div class="c-select" id="cs-wrap-filter-sip-cari">
+              <div class="c-select-display" onclick="toggleCSelect('filter-sip-cari', 'c')">
+                <span id="csd-filter-sip-cari" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+                  Seçiniz...</span>
+                <span style="font-size:0.7rem; margin-left:8px;">▼</span>
+              </div>
+              <input type="hidden" id="filter-sip-cari">
+              <div class="c-select-menu" id="csm-filter-sip-cari">
+                <input type="text" class="c-select-search" id="css-filter-sip-cari" placeholder="Cari Ara (İçeren)..."
+                  onkeyup="renderCSelectList('filter-sip-cari', 'c', this.value)" onclick="event.stopPropagation()">
+                <div class="c-select-list" id="csl-filter-sip-cari"></div>
+              </div>
+            </div>
+
+            <input type="text" id="filter-sip-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
+            <input type="text" id="filter-sip-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
+            <button class="btn-primary" onclick="renderSip(true)">Ara</button>
           </div>
+        </div>
+        <div id="sip-list"></div>
+      </div>
 
-          <h4 style="margin-bottom:10px;">Katalog Sepeti</h4>
-          <div id="kat-sepet-list"></div>
+      <!-- KASA -->
+      <div id="view-kasa" class="view hidden">
+        <div class="card mb-4">
+          <div class="compact-filters">
+            <select id="filter-kasa-tur">
+              <option value="">Tüm Türler</option>
+              <option value="1">Tahsilat</option>
+              <option value="2">Ödeme</option>
+            </select>
+            <select id="filter-kasa-grup">
+              <option value="">Tüm Gruplar</option>
+            </select>
+
+            <div class="c-select" id="cs-wrap-filter-kasa-cari">
+              <div class="c-select-display" onclick="toggleCSelect('filter-kasa-cari', 'c')">
+                <span id="csd-filter-kasa-cari"
+                  style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span>
+                <span style="font-size:0.7rem; margin-left:8px;">▼</span>
+              </div>
+              <input type="hidden" id="filter-kasa-cari">
+              <div class="c-select-menu" id="csm-filter-kasa-cari">
+                <input type="text" class="c-select-search" id="css-filter-kasa-cari" placeholder="Cari Ara (İçeren)..."
+                  onkeyup="renderCSelectList('filter-kasa-cari', 'c', this.value)" onclick="event.stopPropagation()">
+                <div class="c-select-list" id="csl-filter-kasa-cari"></div>
+              </div>
+            </div>
+
+            <input type="text" id="filter-kasa-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+<input type="text" id="filter-kasa-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <button class="btn-primary" onclick="renderKasa(true)">Ara</button>
+          </div>
+        </div>
+        <div id="kasa-list"></div>
+      </div>
+
+      <div id="view-ayarlar" class="view hidden">
+        <div class="mo-header" style="margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+          <div class="mo-title" style="font-size:1.3rem;">Sistem Yönetimi</div>
+          <button class="btn-outline" style="padding:0.3rem 0.8rem;" onclick="goTo('home')">Geri Dön</button>
         </div>
 
-        <div style="margin-top:15px;">
-          <button class="btn-primary" onclick="saveAndPrintKatalog()">Kaydet ve PDF İndir</button>
+        <div class="card mb-4">
+          <div class="grid-2">
+            <button class="btn-outline" style="padding: 1rem; font-size: 1rem;" onclick="exportDB()">
+              ⬇️ Cihaza İndir
+            </button>
+            <button class="btn-primary" style="padding: 1rem; font-size: 1rem;" onclick="startAutoSync()">
+              ☁️ Eşitle (Pull & Push)
+            </button>
+          </div>
         </div>
       </div>
+
+      <!-- ANALİZ -->
+      <div id="view-analiz" class="view hidden">
+        <div class="card mb-4">
+          <div class="compact-filters">
+            <select id="filter-an-grup">
+              <option value="">Tüm Gruplar</option>
+            </select>
+            <input type="text" id="an-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+<input type="text" id="an-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <button class="btn-primary" onclick="renderAnaliz(true)">Hesapla</button>
+          </div>
+        </div>
+        <div class="grid-2" id="analiz-grid"></div>
+      </div>
+
     </div>
 
-    <div id="mo-kampanya-liste" class="mo" onclick="closeOnOutside(event, 'mo-kampanya-liste')" style="z-index: 75;">
-      <div class="mo-content" style="max-width: 500px;">
-        <div class="mo-header">
-          <div class="mo-title">Geçmiş Kampanyalar</div>
-          <button class="icon-btn" onclick="closeM('mo-kampanya-liste')">✕</button>
-        </div>
-        <div id="kl-list" style="max-height: 400px; overflow-y: auto;"></div>
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="goTo('home')" id="nav-home"><span>🏠</span><span>Ana Sayfa</span></div>
+      <div class="nav-item" onclick="goTo('cari')" id="nav-cari"><span>👥</span><span>Cari</span></div>
+      <div class="nav-item" onclick="goTo('urun')" id="nav-urun"><span>📦</span><span>Ürün</span></div>
+      <div class="nav-item" onclick="goTo('sip')" id="nav-sip"><span>📋</span><span>Sipariş</span></div>
+      <div class="nav-item" onclick="goTo('kasa')" id="nav-kasa"><span>💰</span><span>Kasa</span></div>
+      <div class="nav-item" onclick="goTo('analiz')" id="nav-analiz"><span>📊</span><span>Analiz</span></div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div id="mo-confirm" class="mo" onclick="closeOnOutside(event, 'mo-confirm')">
+    <div class="mo-content">
+      <h3 id="conf-title" class="mb-4">Onay</h3>
+      <p id="conf-msg" class="mb-4 text-muted" style="font-size:0.95rem">Emin misiniz?</p>
+      <div class="flex justify-between gap-4">
+        <button class="btn-outline" onclick="closeM('mo-confirm')">İptal</button>
+        <button class="btn-danger" id="conf-yes" style="width:100%">Evet</button>
       </div>
     </div>
+  </div>
 
-    <div id="mo-cam" class="mo" style="z-index: 300;">
-      <div class="mo-content" style="padding:0; overflow:hidden; background:#000; display:flex; flex-direction:column; height:85vh; max-height:85vh;">
-        
-        <div id="scanner-container">
-          <video autoplay playsinline muted webkit-playsinline="true" x-webkit-airplay="deny" id="cam-video"></video>
+  <div id="mo-grup" class="mo" onclick="closeOnOutside(event, 'mo-grup')">
+    <div class="mo-content" style="max-width: 400px;">
+      <div class="mo-header">
+        <div class="mo-title">Cari Grupları</div>
+        <button class="icon-btn" onclick="closeM('mo-grup')">✕</button>
+      </div>
+      <div id="mg-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
+
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="mg-new-ad" placeholder="Yeni Grup Adı" style="margin-bottom:0;">
+        <button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;" onclick="addTempGrup()">+</button>
+      </div>
+
+      <button class="btn-primary" onclick="saveGrup()">Değişiklikleri Kaydet</button>
+    </div>
+  </div>
+
+  <div id="mo-cari" class="mo" onclick="closeOnOutside(event, 'mo-cari')">
+    <div class="mo-content">
+      <div class="mo-header">
+        <div class="mo-title" id="mc-title">Yeni Cari</div>
+        <div class="flex gap-2">
+          <button id="mc-ekstre" class="icon-btn hidden">⬇️</button>
+          <button id="mc-del" class="icon-btn text-red hidden">🗑️</button>
+          <button class="icon-btn" onclick="closeM('mo-cari')">✕</button>
         </div>
-        
-        <div class="p-4" style="background:var(--card); flex-shrink:0; z-index:10; border-top:1px solid var(--border); box-shadow: 0 -4px 10px rgba(0,0,0,0.3);">
-          <p class="text-center mb-3 text-muted" id="cam-info" style="font-size:0.9rem; font-weight:bold;">Barkodu kameraya okutun</p>
-          <button class="btn-danger w-full" style="padding: 1rem; font-size: 1.1rem; border-radius: 0.5rem;" onclick="stopCam()">Kamerayı Kapat</button>
+      </div>
+      <input type="hidden" id="mc-id">
+      <input type="text" id="mc-ad" placeholder="Firma / Şahıs Adı*">
+      <select id="mc-grup">
+        <option value="">Grup Yok</option>
+      </select>
+      <input type="text" id="mc-tel" placeholder="Telefon">
+      <input type="text" id="mc-vkn" placeholder="VKN / TCKN">
+      <textarea id="mc-adres" placeholder="Adres" rows="2"></textarea>
+      <button class="btn-primary" onclick="saveCari()">Kaydet</button>
+    </div>
+  </div>
+
+  <div id="mo-urun-grup" class="mo" onclick="closeOnOutside(event, 'mo-urun-grup')">
+    <div class="mo-content" style="max-width: 400px;">
+      <div class="mo-header">
+        <div class="mo-title">Ürün Grupları</div>
+        <button class="icon-btn" onclick="closeM('mo-urun-grup')">✕</button>
+      </div>
+      <div id="mug-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="mug-new-ad" placeholder="Yeni Grup Adı" style="margin-bottom:0;">
+        <button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;" onclick="addTempUrunGrup()">+</button>
+      </div>
+      <button class="btn-primary" onclick="saveUrunGrup()">Değişiklikleri Kaydet</button>
+    </div>
+  </div>
+
+  <div id="mo-urun" class="mo" onclick="closeOnOutside(event, 'mo-urun')">
+    <div class="mo-content">
+      <div class="mo-header">
+        <div class="mo-title">Ürün Detayı</div>
+        <div class="flex gap-2">
+          <button id="mu-del" class="icon-btn text-red hidden">🗑️</button>
+          <button class="icon-btn" onclick="closeM('mo-urun')">✕</button>
         </div>
-        sads
+      </div>
+      <input type="hidden" id="mu-id">
+      <input type="text" id="mu-ad" placeholder="Ürün Adı*">
+
+      <select id="mu-grup">
+        <option value="">Grup Yok</option>
+      </select>
+
+      <div class="flex gap-2">
+        <input type="text" id="mu-barkod" placeholder="Barkod">
+        <button class="icon-btn" onclick="startCam('urun-form')"
+          style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
+      </div>
+
+      <div style="margin-bottom:0.75rem; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
+        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün Fotoğrafı
+          (Opsiyonel)</label>
+        <input type="file" id="mu-foto-input" accept="image/*" onchange="previewUrunFoto(event)"
+          style="padding:0.2rem; font-size:0.8rem; margin:0;">
+        <img id="mu-foto-preview"
+          style="width:100px; height:100px; object-fit:cover; display:none; margin-top:8px; border-radius:0.4rem; border:1px solid var(--border);">
+      </div>
+
+      <div class="grid-2">
+        <input type="text" id="mu-alis" placeholder="Alış Fiyatı"
+          onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
+          onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):'';">
+        <input type="text" id="mu-satis" placeholder="Satış Fiyatı"
+          onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';"
+          onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):'';">
+      </div>
+      <div class="grid-2">
+        <input type="number" id="mu-stok" placeholder="Stok Miktarı">
+        <select id="mu-birim">
+          <option value="1">Ad</option>
+          <option value="2">Kg</option>
+          <option value="3">Gr</option>
+          <option value="4">Lt</option>
+          <option value="5">Mt</option>
+          <option value="6">Pk</option>
+          <option value="7">Koli</option>
+        </select>
+      </div>
+      <input type="text" id="mu-desc" placeholder="Açıklama">
+      <button class="btn-primary" onclick="saveUrun()">Kaydet</button>
+    </div>
+  </div>
+
+  <div id="mo-sip" class="mo" onclick="closeOnOutside(event, 'mo-sip')">
+    <div class="mo-content" style="max-width: 650px;">
+      <div class="mo-header">
+        <div class="mo-title" id="ms-title">Sipariş Formu</div>
+        <div class="flex gap-2">
+          <button id="ms-pdf" class="icon-btn hidden">⬇️</button>
+          <button id="ms-del" class="icon-btn text-red hidden">🗑️</button>
+          <button class="icon-btn" onclick="closeM('mo-sip')">✕</button>
+        </div>
+      </div>
+
+      <input type="hidden" id="ms-id">
+      <div class="grid-2">
+        <select id="ms-tur">
+          <option value="2" selected>Satış</option>
+          <option value="1">Alış</option>
+        </select>
+        <input type="datetime-local" id="ms-tarih">
+      </div>
+
+      <!-- Cari Custom Dropdown -->
+      <div class="c-select" id="cs-wrap-ms-cari" style="z-index: 70;">
+        <div class="c-select-display" onclick="toggleCSelect('ms-cari', 'c')">
+          <span id="csd-ms-cari" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+            Seçiniz...</span>
+          <span style="font-size:0.7rem; margin-left:8px;">▼</span>
+        </div>
+        <input type="hidden" id="ms-cari">
+        <div class="c-select-menu" id="csm-ms-cari">
+          <input type="text" class="c-select-search" id="css-ms-cari" placeholder="Cari Ara (İçeren)..."
+            onkeyup="renderCSelectList('ms-cari', 'c', this.value)" onclick="event.stopPropagation()">
+          <div class="c-select-list" id="csl-ms-cari"></div>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center mt-4 mb-2">
+        <h4 style="font-size:0.95rem;">Kalemler</h4>
+        <div class="flex gap-2">
+          <button class="btn-outline" style="padding:0.4rem 0.5rem; font-size:0.8rem;" onclick="startCam('sip-item')">📷
+            Seri Okut</button>
+          <button class="btn-primary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;"
+            onclick="addSipItem()">+ Ekle</button>
+        </div>
+      </div>
+
+      <div id="ms-items" class="mb-4"></div>
+
+      <div class="flex justify-end gap-4 mb-4 text-right">
+        <div>
+          <div class="text-muted" style="font-size:0.8rem">Ara Toplam:</div>
+          <div class="text-muted" style="font-size:0.8rem">İndirim:</div>
+          <div style="font-weight:bold; font-size:1.1rem; margin-top:4px">Genel Toplam:</div>
+        </div>
+        <div>
+          <div id="ms-ara" style="font-size:0.9rem">₺0,00</div>
+          <div><input type="number" id="ms-indirim" value="0"
+              style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;"
+              onkeyup="calcSipTotal()"></div>
+          <div id="ms-genel" style="font-weight:bold; color:var(--accent); font-size:1.1rem;">₺0,00</div>
+        </div>
+      </div>
+      <textarea id="ms-not" placeholder="Sipariş Notu" rows="2"></textarea>
+      <button class="btn-primary" onclick="saveSip()">Siparişi Kaydet</button>
+    </div>
+  </div>
+
+  <div id="mo-kasa" class="mo" onclick="closeOnOutside(event, 'mo-kasa')">
+    <div class="mo-content">
+      <div class="mo-header">
+        <div class="mo-title" id="mk-title">Kasa İşlemi</div>
+        <div class="flex gap-2">
+          <button id="mk-pdf" class="icon-btn hidden">⬇️</button>
+          <button id="mk-del" class="icon-btn text-red hidden">🗑️</button>
+          <button class="icon-btn" onclick="closeM('mo-kasa')">✕</button>
+        </div>
+      </div>
+      <input type="hidden" id="mk-id">
+
+      <select id="mk-tur">
+        <option value="1" selected>Tahsilat</option>
+        <option value="2">Ödeme</option>
+      </select>
+
+      <!-- Cari Custom Dropdown -->
+      <div class="c-select" id="cs-wrap-mk-cari" style="z-index: 70;">
+        <div class="c-select-display" onclick="toggleCSelect('mk-cari', 'c')">
+          <span id="csd-mk-cari" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+            Seçiniz...</span>
+          <span style="font-size:0.7rem; margin-left:8px;">▼</span>
+        </div>
+        <input type="hidden" id="mk-cari">
+        <div class="c-select-menu" id="csm-mk-cari">
+          <input type="text" class="c-select-search" id="css-mk-cari" placeholder="Cari Ara (İçeren)..."
+            onkeyup="renderCSelectList('mk-cari', 'c', this.value)" onclick="event.stopPropagation()">
+          <div class="c-select-list" id="csl-mk-cari"></div>
+        </div>
+      </div>
+
+      <input type="text" id="mk-tutar" placeholder="Tutar*"
+        onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';"
+        onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):'';">
+      <input type="datetime-local" id="mk-tarih">
+      <textarea id="mk-aciklama" placeholder="Açıklama" rows="2"></textarea>
+      <button class="btn-primary" onclick="saveKasa()">Kaydet</button>
+    </div>
+  </div>
+
+  <div id="mo-katalog" class="mo" onclick="closeOnOutside(event, 'mo-katalog')" style="z-index: 80;">
+    <div class="mo-content" style="max-width: 800px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
+      <div class="mo-header">
+        <div class="mo-title">Katalog & Kampanya Hazırla</div>
+        <button class="icon-btn" onclick="closeM('mo-katalog')">✕</button>
+      </div>
+
+      <input type="hidden" id="kat-id">
+
+      <div style="flex:1; overflow-y:auto; padding-right:5px;">
+        <input type="text" id="kat-ad" placeholder="Kampanya / Katalog Adı*">
+        <textarea id="kat-desc" placeholder="Kampanya Açıklaması (Müşteriye Görünür)" rows="2"></textarea>
+
+        <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
+
+        <h4 style="margin-bottom:10px;">Ürün Seçimi</h4>
+        <div class="compact-filters" style="grid-template-columns: 1fr 2fr auto;">
+          <select id="filter-kat-grup" onchange="renderKatUrun()">
+            <option value="">Tüm Gruplar</option>
+          </select>
+          <input type="text" id="filter-kat-q" placeholder="Ad, Barkod, Açıklama Ara..." onkeyup="renderKatUrun()">
+          <button class="btn-outline" onclick="selectAllKat()">Tümünü Ekle</button>
+        </div>
+
+        <div id="kat-urun-list"
+          style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:0.4rem; padding:0.5rem; margin-bottom:15px;">
+        </div>
+
+        <h4 style="margin-bottom:10px;">Katalog Sepeti</h4>
+        <div id="kat-sepet-list"></div>
+      </div>
+
+      <div style="margin-top:15px;">
+        <button class="btn-primary" onclick="saveAndPrintKatalog()">Kaydet ve PDF İndir</button>
       </div>
     </div>
+  </div>
 
-    <script src="script.js"></script>
+  <div id="mo-kampanya-liste" class="mo" onclick="closeOnOutside(event, 'mo-kampanya-liste')" style="z-index: 75;">
+    <div class="mo-content" style="max-width: 500px;">
+      <div class="mo-header">
+        <div class="mo-title">Geçmiş Kampanyalar</div>
+        <button class="icon-btn" onclick="closeM('mo-kampanya-liste')">✕</button>
+      </div>
+      <div id="kl-list" style="max-height: 400px; overflow-y: auto;"></div>
+    </div>
+  </div>
+
+  <div id="mo-cam" class="mo" style="z-index: 300;">
+    <div class="mo-content"
+      style="padding:0; overflow:hidden; background:#000; display:flex; flex-direction:column; height:85vh; max-height:85vh;">
+
+      <div id="scanner-container">
+        <video autoplay playsinline muted webkit-playsinline="true" x-webkit-airplay="deny" id="cam-video"></video>
+      </div>
+
+      <div class="p-4"
+        style="background:var(--card); flex-shrink:0; z-index:10; border-top:1px solid var(--border); box-shadow: 0 -4px 10px rgba(0,0,0,0.3);">
+        <p class="text-center mb-3 text-muted" id="cam-info" style="font-size:0.9rem; font-weight:bold;">Barkodu
+          kameraya okutun</p>
+        <button class="btn-danger w-full" style="padding: 1rem; font-size: 1.1rem; border-radius: 0.5rem;"
+          onclick="stopCam()">Kamerayı Kapat</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 
 </body>
 
