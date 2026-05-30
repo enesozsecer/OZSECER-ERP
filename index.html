@@ -597,9 +597,15 @@
     <div class="mo-content"
       style="padding:0; overflow:hidden; background:#000; display:flex; flex-direction:column; height:85vh; max-height:85vh;">
 
-      <div id="scanner-container">
-        <video autoplay playsinline muted webkit-playsinline="true" x-webkit-airplay="deny" id="cam-video"></video>
-      </div>
+      <div id="scanner-container" style="position:relative; width:100%; height:60vh; transition: background 0.2s;">
+          <video autoplay playsinline muted webkit-playsinline="true" x-webkit-airplay="deny" style="display:none" id="cam-video"></video>
+          
+          <div id="cam-feedback" class="hidden" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:50; background:rgba(0,0,0,0.85); border-radius:1rem; padding:2rem 1rem; text-align:center; color:white; width:80%; max-width:300px; backdrop-filter:blur(4px); box-shadow:0 10px 25px rgba(0,0,0,0.5); transition: opacity 0.2s;">
+            <div id="cam-feedback-icon" style="font-size:4rem; margin-bottom:0.5rem; line-height:1;">✅</div>
+            <div id="cam-feedback-title" style="font-size:1.1rem; font-weight:bold; margin-bottom:0.5rem; word-wrap: break-word;">Ürün Adı</div>
+            <div id="cam-feedback-count" style="font-size:2rem; font-weight:900; color:var(--green);">1 Adet</div>
+          </div>
+          </div>
 
       <div class="p-4"
         style="background:var(--card); flex-shrink:0; z-index:10; border-top:1px solid var(--border); box-shadow: 0 -4px 10px rgba(0,0,0,0.3);">

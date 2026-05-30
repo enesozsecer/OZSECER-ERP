@@ -1357,7 +1357,8 @@ function startCam(target) {
 
     Quagga.onDetected(function (result) {
       const now = Date.now();
-      if (now - lastScanTime < 1500) return;
+      // Peş peşe çift okumayı engellemek için 1.5 saniye bekle
+      if (now - lastScanTime < 1500) return; 
 
       const code = result.codeResult.code;
 
@@ -1367,26 +1368,53 @@ function startCam(target) {
         stopCam(); $('mu-barkod').value = code;
       } else if (camTarget === 'sip-item') {
         lastScanTime = now;
+        
+        // Ürünü aktif (silinmemiş) veriler arasından bul
         const u = DB.u.find(x => !x.silindi && x.barkod === code);
+        
         if (u) {
-          const camBg = $('scanner-container').style.background;
-          $('scanner-container').style.background = 'rgba(16, 185, 129, 0.6)';
-          setTimeout(() => { $('scanner-container').style.background = camBg; }, 250);
-
-          const exIdx = tempSipItems.findIndex(x => x.urunId === u.id);
-          if (exIdx > -1) {
-            tempSipItems[exIdx].miktar++;
-            tempSipItems[exIdx].toplam = tempSipItems[exIdx].miktar * tempSipItems[exIdx].fiyat; // YENİ
+          // ÜRÜN BULUNDU: Sipariş sepetinde bu üründen daha önce eklenmiş mi?
+          const exItem = tempSipItems.find(x => !x.silindi && x.urunId === u.id);
+          let mevcutMiktar = 0;
+          
+          if (exItem) {
+            // Ürün sepette zaten var, sadece miktarını artır
+            exItem.miktar++;
+            exItem.toplam = exItem.miktar * exItem.fiyat;
+            exItem.guncellenmeTarihi = tsNow();
+            mevcutMiktar = exItem.miktar;
           } else {
+            // Ürün sepette yok, Drive senkronizasyonu için eşsiz bir ID ve Tarih ile Ekle!
             const isAlis = Number($('ms-tur').value) === ISLEM.ALIS;
-            const fiy = isAlis ? u.alisFiyat : u.satisFiyat;
-            tempSipItems.push({ urunId: u.id, ad: u.ad, fiyat: fiy, miktar: 1, toplam: fiy, birim: u.birim }); // YENİ
+            const fiy = isAlis ? (u.alisFiyat || 0) : (u.satisFiyat || 0);
+            const sipId = $('ms-id').value || null;
+            
+            tempSipItems.push({
+              id: guid(),
+              siparisId: sipId,
+              urunId: u.id, 
+              ad: u.ad, 
+              fiyat: fiy, 
+              miktar: 1, 
+              toplam: fiy, 
+              birim: u.birim || 1,
+              olusturmaTarihi: tsNow(),
+              guncellenmeTarihi: tsNow(),
+              silindi: false
+            });
+            mevcutMiktar = 1;
           }
-          renderSipItems();
-          $('cam-info').innerText = u.ad + " eklendi!";
+          
+          renderSipItems(); // Arka plandaki listeyi güncelle
+          
+          // EKRANIN ORTASINDA BÜYÜK BAŞARILI (✅) BİLDİRİMİNİ GÖSTER
+          showCamFeedback(true, u.ad, `Toplam: ${mevcutMiktar} ${getBirimAd(u.birim)}`);
+          $('cam-info').innerText = `${u.ad} eklendi (${mevcutMiktar} adet)`;
+          
         } else {
-          showToast("Ürün bulunamadı: " + code);
-          $('cam-info').innerText = "Bulunamadı: " + code;
+          // ÜRÜN BULUNAMADI: EKRANIN ORTASINDA KIRMIZI ÇARPI (❌) GÖSTER
+          showCamFeedback(false, "Sistemde Bulunamadı!\nBarkod: " + code);
+          $('cam-info').innerText = "Kayıtsız Barkod: " + code;
         }
       }
     });
@@ -1399,7 +1427,26 @@ function stopCam() {
   closeM('mo-cam');
 }
 
+// --- BARKOD GERİ BİLDİRİM EKRANI ---
+    function showCamFeedback(isSuccess, title, countMsg = "") {
+      const fb = $('cam-feedback');
+      if(!fb) return;
+      
+      $('cam-feedback-icon').innerText = isSuccess ? '✅' : '❌';
+      $('cam-feedback-title').innerText = title;
+      
+      const c = $('cam-feedback-count');
+      c.innerText = countMsg;
+      c.style.display = countMsg ? 'block' : 'none';
+      c.style.color = isSuccess ? 'var(--green)' : 'var(--red)';
 
+      fb.classList.remove('hidden');
+      
+      // 1.2 saniye ekranda kalıp otomatik kaybolur
+      setTimeout(() => {
+        fb.classList.add('hidden');
+      }, 1200);
+    }
 
 // --- PDF MOTORU ---
 // --- PDF MOTORU GÜNCELLENDİ ---
