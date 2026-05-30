@@ -1373,18 +1373,15 @@ function startCam(target) {
         const u = DB.u.find(x => !x.silindi && x.barkod === code);
         
         if (u) {
-          // ÜRÜN BULUNDU: Sipariş sepetinde bu üründen daha önce eklenmiş mi?
           const exItem = tempSipItems.find(x => !x.silindi && x.urunId === u.id);
           let mevcutMiktar = 0;
           
           if (exItem) {
-            // Ürün sepette zaten var, sadece miktarını artır
             exItem.miktar++;
             exItem.toplam = exItem.miktar * exItem.fiyat;
             exItem.guncellenmeTarihi = tsNow();
             mevcutMiktar = exItem.miktar;
           } else {
-            // Ürün sepette yok, Drive senkronizasyonu için eşsiz bir ID ve Tarih ile Ekle!
             const isAlis = Number($('ms-tur').value) === ISLEM.ALIS;
             const fiy = isAlis ? (u.alisFiyat || 0) : (u.satisFiyat || 0);
             const sipId = $('ms-id').value || null;
@@ -1405,14 +1402,14 @@ function startCam(target) {
             mevcutMiktar = 1;
           }
           
-          renderSipItems(); // Arka plandaki listeyi güncelle
+          renderSipItems(); 
           
-          // EKRANIN ORTASINDA BÜYÜK BAŞARILI (✅) BİLDİRİMİNİ GÖSTER
+          // BAŞARILI BİLDİRİMİ EKRANA BAS (Yeni Süper Katmanı Çağır)
           showCamFeedback(true, u.ad, `Toplam: ${mevcutMiktar} ${getBirimAd(u.birim)}`);
           $('cam-info').innerText = `${u.ad} eklendi (${mevcutMiktar} adet)`;
           
         } else {
-          // ÜRÜN BULUNAMADI: EKRANIN ORTASINDA KIRMIZI ÇARPI (❌) GÖSTER
+          // BAŞARISIZ BİLDİRİMİ EKRANA BAS (Yeni Süper Katmanı Çağır)
           showCamFeedback(false, "Sistemde Bulunamadı!\nBarkod: " + code);
           $('cam-info').innerText = "Kayıtsız Barkod: " + code;
         }
@@ -1427,25 +1424,42 @@ function stopCam() {
   closeM('mo-cam');
 }
 
-// --- BARKOD GERİ BİLDİRİM EKRANI ---
+// --- BARKOD GERİ BİLDİRİM EKRANI (KAMERA ÜSTÜ SÜPER KATMAN) ---
     function showCamFeedback(isSuccess, title, countMsg = "") {
-      const fb = $('cam-feedback');
-      if(!fb) return;
+      let fb = $('cam-feedback-pro');
       
-      $('cam-feedback-icon').innerText = isSuccess ? '✅' : '❌';
-      $('cam-feedback-title').innerText = title;
+      // Kutu yoksa JavaScript ile en üst katmana (z-index: 999999) zorla oluştur!
+      if (!fb) {
+        fb = document.createElement('div');
+        fb.id = 'cam-feedback-pro';
+        fb.className = 'hidden';
+        fb.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:999999; background:rgba(0,0,0,0.85); border-radius:1rem; padding:2rem 1rem; text-align:center; color:white; width:80%; max-width:300px; backdrop-filter:blur(4px); box-shadow:0 10px 25px rgba(0,0,0,0.5); transition: opacity 0.2s; pointer-events:none;';
+        
+        fb.innerHTML = `
+          <div id="cam-feedback-pro-icon" style="font-size:4rem; margin-bottom:0.5rem; line-height:1;"></div>
+          <div id="cam-feedback-pro-title" style="font-size:1.1rem; font-weight:bold; margin-bottom:0.5rem; word-wrap: break-word;"></div>
+          <div id="cam-feedback-pro-count" style="font-size:2rem; font-weight:900;"></div>
+        `;
+        document.body.appendChild(fb);
+      }
       
-      const c = $('cam-feedback-count');
+      $('cam-feedback-pro-icon').innerText = isSuccess ? '✅' : '❌';
+      $('cam-feedback-pro-title').innerText = title;
+      
+      const c = $('cam-feedback-pro-count');
       c.innerText = countMsg;
       c.style.display = countMsg ? 'block' : 'none';
       c.style.color = isSuccess ? 'var(--green)' : 'var(--red)';
 
       fb.classList.remove('hidden');
       
-      // 1.2 saniye ekranda kalıp otomatik kaybolur
-      setTimeout(() => {
+      // Peş peşe okutmalarda yazının titrememesi için eski sayacı temizle
+      if(window.camFbTimer) clearTimeout(window.camFbTimer);
+      
+      // 1.5 Saniye sonra ekrandan kaybolsun
+      window.camFbTimer = setTimeout(() => {
         fb.classList.add('hidden');
-      }, 1200);
+      }, 1500);
     }
 
 // --- PDF MOTORU ---
@@ -1956,135 +1970,135 @@ function mergeDatabases(remoteDB) {
 }
 
 // --- SIFIRLAMA VE GÜVENLİK DOĞRULAMASI MANTIĞI ---
-    let currentResetTarget = '';
+let currentResetTarget = '';
 
-    function openResetAuthModal(target) {
-      currentResetTarget = target;
-      const uInp = $('reset-user');
-      const pInp = $('reset-pass');
-      
-      uInp.value = '';
-      pInp.value = '';
-      uInp.setAttribute('readonly', 'readonly');
-      pInp.setAttribute('readonly', 'readonly');
-      
-      openM('mo-reset-auth');
+function openResetAuthModal(target) {
+  currentResetTarget = target;
+  const uInp = $('reset-user');
+  const pInp = $('reset-pass');
+
+  uInp.value = '';
+  pInp.value = '';
+  uInp.setAttribute('readonly', 'readonly');
+  pInp.setAttribute('readonly', 'readonly');
+
+  openM('mo-reset-auth');
+}
+
+// 1. ZİNCİR: DRIVE SIFIRLAMAK İÇİN ÖNCE GOOGLE CLIENT ID İSTE
+function openDriveResetClientModal() {
+  const savedId = localStorage.getItem('ozsecer_client_id') || '';
+  $('reset-client-id-input').value = savedId;
+  openM('mo-reset-client');
+}
+
+function verifyClientForReset() {
+  const cId = $('reset-client-id-input').value.trim();
+  if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
+
+  closeM('mo-reset-client');
+  showSpinner("Google kimliği doğrulanıyor...");
+
+  try {
+    if (cId !== lastUsedClientId) {
+      driveAccessToken = null;
+      lastUsedClientId = cId;
     }
 
-    // 1. ZİNCİR: DRIVE SIFIRLAMAK İÇİN ÖNCE GOOGLE CLIENT ID İSTE
-    function openDriveResetClientModal() {
-      const savedId = localStorage.getItem('ozsecer_client_id') || '';
-      $('reset-client-id-input').value = savedId;
-      openM('mo-reset-client');
-    }
-
-    function verifyClientForReset() {
-      const cId = $('reset-client-id-input').value.trim();
-      if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
-      
-      closeM('mo-reset-client');
-      showSpinner("Google kimliği doğrulanıyor...");
-
-      try {
-        if (cId !== lastUsedClientId) {
-          driveAccessToken = null;
-          lastUsedClientId = cId;
-        }
-
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: cId,
-          scope: 'https://www.googleapis.com/auth/drive.file',
-          callback: async (response) => {
-            if (response.error) {
-              hideSpinner();
-              driveAccessToken = null; 
-              return showCustomAlert("İşlem İptal Edildi!\nGoogle kimliğinizi onaylamadınız.", false);
-            }
-            driveAccessToken = response.access_token;
-            hideSpinner();
-            
-            // GOOGLE ONAYLANDI! ŞİMDİ 2. ZİNCİRE GEÇ (Sistem Şifresini Sor)
-            openResetAuthModal('drive'); 
-          },
-          error_callback: (err) => {
-            hideSpinner();
-            driveAccessToken = null;
-            showCustomAlert("Google bağlantısı kurulamadı!\nClient ID'niz hatalı olabilir.", false);
-          }
-        });
-
-        // Eğer elimizde hazır token yoksa Google'dan iste
-        if (!driveAccessToken) {
-          tokenClient.requestAccessToken({prompt: 'select_account consent'}); 
-        } else {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: cId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: async (response) => {
+        if (response.error) {
           hideSpinner();
-          // Token zaten varsa ve ID doğruysa direkt 2. zincire geç
-          openResetAuthModal('drive');
+          driveAccessToken = null;
+          return showCustomAlert("İşlem İptal Edildi!\nGoogle kimliğinizi onaylamadınız.", false);
         }
-      } catch (err) {
-        hideSpinner(); 
-        showCustomAlert("Hata oluştu:\n" + err.message, false);
-      }
-    }
-
-    // 2. ZİNCİR: KENDİ KULLANICI ADI VE ŞİFREMİZİN DOĞRULANMASI
-    function confirmResetAuth() {
-      const u = $('reset-user').value.trim();
-      const p = $('reset-pass').value.trim();
-      
-      if (u !== 'oztoptantedarik' || p !== 'Oztoptan6595.') {
-        return showToast('❌ Hatalı kullanıcı adı veya şifre!');
-      }
-      
-      closeM('mo-reset-auth'); 
-      
-      if (currentResetTarget === 'local') {
-        if(confirm("⚠️ DİKKAT!\nCihazınızdaki (tarayıcıdaki) TÜM VERİLER silinecek.\nBu işlemi onaylıyor musunuz?")) {
-           DB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] };
-           saveDB();
-           renderHome();
-           showCustomAlert("Cihazınızdaki tüm veriler başarıyla sıfırlandı!", true);
-        }
-      } else if (currentResetTarget === 'drive') {
-        // İki güvenlik kapısından da başarıyla geçti. Şimdi son onay ve silme!
-        if(confirm("🚨 KRİTİK İŞLEM!\nGoogle Drive üzerindeki TÜM YEDEK VERİLERİNİZ kalıcı olarak silinecek.\nEmin misiniz?")) {
-           executeDriveReset();
-        }
-      }
-    }
-
-    // 3. ZİNCİR: ASIL SİLME İŞLEMİ (GOOLGE DRIVE API ÇAĞRISI)
-    async function executeDriveReset() {
-      showSpinner("Bulut üzerindeki veritabanı sıfırlanıyor...");
-      try {
-        const emptyDB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] };
-        const pushData = JSON.stringify(emptyDB);
-        
-        const query = encodeURIComponent(`'${DRIVE_FOLDER_ID}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
-        const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
-          headers: { 'Authorization': `Bearer ${driveAccessToken}` }
-        });
-        const searchData = await searchRes.json();
-
-        if (searchData.files && searchData.files.length > 0) {
-          const fileId = searchData.files[0].id;
-          const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
-            method: 'PATCH',
-            headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' },
-            body: pushData
-          });
-          if(!patchRes.ok) throw new Error("Google Drive veritabanı ezilemedi.");
-        } else {
-          throw new Error("Sıfırlanacak bir bulut yedeği bulunamadı.");
-        }
-
+        driveAccessToken = response.access_token;
         hideSpinner();
-        showCustomAlert("Drive üzerindeki tüm yedekleriniz başarıyla sıfırlandı!", true);
-      } catch(err) {
+
+        // GOOGLE ONAYLANDI! ŞİMDİ 2. ZİNCİRE GEÇ (Sistem Şifresini Sor)
+        openResetAuthModal('drive');
+      },
+      error_callback: (err) => {
         hideSpinner();
-        showCustomAlert(err.message, false);
+        driveAccessToken = null;
+        showCustomAlert("Google bağlantısı kurulamadı!\nClient ID'niz hatalı olabilir.", false);
       }
+    });
+
+    // Eğer elimizde hazır token yoksa Google'dan iste
+    if (!driveAccessToken) {
+      tokenClient.requestAccessToken({ prompt: 'select_account consent' });
+    } else {
+      hideSpinner();
+      // Token zaten varsa ve ID doğruysa direkt 2. zincire geç
+      openResetAuthModal('drive');
     }
+  } catch (err) {
+    hideSpinner();
+    showCustomAlert("Hata oluştu:\n" + err.message, false);
+  }
+}
+
+// 2. ZİNCİR: KENDİ KULLANICI ADI VE ŞİFREMİZİN DOĞRULANMASI
+function confirmResetAuth() {
+  const u = $('reset-user').value.trim();
+  const p = $('reset-pass').value.trim();
+
+  if (u !== 'oztoptantedarik' || p !== 'Oztoptan6595.') {
+    return showToast('❌ Hatalı kullanıcı adı veya şifre!');
+  }
+
+  closeM('mo-reset-auth');
+
+  if (currentResetTarget === 'local') {
+    if (confirm("⚠️ DİKKAT!\nCihazınızdaki (tarayıcıdaki) TÜM VERİLER silinecek.\nBu işlemi onaylıyor musunuz?")) {
+      DB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] };
+      saveDB();
+      renderHome();
+      showCustomAlert("Cihazınızdaki tüm veriler başarıyla sıfırlandı!", true);
+    }
+  } else if (currentResetTarget === 'drive') {
+    // İki güvenlik kapısından da başarıyla geçti. Şimdi son onay ve silme!
+    if (confirm("🚨 KRİTİK İŞLEM!\nGoogle Drive üzerindeki TÜM YEDEK VERİLERİNİZ kalıcı olarak silinecek.\nEmin misiniz?")) {
+      executeDriveReset();
+    }
+  }
+}
+
+// 3. ZİNCİR: ASIL SİLME İŞLEMİ (GOOLGE DRIVE API ÇAĞRISI)
+async function executeDriveReset() {
+  showSpinner("Bulut üzerindeki veritabanı sıfırlanıyor...");
+  try {
+    const emptyDB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] };
+    const pushData = JSON.stringify(emptyDB);
+
+    const query = encodeURIComponent(`'${DRIVE_FOLDER_ID}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
+    const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
+      headers: { 'Authorization': `Bearer ${driveAccessToken}` }
+    });
+    const searchData = await searchRes.json();
+
+    if (searchData.files && searchData.files.length > 0) {
+      const fileId = searchData.files[0].id;
+      const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' },
+        body: pushData
+      });
+      if (!patchRes.ok) throw new Error("Google Drive veritabanı ezilemedi.");
+    } else {
+      throw new Error("Sıfırlanacak bir bulut yedeği bulunamadı.");
+    }
+
+    hideSpinner();
+    showCustomAlert("Drive üzerindeki tüm yedekleriniz başarıyla sıfırlandı!", true);
+  } catch (err) {
+    hideSpinner();
+    showCustomAlert(err.message, false);
+  }
+}
 
 // --- UI GÖRSEL YARDIMCILARI (SPINNER & ALERT) ---
 function showSpinner(msg) {
