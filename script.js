@@ -670,7 +670,7 @@ function renderSip(force = false) {
 function renderSipItems() {
   const p = $('ms-items');
   p.innerHTML = '';
-  
+
   // Sadece silinmemiş aktif kalemleri filtreleyip gösteriyoruz
   const visibleItems = tempSipItems.filter(it => !it.silindi);
 
@@ -847,7 +847,7 @@ function editSip(id) {
   $('ms-id').value = s.id; $('ms-tur').value = s.tur; oldSipTur = Number(s.tur);
   $('ms-tarih').value = s.tarih; $('ms-not').value = s.not || ''; $('ms-indirim').value = s.indirim || 0;
   $('ms-cari').value = s.cariId; $('csd-ms-cari').innerText = c ? c.ad : 'Bilinmeyen Cari';
-  
+
   // Eksik property'leri geriye dönük tamamlayarak yükleme
   tempSipItems = JSON.parse(JSON.stringify(s.items || [])).map(it => {
     if (!it.id) it.id = guid();
@@ -858,7 +858,7 @@ function editSip(id) {
     it.toplam = it.toplam !== undefined ? it.toplam : ((it.fiyat || 0) * (it.miktar || 0));
     return it;
   });
-  
+
   $('ms-del').classList.remove('hidden'); $('ms-pdf').classList.remove('hidden');
   renderSipItems(); openM('mo-sip');
 }
@@ -871,7 +871,7 @@ function saveSip() {
   let id = $('ms-id').value;
   const tur = Number($('ms-tur').value);
   const isAlis = tur === ISLEM.ALIS;
-  
+
   if (!id) id = guid(); // Sipariş ID'sini önceden üretip kalemlere dağıtacağız
 
   const finalItems = tempSipItems.map(it => ({
@@ -898,7 +898,7 @@ function saveSip() {
     data.no = `SIP-${pad(DB.s.length + 1)}`;
     DB.s.push({ id, ...data, olusturmaTarihi: tsNow(), olusturan: getCihazAdi(), silindi: false });
   }
-  
+
   // Sadece silinmemiş yeni aktif kalemlerin stok etkisini sisteme işle
   data.items.forEach(it => { if (it.urunId && !it.silindi) updateStok(it.urunId, it.miktar, isAlis, true); });
 
@@ -1126,7 +1126,7 @@ function renderKatUrun() {
   list.innerHTML = '';
 
   let res = DB.u.filter(x => !x.silindi);
-  
+
   if (fGrup) res = res.filter(u => String(u.grupId) === String(fGrup));
   if (q) res = res.filter(u => (u.ad + " " + (u.barkod || "") + " " + (u.desc || "")).toLowerCase().includes(q));
 
@@ -1165,7 +1165,7 @@ function selectAllKat() {
   const fGrup = $('filter-kat-grup').value;
 
   let res = DB.u.filter(x => !x.silindi);
-  
+
   if (fGrup) res = res.filter(u => String(u.grupId) === String(fGrup));
   if (q) res = res.filter(u => (u.ad + " " + (u.barkod || "") + " " + (u.desc || "")).toLowerCase().includes(q));
 
@@ -1469,29 +1469,29 @@ function stopCam() {
 }
 
 // --- BARKOD GERİ BİLDİRİM EKRANI (KESİN GÖZÜKEN SÜRÜM) ---
-    function showCamFeedback(isSuccess, title, countMsg = "") {
-      const fb = $('cam-feedback-pro');
-      if (!fb) return;
-      
-      $('cam-feedback-pro-icon').innerText = isSuccess ? '✅' : '❌';
-      $('cam-feedback-pro-title').innerText = title;
-      
-      const c = $('cam-feedback-pro-count');
-      c.innerText = countMsg;
-      c.style.display = countMsg ? 'block' : 'none';
-      c.style.color = isSuccess ? 'var(--green)' : 'var(--red)';
+function showCamFeedback(isSuccess, title, countMsg = "") {
+  const fb = $('cam-feedback-pro');
+  if (!fb) return;
 
-      // Kutuyu CSS ve kütüphane kısıtlamalarını ezip zorla görünür yap!
-      fb.style.display = 'flex'; 
-      
-      // Peş peşe okutmalarda titremeyi engelle
-      if(window.camFbTimer) clearTimeout(window.camFbTimer);
-      
-      // 1.5 Saniye sonra ekrandan kaybolsun
-      window.camFbTimer = setTimeout(() => {
-        fb.style.display = 'none';
-      }, 1500);
-    }
+  $('cam-feedback-pro-icon').innerText = isSuccess ? '✅' : '❌';
+  $('cam-feedback-pro-title').innerText = title;
+
+  const c = $('cam-feedback-pro-count');
+  c.innerText = countMsg;
+  c.style.display = countMsg ? 'block' : 'none';
+  c.style.color = isSuccess ? 'var(--green)' : 'var(--red)';
+
+  // Kutuyu CSS ve kütüphane kısıtlamalarını ezip zorla görünür yap!
+  fb.style.display = 'flex';
+
+  // Peş peşe okutmalarda titremeyi engelle
+  if (window.camFbTimer) clearTimeout(window.camFbTimer);
+
+  // 1.5 Saniye sonra ekrandan kaybolsun
+  window.camFbTimer = setTimeout(() => {
+    fb.style.display = 'none';
+  }, 1500);
+}
 
 // --- PDF MOTORU ---
 // --- PDF MOTORU GÜNCELLENDİ ---
@@ -1807,35 +1807,42 @@ function exportDB() {
   showToast("Veriler cihaza indirildi.");
 }
 
-// --- DİNAMİK CLIENT ID VE EŞİTLEME BAŞLATICISI ---
-const DRIVE_FOLDER_ID = '1cgeuSHmzhfYdX9pDGAc4pxvaYNWt1_X2';
-const DRIVE_FILE_NAME = 'oztoptan_sync_db.json'; // Klasörde aranacak/oluşturulacak dosya
-
+// --- DİNAMİK CLIENT ID, FOLDER ID VE EŞİTLEME BAŞLATICISI ---
+const DRIVE_FILE_NAME = 'ozsecer_erp_data.json';
 let tokenClient;
 let driveAccessToken = null;
-let lastUsedClientId = null; // YENİ EKLENDİ: Son kullanılan ID'yi hafızada tutacak
+let lastUsedClientId = null;
+let currentDriveFolderId = null; // Klasör ID'sini runtime'da takip edecek değişken
 
 function openSyncModal() {
-  // Hafızada önceden girilmiş ID varsa direkt kutuya yazdır
+  // Hafızadaki Client ID ve Klasör ID'yi otomatik doldur
   const savedId = localStorage.getItem('ozsecer_client_id') || '';
+  const savedFolderId = localStorage.getItem('ozsecer_folder_id') || '';
   $('sync-client-id').value = savedId;
+  $('sync-folder-id').value = savedFolderId;
   openM('mo-sync-config');
 }
 
 function saveClientIdAndSync() {
   const cId = $('sync-client-id').value.trim();
-  if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
+  const fId = $('sync-folder-id').value.trim();
 
+  if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
+  if (!fId) return showToast('Lütfen Klasör ID bilgisini girin!');
+
+  // Bilgileri sonraki kullanımlar için hafızaya kaydet
   localStorage.setItem('ozsecer_client_id', cId);
+  localStorage.setItem('ozsecer_folder_id', fId);
   closeM('mo-sync-config');
 
   showSpinner("Google hesabı ile iletişim kuruluyor...");
 
   try {
-    // İŞTE ÇÖZÜM BURASI: Eğer textbox'taki ID değiştiyse, elimizdeki eski Google iznini (token) çöpe at!
-    if (cId !== lastUsedClientId) {
+    // Eğer girdiği Client ID VEYA Klasör ID bir önceki başarılı işlemden farklıysa token'ı sıfırla!
+    if (cId !== lastUsedClientId || fId !== currentDriveFolderId) {
       driveAccessToken = null;
       lastUsedClientId = cId;
+      currentDriveFolderId = fId;
     }
 
     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -1844,7 +1851,7 @@ function saveClientIdAndSync() {
       callback: async (response) => {
         if (response.error) {
           hideSpinner();
-          driveAccessToken = null; // Hata durumunda kilitlenmemesi için izni temizle
+          driveAccessToken = null;
           return showCustomAlert("İşlem İptal Edildi!\n\nGoogle giriş ekranını kapattınız veya yetki vermediniz.\n\nDetay: " + response.error, false);
         }
         driveAccessToken = response.access_token;
@@ -1852,16 +1859,14 @@ function saveClientIdAndSync() {
       },
       error_callback: (err) => {
         hideSpinner();
-        driveAccessToken = null; // Hata durumunda kilitlenmemesi için izni temizle
-        showCustomAlert("Google bağlantısı kurulamadı!\n\nOlası Sebepler:\n1- Client ID'nizi eksik veya hatalı girdiniz.\n2- Tarayıcınız açılır pencereleri (popup) engelliyor.\n\nDetay: " + (err.type || JSON.stringify(err)), false);
+        driveAccessToken = null;
+        showCustomAlert("Google bağlantısı kurulamadı!\n\nOlası Sebepler:\n1- Client ID veya Klasör ID bilginizi hatalı girdiniz.\n2- Tarayıcınız açılır pencereleri engelliyor.\n\nDetay: " + (err.type || JSON.stringify(err)), false);
       }
     });
 
-    // Elimde geçerli bir izin yoksa (veya ID değiştiği için az önce sildiysek) yeni izin iste
     if (!driveAccessToken) {
       tokenClient.requestAccessToken({ prompt: 'select_account consent' });
     } else {
-      // İzin hala geçerliyse ve ID (textbox'taki) bir öncekiyle AYNIYSA hiç sormadan direkt eşitle
       executePullMergePush();
     }
 
@@ -1872,16 +1877,21 @@ function saveClientIdAndSync() {
 }
 
 async function executePullMergePush() {
+  // Değişken boşsa hafızadan geri yükle güvenlik kalkanı
+  const fId = currentDriveFolderId || localStorage.getItem('ozsecer_folder_id');
+  if (!fId) return showCustomAlert("Hata: Klasör ID bulunamadı!", false);
+
   updateSpinner("Eşitleme başladı: Drive'a bağlanılıyor...");
 
   try {
-    const query = encodeURIComponent(`'${DRIVE_FOLDER_ID}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
+    // Artık statik DRIVE_FOLDER_ID yerine ekrandan gelen fId değişkeni kullanılıyor
+    const query = encodeURIComponent(`'${fId}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
       headers: { 'Authorization': `Bearer ${driveAccessToken}` }
     });
     const searchData = await searchRes.json();
 
-    if (searchData.error) throw new Error("Klasör bulunamadı veya yetkiniz yok.");
+    if (searchData.error) throw new Error("Girdiğiniz Klasör ID bulunamadı, erişim izniniz yok veya hatalı.");
 
     let fileId = null;
     let remoteDB = null;
@@ -1916,7 +1926,8 @@ async function executePullMergePush() {
       });
       if (!patchRes.ok) throw new Error("Push (Güncelleme) işlemi başarısız oldu.");
     } else {
-      const metadata = { name: DRIVE_FILE_NAME, parents: [DRIVE_FOLDER_ID] };
+      // Yeni dosya yaratılırken üst klasör olarak fId atanıyor
+      const metadata = { name: DRIVE_FILE_NAME, parents: [fId] };
       const form = new FormData();
       form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       form.append('file', new Blob([pushData], { type: 'application/json' }));
@@ -1929,14 +1940,12 @@ async function executePullMergePush() {
       if (!postRes.ok) throw new Error("Push (Yeni Oluşturma) işlemi başarısız oldu.");
     }
 
-    // Bütün işlemler başarılıysa
     saveDB();
     renderHome();
     hideSpinner();
-    showCustomAlert("Tüm verileriniz cihazınızla bulut arasında saniyesi saniyesine kıyaslandı, hiçbir kayıp yaşanmadan birleştirildi ve güvenle yedeklendi!", true);
+    showCustomAlert("Tüm verileriniz girdiğiniz yeni klasörle kayıpsız olarak eşitlendi ve yedeklendi!", true);
 
   } catch (err) {
-    // Herhangi bir hata durumunda spinner'ı kaldırıp hatayı ekrana bas
     hideSpinner();
     showCustomAlert(err.message, false);
   }
@@ -1944,17 +1953,17 @@ async function executePullMergePush() {
 
 function mergeDatabases(remoteDB) {
   if (!remoteDB) return;
-  const collections = ['c', 'u', 's', 't', 'g', 'ug', 'k']; 
+  const collections = ['c', 'u', 's', 't', 'g', 'ug', 'k'];
 
   function parseTRDate(str) {
     if (!str) return 0;
     if (str.includes('T')) return new Date(str).getTime();
     const parts = str.split(' ');
-    if(parts.length !== 2) return 0;
+    if (parts.length !== 2) return 0;
     const d = parts[0].split('.');
     const t = parts[1].split(':');
-    if(d.length !== 3 || t.length !== 3) return 0;
-    return new Date(d[2], d[1]-1, d[0], t[0], t[1], t[2]).getTime();
+    if (d.length !== 3 || t.length !== 3) return 0;
+    return new Date(d[2], d[1] - 1, d[0], t[0], t[1], t[2]).getTime();
   }
 
   function getLastMod(item) {
@@ -1992,10 +2001,10 @@ function mergeDatabases(remoteDB) {
 
     remoteDB[col].forEach(remoteItem => {
       const id = String(remoteItem.id);
-      
+
       if (localMap.has(id)) {
         const localItem = localMap.get(id);
-        
+
         if (col === 's') {
           // Eğer işlem Sipariş tablosu ise kalemleri akıllıca merge et
           const mergedItems = mergeOrderItems(localItem.items || [], remoteItem.items || []);
@@ -2006,7 +2015,7 @@ function mergeDatabases(remoteDB) {
         } else {
           // Diğer standart tabloların düzgünce güncellenmesi
           if (getLastMod(remoteItem) > getLastMod(localItem)) {
-            Object.assign(localItem, remoteItem); 
+            Object.assign(localItem, remoteItem);
           }
         }
       } else {
@@ -2032,24 +2041,31 @@ function openResetAuthModal(target) {
   openM('mo-reset-auth');
 }
 
-// 1. ZİNCİR: DRIVE SIFIRLAMAK İÇİN ÖNCE GOOGLE CLIENT ID İSTE
 function openDriveResetClientModal() {
   const savedId = localStorage.getItem('ozsecer_client_id') || '';
+  const savedFolderId = localStorage.getItem('ozsecer_folder_id') || '';
   $('reset-client-id-input').value = savedId;
+  $('reset-folder-id-input').value = savedFolderId;
   openM('mo-reset-client');
 }
 
 function verifyClientForReset() {
   const cId = $('reset-client-id-input').value.trim();
-  if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
+  const fId = $('reset-folder-id-input').value.trim();
 
+  if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
+  if (!fId) return showToast('Lütfen Klasör ID bilgisini girin!');
+
+  localStorage.setItem('ozsecer_client_id', cId);
+  localStorage.setItem('ozsecer_folder_id', fId);
   closeM('mo-reset-client');
   showSpinner("Google kimliği doğrulanıyor...");
 
   try {
-    if (cId !== lastUsedClientId) {
+    if (cId !== lastUsedClientId || fId !== currentDriveFolderId) {
       driveAccessToken = null;
       lastUsedClientId = cId;
+      currentDriveFolderId = fId;
     }
 
     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -2063,23 +2079,19 @@ function verifyClientForReset() {
         }
         driveAccessToken = response.access_token;
         hideSpinner();
-
-        // GOOGLE ONAYLANDI! ŞİMDİ 2. ZİNCİRE GEÇ (Sistem Şifresini Sor)
         openResetAuthModal('drive');
       },
       error_callback: (err) => {
         hideSpinner();
         driveAccessToken = null;
-        showCustomAlert("Google bağlantısı kurulamadı!\nClient ID'niz hatalı olabilir.", false);
+        showCustomAlert("Google bağlantısı kurulamadı!\nClient ID veya Klasör ID hatalı olabilir.", false);
       }
     });
 
-    // Eğer elimizde hazır token yoksa Google'dan iste
     if (!driveAccessToken) {
       tokenClient.requestAccessToken({ prompt: 'select_account consent' });
     } else {
       hideSpinner();
-      // Token zaten varsa ve ID doğruysa direkt 2. zincire geç
       openResetAuthModal('drive');
     }
   } catch (err) {
@@ -2088,7 +2100,6 @@ function verifyClientForReset() {
   }
 }
 
-// 2. ZİNCİR: KENDİ KULLANICI ADI VE ŞİFREMİZİN DOĞRULANMASI
 function confirmResetAuth() {
   const u = $('reset-user').value.trim();
   const p = $('reset-pass').value.trim();
@@ -2114,14 +2125,16 @@ function confirmResetAuth() {
   }
 }
 
-// 3. ZİNCİR: ASIL SİLME İŞLEMİ (GOOLGE DRIVE API ÇAĞRISI)
 async function executeDriveReset() {
+  const fId = currentDriveFolderId || localStorage.getItem('ozsecer_folder_id');
+  if (!fId) return showCustomAlert("Hata: Klasör ID bulunamadı!", false);
+
   showSpinner("Bulut üzerindeki veritabanı sıfırlanıyor...");
   try {
     const emptyDB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] };
     const pushData = JSON.stringify(emptyDB);
 
-    const query = encodeURIComponent(`'${DRIVE_FOLDER_ID}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
+    const query = encodeURIComponent(`'${fId}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
       headers: { 'Authorization': `Bearer ${driveAccessToken}` }
     });
@@ -2136,11 +2149,11 @@ async function executeDriveReset() {
       });
       if (!patchRes.ok) throw new Error("Google Drive veritabanı ezilemedi.");
     } else {
-      throw new Error("Sıfırlanacak bir bulut yedeği bulunamadı.");
+      throw new Error("Bu klasörün içinde sıfırlanacak bir bulut yedeği bulunamadı.");
     }
 
     hideSpinner();
-    showCustomAlert("Drive üzerindeki tüm yedekleriniz başarıyla sıfırlandı!", true);
+    showCustomAlert("Girdiğiniz klasördeki tüm yedekleriniz başarıyla sıfırlandı!", true);
   } catch (err) {
     hideSpinner();
     showCustomAlert(err.message, false);
@@ -2164,14 +2177,14 @@ function showCustomAlert(msg, isSuccess = true) {
 }
 
 // --- TARİHLERİ MİLİSANİYEYE ÇEVİRİP SIRALAMA YAPAN YARDIMCI KOD ---
-    function getTimeMs(str) {
-      if (!str) return 0;
-      if (str.includes('T')) return new Date(str).getTime();
-      const parts = str.split(' ');
-      if (parts.length !== 2) return 0;
-      const d = parts[0].split('.');
-      const t = parts[1].split(':');
-      if (d.length !== 3 || t.length !== 3) return 0;
-      return new Date(d[2], d[1] - 1, d[0], t[0], t[1], t[2]).getTime();
-    }
+function getTimeMs(str) {
+  if (!str) return 0;
+  if (str.includes('T')) return new Date(str).getTime();
+  const parts = str.split(' ');
+  if (parts.length !== 2) return 0;
+  const d = parts[0].split('.');
+  const t = parts[1].split(':');
+  if (d.length !== 3 || t.length !== 3) return 0;
+  return new Date(d[2], d[1] - 1, d[0], t[0], t[1], t[2]).getTime();
+}
 window.onload = checkAuth;

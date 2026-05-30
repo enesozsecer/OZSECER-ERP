@@ -245,16 +245,36 @@
   </div>
 
   <!-- MODALS -->
+  <div id="mo-sync-config" class="mo" onclick="closeOnOutside(event, 'mo-sync-config')" style="z-index: 400;">
+    <div class="mo-content">
+      <div class="mo-header">
+        <div class="mo-title">Drive Bağlantı Ayarları</div>
+        <button class="icon-btn" onclick="closeM('mo-sync-config')">✕</button>
+      </div>
+      <p class="text-muted mb-4" style="font-size:0.85rem">Google Cloud sistemine bağlanmak için Client ID ve yedekleme
+        yapacağınız Drive Klasör ID bilgisini giriniz.</p>
+
+      <input type="text" id="sync-client-id" placeholder="Client ID (İstemci Kimliği)" style="margin-bottom: 0.75rem;">
+      <input type="text" id="sync-folder-id" placeholder="Drive Klasör ID (Folder ID)" style="margin-bottom: 1.5rem;">
+
+      <button class="btn-primary" onclick="saveClientIdAndSync()">Kaydet ve Eşitle</button>
+    </div>
+  </div>
+
   <div id="mo-reset-client" class="mo" onclick="closeOnOutside(event, 'mo-reset-client')" style="z-index: 450;">
     <div class="mo-content">
       <div class="mo-header">
         <div class="mo-title" style="color: var(--red);">Drive Bağlantısını Doğrula</div>
         <button class="icon-btn" onclick="closeM('mo-reset-client')">✕</button>
       </div>
-      <p class="text-muted mb-4" style="font-size:0.85rem">Drive sıfırlama işlemi yapabilmek için önce geçerli bir
-        Client ID ile Google onayından geçmelisiniz.</p>
-      <input type="text" id="reset-client-id-input" placeholder="12345...apps.googleusercontent.com"
+      <p class="text-muted mb-4" style="font-size:0.85rem">Drive sıfırlama işlemi yapabilmek için geçerli Client ID ve
+        sıfırlanacak Klasör ID bilgilerini girerek Google onayından geçmelisiniz.</p>
+
+      <input type="text" id="reset-client-id-input" placeholder="Client ID (İstemci Kimliği)"
+        style="margin-bottom: 0.75rem;">
+      <input type="text" id="reset-folder-id-input" placeholder="Drive Klasör ID (Folder ID)"
         style="margin-bottom: 1.5rem;">
+
       <button class="btn-danger w-full" onclick="verifyClientForReset()">Doğrula ve İlerle</button>
     </div>
   </div>
@@ -275,19 +295,6 @@
         onfocus="this.removeAttribute('readonly');" style="margin-bottom: 1.5rem;">
 
       <button class="btn-danger w-full" onclick="confirmResetAuth()">Doğrula ve Sıfırla</button>
-    </div>
-  </div>
-
-  <div id="mo-sync-config" class="mo" onclick="closeOnOutside(event, 'mo-sync-config')" style="z-index: 400;">
-    <div class="mo-content">
-      <div class="mo-header">
-        <div class="mo-title">Drive Bağlantı Ayarları</div>
-        <button class="icon-btn" onclick="closeM('mo-sync-config')">✕</button>
-      </div>
-      <p class="text-muted mb-4" style="font-size:0.85rem">Google Cloud sistemine bağlanmak için "Client ID" (İstemci
-        Kimliği) bilginizi giriniz.</p>
-      <input type="text" id="sync-client-id" placeholder="12345...apps.googleusercontent.com">
-      <button class="btn-primary" onclick="saveClientIdAndSync()">Onayla</button>
     </div>
   </div>
 
