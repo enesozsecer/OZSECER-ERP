@@ -98,26 +98,37 @@ function checkAuth() {
     initApp();
   } else {
     if (localStorage.getItem('ozsecer_remember') === '1') {
-      $('log-remember').checked = true;
-      $('log-pass').value = atob(localStorage.getItem('ozsecer_pass') || '');
+      if ($('log-remember')) $('log-remember').checked = true;
+      if ($('log-user')) $('log-user').value = localStorage.getItem('ozsecer_user') || '';
+      if ($('log-pass')) $('log-pass').value = atob(localStorage.getItem('ozsecer_pass') || '');
     }
   }
 }
 function login() {
+  const u = $('log-user').value.trim();
   const p = $('log-pass').value;
-  if (p === 'Oztoptan6595.') {
+  
+  // Hem Kullanıcı Adı (E-Posta) hem de Şifre kontrolü
+  if (u === 'oztoptanpazarlama@gmail.com' && p === 'Oztoptan6595.') {
     localStorage.setItem('ozsecer_loggedin', '1');
+    
+    // Beni Hatırla işaretliyse ikisini de kaydet
     if ($('log-remember').checked) {
       localStorage.setItem('ozsecer_remember', '1');
+      localStorage.setItem('ozsecer_user', u); // Kullanıcı adını hafızaya al
       localStorage.setItem('ozsecer_pass', btoa(p));
     } else {
       localStorage.removeItem('ozsecer_remember');
+      localStorage.removeItem('ozsecer_user'); // Hafızadan sil
       localStorage.removeItem('ozsecer_pass');
     }
+    
     $('login-screen').classList.add('hidden');
     $('app-container').classList.remove('hidden');
     initApp();
   } else {
+    // Şifre veya E-Posta yanlışsa hatayı göster
+    $('log-err').innerText = 'Hatalı e-posta veya şifre!';
     $('log-err').classList.remove('hidden');
   }
 }
