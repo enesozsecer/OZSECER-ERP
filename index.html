@@ -248,34 +248,87 @@
   <div id="mo-sync-config" class="mo" onclick="closeOnOutside(event, 'mo-sync-config')" style="z-index: 400;">
     <div class="mo-content">
       <div class="mo-header">
-        <div class="mo-title">Drive Bağlantı Ayarları</div>
+        <div class="mo-title">Drive Bağlantısı ve Yedekleme Seçimi</div>
         <button class="icon-btn" onclick="closeM('mo-sync-config')">✕</button>
       </div>
-      <p class="text-muted mb-4" style="font-size:0.85rem">Google Cloud sistemine bağlanmak için Client ID ve yedekleme
-        yapacağınız Drive Klasör ID bilgisini giriniz.</p>
 
-      <input type="text" id="sync-client-id" placeholder="Client ID (İstemci Kimliği)" style="margin-bottom: 0.75rem;">
-      <input type="text" id="sync-folder-id" placeholder="Drive Klasör ID (Folder ID)" style="margin-bottom: 1.5rem;">
+      <div id="sync-step-1">
+        <p class="text-muted mb-4" style="font-size:0.85rem">Client ID ve Klasör ID bilginizi girerek buluta bağlanın.
+        </p>
+        <input type="text" id="sync-client-id" placeholder="Client ID (İstemci Kimliği)"
+          style="margin-bottom: 0.75rem;">
+        <input type="text" id="sync-folder-id" placeholder="Drive Klasör ID (Folder ID)" style="margin-bottom: 1.5rem;">
+        <button class="btn-primary w-full" onclick="connectAndFetchFiles()">Bağlan ve Yedekleri Bul</button>
+      </div>
 
-      <button class="btn-primary" onclick="saveClientIdAndSync()">Kaydet ve Eşitle</button>
+      <div id="sync-step-2" class="hidden" style="margin-top: 0.5rem;">
+        <p class="text-muted mb-4" style="font-size:0.85rem">Lütfen yapmak istediğiniz yedekleme türünü seçin:</p>
+
+        <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem;">
+          <label
+            style="display: flex; align-items: center; gap: 0.6rem;">
+            <input type="radio" name="syncMode" id="sync-mode-update" value="update" checked onchange="toggleSyncMode()"
+              style="margin: 0; width: 1.2rem; height: 1.2rem; flex-shrink: 0; cursor: pointer;">
+            <span style="font-size: 0.95rem; font-weight: 600;">Mevcut Olanı Güncelle</span>
+          </label>
+
+          <label
+            style="display: flex; align-items: center; gap: 0.6rem;">
+            <input type="radio" name="syncMode" id="sync-mode-new" value="new" onchange="toggleSyncMode()"
+              style="margin: 0; width: 1.2rem; height: 1.2rem; flex-shrink: 0; cursor: pointer;">
+            <span style="font-size: 0.95rem; font-weight: 600;">Yeni Dosya Oluştur</span>
+          </label>
+        </div>
+
+        <div id="sync-update-container">
+          <select id="sync-file-select"
+            style="margin-bottom: 1.5rem; width:100%; padding:0.6rem; border-radius:0.4rem; border:1px solid var(--border);">
+          </select>
+        </div>
+
+        <div id="sync-new-container" class="hidden">
+          <input type="text" id="sync-new-file" placeholder="Örn: Haziran_2026_Yedek" style="margin-bottom: 1.5rem;">
+        </div>
+
+        <button class="btn-primary w-full" style="background:var(--green);"
+          onclick="startSyncWithSelectedFile()">Eşitlemeyi Başlat</button>
+      </div>
+
     </div>
   </div>
 
   <div id="mo-reset-client" class="mo" onclick="closeOnOutside(event, 'mo-reset-client')" style="z-index: 450;">
     <div class="mo-content">
       <div class="mo-header">
-        <div class="mo-title" style="color: var(--red);">Drive Bağlantısını Doğrula</div>
+        <div class="mo-title" style="color: var(--red);">Drive Yedek Sıfırlama</div>
         <button class="icon-btn" onclick="closeM('mo-reset-client')">✕</button>
       </div>
-      <p class="text-muted mb-4" style="font-size:0.85rem">Drive sıfırlama işlemi yapabilmek için geçerli Client ID ve
-        sıfırlanacak Klasör ID bilgilerini girerek Google onayından geçmelisiniz.</p>
 
-      <input type="text" id="reset-client-id-input" placeholder="Client ID (İstemci Kimliği)"
-        style="margin-bottom: 0.75rem;">
-      <input type="text" id="reset-folder-id-input" placeholder="Drive Klasör ID (Folder ID)"
-        style="margin-bottom: 1.5rem;">
+      <div id="reset-step-1">
+        <p class="text-muted mb-4" style="font-size:0.85rem">Sıfırlama işlemi yapabilmek için geçerli Client ID ve
+          Klasör ID bilgilerini girerek buluta bağlanın.</p>
+        <input type="text" id="reset-client-id-input" placeholder="Client ID (İstemci Kimliği)"
+          style="margin-bottom: 0.75rem;">
+        <input type="text" id="reset-folder-id-input" placeholder="Drive Klasör ID (Folder ID)"
+          style="margin-bottom: 1.5rem;">
+        <button class="btn-danger w-full" onclick="verifyClientForReset()">Bağlan ve Dosyaları Listele</button>
+      </div>
 
-      <button class="btn-danger w-full" onclick="verifyClientForReset()">Doğrula ve İlerle</button>
+      <div id="reset-step-2" class="hidden" style="margin-top: 0.5rem;">
+        <p class="text-muted mb-4" style="font-size:0.85rem">Bağlantı başarılı! Lütfen kalıcı olarak **SIFIRLAMAK (İÇİNİ
+          BOŞALTMAK)** istediğiniz yedek dosyasını seçin.</p>
+
+        <label
+          style="font-size:0.8rem; font-weight:bold; margin-bottom:0.3rem; display:block; color:var(--red);">Sıfırlanacak
+          Hedef Dosya:</label>
+        <select id="reset-file-select"
+          style="margin-bottom: 1.5rem; width:100%; padding:0.6rem; border-radius:0.4rem; border:1px solid var(--border);">
+        </select>
+
+        <button class="btn-danger w-full" style="background:var(--red);" onclick="startResetWithSelectedFile()">Seçili
+          Dosyayı Sıfırla (Şifre İstenecek)</button>
+      </div>
+
     </div>
   </div>
 

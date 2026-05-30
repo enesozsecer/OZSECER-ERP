@@ -23,6 +23,18 @@
     .w-full { width: 100%; } .text-center { text-align: center; }
     .text-red { color: var(--red); } .text-green { color: var(--green); }
     
+    /* RADYO BUTON VE CHECKBOX'LARI GENEL INPUT STİLLERİNDEN KORUMA */
+    input[type="radio"], 
+    input[type="checkbox"] {
+      -webkit-appearance: auto !important;
+      appearance: auto !important;
+      background: initial !important;
+      border: initial !important;
+      box-shadow: none !important;
+      outline: none !important;
+      accent-color: var(--accent); /* Bu kod standart yuvarlağın içinin, projenin ana rengiyle dolmasını sağlar */
+    }
+    
     input, select, textarea { 
       width: 100%; 
       padding: 0.6rem; 

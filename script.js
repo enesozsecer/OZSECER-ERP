@@ -1807,20 +1807,159 @@ function exportDB() {
   showToast("Veriler cihaza indirildi.");
 }
 
-// --- DİNAMİK CLIENT ID, FOLDER ID VE EŞİTLEME BAŞLATICISI ---
-const DRIVE_FILE_NAME = 'ozsecer_erp_data.json';
+// --- DİNAMİK BAĞLANTI, DOSYA SEÇİMİ VE EŞİTLEME ---
 let tokenClient;
 let driveAccessToken = null;
 let lastUsedClientId = null;
-let currentDriveFolderId = null; // Klasör ID'sini runtime'da takip edecek değişken
+let currentDriveFolderId = null;
+let currentDriveFileName = null; // Seçilen dosya adını tutar
 
 function openSyncModal() {
-  // Hafızadaki Client ID ve Klasör ID'yi otomatik doldur
+  // Hafızadaki bilgileri kutulara doldur
   const savedId = localStorage.getItem('ozsecer_client_id') || '';
   const savedFolderId = localStorage.getItem('ozsecer_folder_id') || '';
   $('sync-client-id').value = savedId;
   $('sync-folder-id').value = savedFolderId;
+
+  // İlk açılışta Adım 1'i göster, Adım 2'yi gizle
+  $('sync-step-1').classList.remove('hidden');
+  $('sync-step-2').classList.add('hidden');
+  $('sync-new-file').value = '';
+
   openM('mo-sync-config');
+}
+
+// ADIM 1: Google'a Bağlan ve Klasördeki Dosyaları Çek
+function connectAndFetchFiles() {
+  const cId = $('sync-client-id').value.trim();
+  const fId = $('sync-folder-id').value.trim();
+
+  if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
+  if (!fId) return showToast('Lütfen Klasör ID bilgisini girin!');
+
+  localStorage.setItem('ozsecer_client_id', cId);
+  localStorage.setItem('ozsecer_folder_id', fId);
+
+  showSpinner("Drive'a bağlanılıyor ve yedek dosyaları aranıyor...");
+
+  try {
+    if (cId !== lastUsedClientId || fId !== currentDriveFolderId) {
+      driveAccessToken = null;
+      lastUsedClientId = cId;
+      currentDriveFolderId = fId;
+    }
+
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: cId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: async (response) => {
+        if (response.error) {
+          hideSpinner();
+          driveAccessToken = null;
+          return showCustomAlert("İşlem İptal Edildi!\nDetay: " + response.error, false);
+        }
+        driveAccessToken = response.access_token;
+        await fetchFileListFromDrive();
+      },
+      error_callback: (err) => {
+        hideSpinner();
+        driveAccessToken = null;
+        showCustomAlert("Google bağlantısı kurulamadı!\nBilgilerinizi kontrol ediniz.", false);
+      }
+    });
+
+    if (!driveAccessToken) {
+      tokenClient.requestAccessToken({ prompt: 'select_account consent' });
+    } else {
+      fetchFileListFromDrive();
+    }
+  } catch (err) {
+    hideSpinner();
+    showCustomAlert("Hata:\n" + err.message, false);
+  }
+}
+
+// Google Drive API: Dosyaları Listele
+async function fetchFileListFromDrive() {
+  try {
+    const query = encodeURIComponent(`'${currentDriveFolderId}' in parents and trashed=false`);
+    const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`, {
+      headers: { 'Authorization': `Bearer ${driveAccessToken}` }
+    });
+    const searchData = await searchRes.json();
+
+    if (searchData.error) throw new Error("Klasör bulunamadı veya yetkiniz yok.");
+
+    const select = $('sync-file-select');
+    select.innerHTML = '';
+
+    let hasFiles = false;
+
+    if (searchData.files && searchData.files.length > 0) {
+      const files = searchData.files.filter(f => f.name.endsWith('.json'));
+      if (files.length > 0) {
+        hasFiles = true;
+        files.forEach(file => {
+          select.innerHTML += `<option value="${file.name}">${file.name}</option>`;
+        });
+        const savedFile = localStorage.getItem('ozsecer_file_name');
+        if (savedFile) select.value = savedFile;
+      }
+    }
+
+    // Çok Akıllı UX Dokunuşu: Eğer klasör tamamen boşsa, sistemi zorla "Yeni Dosya" moduna al!
+    if (!hasFiles) {
+      select.innerHTML = `<option value="">-- Bu klasörde mevcut yedek yok --</option>`;
+      $('sync-mode-new').checked = true;
+      $('sync-mode-update').disabled = true; // Güncelleyecek bir şey olmadığı için kapat
+      toggleSyncMode();
+    } else {
+      $('sync-mode-update').checked = true;
+      $('sync-mode-update').disabled = false;
+      toggleSyncMode();
+    }
+
+    hideSpinner();
+    $('sync-step-1').classList.add('hidden');
+    $('sync-step-2').classList.remove('hidden');
+
+  } catch (err) {
+    hideSpinner(); showCustomAlert(err.message, false);
+  }
+}
+
+// ADIM 2: Kullanıcının Kesin Seçimiyle Eşitlemeyi Başlat
+function startSyncWithSelectedFile() {
+  const isNewMode = $('sync-mode-new').checked;
+  let targetFile = '';
+
+  if (isNewMode) {
+    targetFile = $('sync-new-file').value.trim();
+    if (!targetFile) return showToast("Lütfen yeni dosya için bir isim yazın!");
+  } else {
+    targetFile = $('sync-file-select').value;
+    if (!targetFile) return showToast("Lütfen mevcut bir dosya seçin!");
+  }
+
+  if (!targetFile.endsWith('.json')) targetFile += '.json';
+
+  localStorage.setItem('ozsecer_file_name', targetFile);
+  currentDriveFileName = targetFile;
+
+  closeM('mo-sync-config');
+  executePullMergePush();
+}
+
+// --- GÖRSEL GEÇİŞ YARDIMCISI (RADIO BUTONLARI DİNLER) ---
+function toggleSyncMode() {
+  const isNewMode = $('sync-mode-new').checked;
+  if (isNewMode) {
+    $('sync-update-container').classList.add('hidden');
+    $('sync-new-container').classList.remove('hidden');
+  } else {
+    $('sync-update-container').classList.remove('hidden');
+    $('sync-new-container').classList.add('hidden');
+  }
 }
 
 function saveClientIdAndSync() {
@@ -1876,29 +2015,27 @@ function saveClientIdAndSync() {
   }
 }
 
+// --- ASIL EŞİTLEME İŞLEMİ (DİNAMİK DOSYA İSMİ İLE) ---
 async function executePullMergePush() {
-  // Değişken boşsa hafızadan geri yükle güvenlik kalkanı
   const fId = currentDriveFolderId || localStorage.getItem('ozsecer_folder_id');
-  if (!fId) return showCustomAlert("Hata: Klasör ID bulunamadı!", false);
+  const fileName = currentDriveFileName || localStorage.getItem('ozsecer_file_name');
+  if (!fId || !fileName) return showCustomAlert("Hata: Klasör veya Dosya ID bulunamadı!", false);
 
-  updateSpinner("Eşitleme başladı: Drive'a bağlanılıyor...");
+  showSpinner("Eşitleme başladı: Drive'a bağlanılıyor...");
 
   try {
-    // Artık statik DRIVE_FOLDER_ID yerine ekrandan gelen fId değişkeni kullanılıyor
-    const query = encodeURIComponent(`'${fId}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
+    const query = encodeURIComponent(`'${fId}' in parents and name='${fileName}' and trashed=false`);
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
       headers: { 'Authorization': `Bearer ${driveAccessToken}` }
     });
     const searchData = await searchRes.json();
-
-    if (searchData.error) throw new Error("Girdiğiniz Klasör ID bulunamadı, erişim izniniz yok veya hatalı.");
 
     let fileId = null;
     let remoteDB = null;
 
     if (searchData.files && searchData.files.length > 0) {
       fileId = searchData.files[0].id;
-      updateSpinner("Buluttaki verileriniz çekiliyor (Pull)...");
+      updateSpinner("Buluttaki verileriniz çekiliyor...");
 
       const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
         headers: { 'Authorization': `Bearer ${driveAccessToken}` }
@@ -1907,15 +2044,15 @@ async function executePullMergePush() {
     }
 
     if (remoteDB) {
-      updateSpinner("Cihazınızdaki verilerle bulut birleştiriliyor (Merge)...");
+      updateSpinner("Verileriniz akıllıca birleştiriliyor...");
       try {
         mergeDatabases(remoteDB);
       } catch (mergeErr) {
-        throw new Error("Veri çakışması tespit edildi! Algoritma güvenliğiniz için durduruldu.\nDetay: " + mergeErr);
+        throw new Error("Veri çakışması tespit edildi!\nDetay: " + mergeErr);
       }
     }
 
-    updateSpinner("Güncel verileriniz güvenle buluta yükleniyor (Push)...");
+    updateSpinner("Güncel verileriniz güvenle buluta yazılıyor...");
     const pushData = JSON.stringify(DB);
 
     if (fileId) {
@@ -1924,10 +2061,9 @@ async function executePullMergePush() {
         headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' },
         body: pushData
       });
-      if (!patchRes.ok) throw new Error("Push (Güncelleme) işlemi başarısız oldu.");
+      if (!patchRes.ok) throw new Error("Güncelleme işlemi başarısız.");
     } else {
-      // Yeni dosya yaratılırken üst klasör olarak fId atanıyor
-      const metadata = { name: DRIVE_FILE_NAME, parents: [fId] };
+      const metadata = { name: fileName, parents: [fId] };
       const form = new FormData();
       form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       form.append('file', new Blob([pushData], { type: 'application/json' }));
@@ -1937,17 +2073,14 @@ async function executePullMergePush() {
         headers: { 'Authorization': `Bearer ${driveAccessToken}` },
         body: form
       });
-      if (!postRes.ok) throw new Error("Push (Yeni Oluşturma) işlemi başarısız oldu.");
+      if (!postRes.ok) throw new Error("Yeni dosya oluşturma işlemi başarısız.");
     }
 
-    saveDB();
-    renderHome();
-    hideSpinner();
-    showCustomAlert("Tüm verileriniz girdiğiniz yeni klasörle kayıpsız olarak eşitlendi ve yedeklendi!", true);
+    saveDB(); renderHome(); hideSpinner();
+    showCustomAlert(`Tüm verileriniz ${fileName} dosyasıyla başarıyla eşitlendi!`, true);
 
   } catch (err) {
-    hideSpinner();
-    showCustomAlert(err.message, false);
+    hideSpinner(); showCustomAlert(err.message, false);
   }
 }
 
@@ -2041,25 +2174,30 @@ function openResetAuthModal(target) {
   openM('mo-reset-auth');
 }
 
+// --- DOSYA SEÇMELİ ZİNCİRLEME SIFIRLAMA ALGORİTMASI ---
 function openDriveResetClientModal() {
+  // Hafızadaki mevcut bilgileri kutulara otomatik yaz
   const savedId = localStorage.getItem('ozsecer_client_id') || '';
   const savedFolderId = localStorage.getItem('ozsecer_folder_id') || '';
   $('reset-client-id-input').value = savedId;
   $('reset-folder-id-input').value = savedFolderId;
+
+  // İlk aşamayı aç, ikinci aşamayı gizle
+  $('reset-step-1').classList.remove('hidden');
+  $('reset-step-2').classList.add('hidden');
+
   openM('mo-reset-client');
 }
 
+// SIFIRLAMA ADIM 1: Google Bağlantısı Kur
 function verifyClientForReset() {
   const cId = $('reset-client-id-input').value.trim();
   const fId = $('reset-folder-id-input').value.trim();
-
-  if (!cId) return showToast('Lütfen Client ID bilgisini girin!');
-  if (!fId) return showToast('Lütfen Klasör ID bilgisini girin!');
+  if (!cId || !fId) return showToast('Tüm alanları doldurunuz!');
 
   localStorage.setItem('ozsecer_client_id', cId);
   localStorage.setItem('ozsecer_folder_id', fId);
-  closeM('mo-reset-client');
-  showSpinner("Google kimliği doğrulanıyor...");
+  showSpinner("Google kimliği doğrulanıyor ve dosyalar taranıyor...");
 
   try {
     if (cId !== lastUsedClientId || fId !== currentDriveFolderId) {
@@ -2073,31 +2211,75 @@ function verifyClientForReset() {
       scope: 'https://www.googleapis.com/auth/drive.file',
       callback: async (response) => {
         if (response.error) {
-          hideSpinner();
-          driveAccessToken = null;
+          hideSpinner(); driveAccessToken = null;
           return showCustomAlert("İşlem İptal Edildi!\nGoogle kimliğinizi onaylamadınız.", false);
         }
         driveAccessToken = response.access_token;
-        hideSpinner();
-        openResetAuthModal('drive');
+        await fetchFileListForReset(); // Bağlantı ok, dosyaları çekmeye git
       },
-      error_callback: (err) => {
-        hideSpinner();
-        driveAccessToken = null;
-        showCustomAlert("Google bağlantısı kurulamadı!\nClient ID veya Klasör ID hatalı olabilir.", false);
+      error_callback: () => {
+        hideSpinner(); driveAccessToken = null;
+        showCustomAlert("Google bağlantısı kurulamadı!\nID bilgilerini kontrol edin.", false);
       }
     });
 
     if (!driveAccessToken) {
       tokenClient.requestAccessToken({ prompt: 'select_account consent' });
     } else {
-      hideSpinner();
-      openResetAuthModal('drive');
+      fetchFileListForReset();
     }
+  } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
+}
+
+// SIFIRLAMA ADIM 1.5: Klasördeki Dosyaları Selectbox'a Doldur
+async function fetchFileListForReset() {
+  try {
+    const query = encodeURIComponent(`'${currentDriveFolderId}' in parents and trashed=false`);
+    const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`, {
+      headers: { 'Authorization': `Bearer ${driveAccessToken}` }
+    });
+    const searchData = await searchRes.json();
+
+    if (searchData.error) throw new Error("Klasör bulunamadı veya yetkiniz yok.");
+
+    const select = $('reset-file-select');
+    select.innerHTML = '';
+
+    if (searchData.files && searchData.files.length > 0) {
+      const files = searchData.files.filter(f => f.name.endsWith('.json'));
+      if (files.length === 0) {
+        select.innerHTML = `<option value="">-- Bu klasörde .json yedeği yok --</option>`;
+      } else {
+        files.forEach(file => {
+          select.innerHTML += `<option value="${file.name}">${file.name}</option>`;
+        });
+      }
+    } else {
+      select.innerHTML = `<option value="">-- Klasör tamamen boş --</option>`;
+    }
+
+    hideSpinner();
+    // Aşama 1'i kapat, Aşama 2'yi (Dosya Seçimini) göster
+    $('reset-step-1').classList.add('hidden');
+    $('reset-step-2').classList.remove('hidden');
+
   } catch (err) {
     hideSpinner();
-    showCustomAlert("Hata oluştu:\n" + err.message, false);
+    showCustomAlert(err.message, false);
   }
+}
+
+// SIFIRLAMA ADIM 2: Kullanıcı Dosyayı Seçti, Şifre Ekranına Gönder
+function startResetWithSelectedFile() {
+  const targetFile = $('reset-file-select').value;
+  if (!targetFile) {
+    return showToast("Sıfırlanacak geçerli bir dosya seçilmedi!");
+  }
+
+  currentDriveFileName = targetFile; // Sıfırlanacak olan dosyayı runtime değişkenine kilitle
+  closeM('mo-reset-client'); // Dosya seçim ekranını kapat
+
+  openResetAuthModal('drive'); // confirmResetAuth (Kullanıcı adı / Şifre) ekranını aç!
 }
 
 function confirmResetAuth() {
@@ -2125,16 +2307,19 @@ function confirmResetAuth() {
   }
 }
 
+// SIFIRLAMA ADIM 3: İki Güvenlik Kapısı da Geçildi, API ile Dosyayı Ez (Sıfırla)
 async function executeDriveReset() {
   const fId = currentDriveFolderId || localStorage.getItem('ozsecer_folder_id');
-  if (!fId) return showCustomAlert("Hata: Klasör ID bulunamadı!", false);
+  const fileName = currentDriveFileName; // Az önce kilitlediğimiz seçili dosya adı
 
-  showSpinner("Bulut üzerindeki veritabanı sıfırlanıyor...");
+  if (!fId || !fileName) return showCustomAlert("Hata: Klasör veya Dosya bilgisi eksik!", false);
+
+  showSpinner(`${fileName} dosyasının içeriği temizleniyor...`);
   try {
     const emptyDB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] };
     const pushData = JSON.stringify(emptyDB);
 
-    const query = encodeURIComponent(`'${fId}' in parents and name='${DRIVE_FILE_NAME}' and trashed=false`);
+    const query = encodeURIComponent(`'${fId}' in parents and name='${fileName}' and trashed=false`);
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, {
       headers: { 'Authorization': `Bearer ${driveAccessToken}` }
     });
@@ -2147,13 +2332,13 @@ async function executeDriveReset() {
         headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' },
         body: pushData
       });
-      if (!patchRes.ok) throw new Error("Google Drive veritabanı ezilemedi.");
+      if (!patchRes.ok) throw new Error("Dosya içeriği sıfırlanamadı.");
     } else {
-      throw new Error("Bu klasörün içinde sıfırlanacak bir bulut yedeği bulunamadı.");
+      throw new Error("Sıfırlanacak hedef dosya buluttan silinmiş veya bulunamadı.");
     }
 
     hideSpinner();
-    showCustomAlert("Girdiğiniz klasördeki tüm yedekleriniz başarıyla sıfırlandı!", true);
+    showCustomAlert(`"${fileName}" isimli yedek dosyanızın içeriği başarıyla sıfırlandı!`, true);
   } catch (err) {
     hideSpinner();
     showCustomAlert(err.message, false);
