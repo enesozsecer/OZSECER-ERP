@@ -357,7 +357,9 @@ function renderCari(force = false) {
   const list = $('cari-list');
   list.innerHTML = '';
 
-  DB.c.filter(x => !x.silindi).forEach(c => {
+  let cari = DB.c.filter(x => !x.silindi).sort((a, b) => getTimeMs(b.olusturmaTarihi) - getTimeMs(a.olusturmaTarihi));
+
+  cari.filter(x => !x.silindi).forEach(c => {
     const content = (c.ad + " " + (c.tel || "") + " " + (c.vkn || "") + " " + (c.adres || "")).toLowerCase();
     if (q && !content.includes(q)) return;
 
@@ -509,7 +511,9 @@ function renderUrun(force = false) {
   const list = $('urun-list');
   list.innerHTML = '';
 
-  DB.u.filter(x => !x.silindi).forEach(u => {
+  let urun = DB.u.filter(x => !x.silindi).sort((a, b) => getTimeMs(b.olusturmaTarihi) - getTimeMs(a.olusturmaTarihi));
+
+  urun.filter(x => !x.silindi).forEach(u => {
     const content = (u.ad + " " + (u.barkod || "") + " " + (u.desc || "")).toLowerCase();
     if (q && !content.includes(q)) return;
 
@@ -663,11 +667,10 @@ function renderSip(force = false) {
   });
 }
 
-// Başlık Satırı Eklenmiş ve Türkçe Format Uyumlu Kalem Listesi
 function renderSipItems() {
   const p = $('ms-items');
   p.innerHTML = '';
-
+  
   // Sadece silinmemiş aktif kalemleri filtreleyip gösteriyoruz
   const visibleItems = tempSipItems.filter(it => !it.silindi);
 
@@ -709,9 +712,11 @@ function renderSipItems() {
   calcSipTotal();
 }
 
-function ddUrunSearch(idx, inp) {
+function ddUrunSearch(itemId, inp) {
+  const it = findSipItem(itemId);
+  if (!it) return;
   const q = inp.value.toLowerCase().trim();
-  const listId = `dd-urun-list-${idx}`;
+  const listId = `dd-urun-list-${itemId}`;
   let list = $(listId);
   if (!list) {
     list = document.createElement('div');
@@ -720,7 +725,8 @@ function ddUrunSearch(idx, inp) {
     inp.parentNode.style.position = 'relative';
   }
   list.innerHTML = '';
-  tempSipItems[idx].ad = inp.value;
+  it.ad = inp.value;
+  it.guncellenmeTarihi = tsNow();
 
   if (!q) { list.classList.add('hidden'); return; }
 
@@ -735,11 +741,12 @@ function ddUrunSearch(idx, inp) {
       inp.value = u.ad;
       list.classList.add('hidden');
       const tur = Number($('ms-tur').value);
-      tempSipItems[idx].urunId = u.id;
-      tempSipItems[idx].ad = u.ad;
-      tempSipItems[idx].fiyat = (tur === ISLEM.ALIS) ? (u.alisFiyat || 0) : (u.satisFiyat || 0);
-      tempSipItems[idx].birim = u.birim || 1;
-      tempSipItems[idx].toplam = tempSipItems[idx].fiyat * (tempSipItems[idx].miktar || 1);
+      it.urunId = u.id;
+      it.ad = u.ad;
+      it.fiyat = (tur === ISLEM.ALIS) ? (u.alisFiyat || 0) : (u.satisFiyat || 0);
+      it.birim = u.birim || 1;
+      it.toplam = it.fiyat * (it.miktar || 1);
+      it.guncellenmeTarihi = tsNow();
       renderSipItems();
     };
     list.appendChild(div);
@@ -747,53 +754,79 @@ function ddUrunSearch(idx, inp) {
   list.classList.remove('hidden');
 }
 
-// Miktar değiştiğinde çalışan tetikleyici
-function handleSipRowChange(idx, field, val) {
+function handleSipRowChange(itemId, field, val) {
+  const it = findSipItem(itemId);
+  if (!it) return;
   let m = parseFloat(val) || 0;
-  tempSipItems[idx][field] = m;
+  it[field] = m;
 
-  let f = parseFloat(tempSipItems[idx].fiyat) || 0;
+  let f = parseFloat(it.fiyat) || 0;
   let t = m * f;
-  tempSipItems[idx].toplam = t;
+  it.toplam = t;
+  it.guncellenmeTarihi = tsNow();
 
-  $('sip-top-' + idx).value = formatTR(t);
-  $('sip-fiy-' + idx).value = formatTR(f);
+  const topInput = $('sip-top-' + itemId);
+  if (topInput) topInput.value = formatTR(t);
   calcSipTotal();
 }
 
-// Birim Fiyat veya Toplam Fiyat elle değiştirildiğinde çift yönlü hesaplama mantığı
-function handleSipRowChangeText(idx, field, val) {
+function handleSipRowChangeText(itemId, field, val) {
+  const it = findSipItem(itemId);
+  if (!it) return;
   let parsedVal = parseRawTR(val);
-  tempSipItems[idx][field] = parsedVal;
+  it[field] = parsedVal;
+  it.guncellenmeTarihi = tsNow();
 
-  let m = parseFloat(tempSipItems[idx].miktar) || 0;
-  let f = parseFloat(tempSipItems[idx].fiyat) || 0;
-  let t = parseFloat(tempSipItems[idx].toplam) || 0;
+  let m = parseFloat(it.miktar) || 0;
+  let f = parseFloat(it.fiyat) || 0;
 
   if (field === 'fiyat') {
-    t = m * parsedVal;
-    tempSipItems[idx].toplam = t;
-    let topInput = $('sip-top-' + idx);
-    if (topInput && document.activeElement !== topInput) {
-      topInput.value = formatTR(t);
-    }
+    let t = m * parsedVal;
+    it.toplam = t;
+    let topInput = $('sip-top-' + itemId);
+    if (topInput && document.activeElement !== topInput) topInput.value = formatTR(t);
   } else if (field === 'toplam') {
     f = m !== 0 ? parsedVal / m : 0;
-    tempSipItems[idx].fiyat = f;
-    let fiyInput = $('sip-fiy-' + idx);
-    if (fiyInput && document.activeElement !== fiyInput) {
-      fiyInput.value = formatTR(f);
-    }
+    it.fiyat = f;
+    let fiyInput = $('sip-fiy-' + itemId);
+    if (fiyInput && document.activeElement !== fiyInput) fiyInput.value = formatTR(f);
   }
   calcSipTotal();
 }
 
 function updateSipItem(idx, key, val) { tempSipItems[idx][key] = val; }
-function delSipItem(idx) { tempSipItems.splice(idx, 1); renderSipItems(); }
-function addSipItem() { tempSipItems.push({ urunId: null, ad: '', fiyat: '', miktar: 1, toplam: '', birim: 1 }); renderSipItems(); }
+function delSipItem(itemId) {
+  const it = findSipItem(itemId);
+  if (!it) return;
+  it.silindi = true;
+  it.silinmeTarihi = tsNow();
+  it.guncellenmeTarihi = tsNow();
+  renderSipItems();
+}
+function findSipItem(itemId) {
+  return tempSipItems.find(x => String(x.id) === String(itemId));
+}
+
+function addSipItem() {
+  const sipId = $('ms-id').value || null;
+  tempSipItems.push({
+    id: guid(),
+    siparisId: sipId,
+    urunId: null,
+    ad: '',
+    fiyat: '',
+    miktar: 1,
+    toplam: '',
+    birim: 1,
+    olusturmaTarihi: tsNow(),
+    guncellenmeTarihi: tsNow(),
+    silindi: false
+  });
+  renderSipItems();
+}
 
 function calcSipTotal() {
-  const araT = tempSipItems.reduce((sum, it) => sum + (parseFloat(it.toplam) || 0), 0);
+  const araT = tempSipItems.reduce((sum, it) => sum + (it.silindi ? 0 : (parseFloat(it.toplam) || 0)), 0);
   $('ms-ara').innerText = fp(araT);
   $('ms-genel').innerText = fp(araT - (Number($('ms-indirim').value) || 0));
 }
@@ -814,19 +847,19 @@ function editSip(id) {
   $('ms-id').value = s.id; $('ms-tur').value = s.tur; oldSipTur = Number(s.tur);
   $('ms-tarih').value = s.tarih; $('ms-not').value = s.not || ''; $('ms-indirim').value = s.indirim || 0;
   $('ms-cari').value = s.cariId; $('csd-ms-cari').innerText = c ? c.ad : 'Bilinmeyen Cari';
+  
+  // Eksik property'leri geriye dönük tamamlayarak yükleme
   tempSipItems = JSON.parse(JSON.stringify(s.items || [])).map(it => {
+    if (!it.id) it.id = guid();
+    if (!it.siparisId) it.siparisId = s.id;
+    if (!it.olusturmaTarihi) it.olusturmaTarihi = s.olusturmaTarihi || tsNow();
+    if (!it.guncellenmeTarihi) it.guncellenmeTarihi = s.guncellenmeTarihi || tsNow();
+    if (it.silindi === undefined) it.silindi = false;
     it.toplam = it.toplam !== undefined ? it.toplam : ((it.fiyat || 0) * (it.miktar || 0));
     return it;
   });
+  
   $('ms-del').classList.remove('hidden'); $('ms-pdf').classList.remove('hidden');
-
-  $('ms-del').onclick = () => {
-    showConfirm(`${s.no} silinecek, emin misiniz?`, () => {
-      s.items.forEach(it => { if (it.urunId) updateStok(it.urunId, it.miktar, Number(s.tur) === ISLEM.ALIS, false); });
-      softDelete(DB.s, id); saveDB(); closeM('mo-sip'); renderSip(true); renderHome();
-    }, '🗑️', 'Sipariş Sil');
-  };
-  $('ms-pdf').onclick = () => printSip(s.id);
   renderSipItems(); openM('mo-sip');
 }
 
@@ -835,33 +868,40 @@ function saveSip() {
   if (!cariId) return showToast('Cari seçimi zorunlu!');
   if (tempSipItems.length === 0) return showToast('Kalem girilmedi!');
 
-  const id = $('ms-id').value;
+  let id = $('ms-id').value;
   const tur = Number($('ms-tur').value);
   const isAlis = tur === ISLEM.ALIS;
+  
+  if (!id) id = guid(); // Sipariş ID'sini önceden üretip kalemlere dağıtacağız
+
   const finalItems = tempSipItems.map(it => ({
     ...it,
+    siparisId: id,
     fiyat: parseFloat(it.fiyat) || 0,
     miktar: parseFloat(it.miktar) || 0,
     toplam: parseFloat(it.toplam) || 0
   }));
 
-  const ara = finalItems.reduce((sum, it) => sum + it.toplam, 0);
+  const ara = finalItems.reduce((sum, it) => sum + (it.silindi ? 0 : it.toplam), 0);
   const ind = Number($('ms-indirim').value) || 0;
   const data = {
-    tur, cariId: String(cariId), tarih: $('ms-tarih').value, not: $('ms-not').value,
+    id, tur, cariId: String(cariId), tarih: $('ms-tarih').value, not: $('ms-not').value,
     items: finalItems, araToplam: ara, indirim: ind, genelToplam: ara - ind, toplam: ara - ind
   };
 
-  if (id) {
+  if ($('ms-id').value) {
     const s = DB.s.find(x => String(x.id) === String(id));
-    s.items.forEach(it => { if (it.urunId) updateStok(it.urunId, it.miktar, oldSipTur === ISLEM.ALIS, false); });
+    // Sadece silinmemiş aktif eski kalemlerin stok etkisini geri al
+    s.items.forEach(it => { if (it.urunId && !it.silindi) updateStok(it.urunId, it.miktar, oldSipTur === ISLEM.ALIS, false); });
     Object.assign(s, data, { guncellenmeTarihi: tsNow(), guncelleyen: getCihazAdi() });
-    s.items.forEach(it => { if (it.urunId) updateStok(it.urunId, it.miktar, isAlis, true); });
   } else {
     data.no = `SIP-${pad(DB.s.length + 1)}`;
-    DB.s.push({ id: guid(), ...data, olusturmaTarihi: tsNow(), olusturan: getCihazAdi(), silindi: false });
-    data.items.forEach(it => { if (it.urunId) updateStok(it.urunId, it.miktar, isAlis, true); });
+    DB.s.push({ id, ...data, olusturmaTarihi: tsNow(), olusturan: getCihazAdi(), silindi: false });
   }
+  
+  // Sadece silinmemiş yeni aktif kalemlerin stok etkisini sisteme işle
+  data.items.forEach(it => { if (it.urunId && !it.silindi) updateStok(it.urunId, it.miktar, isAlis, true); });
+
   saveDB(); closeM('mo-sip'); renderSip(true); renderHome();
 }
 
@@ -965,9 +1005,9 @@ function saveKasa() {
 
 // --- ANALİZ ---
 function renderHome() {
-  $('home-cari-count').innerText = DB.c.filter(x => !x.silindi).length;
-  $('home-urun-count').innerText = DB.u.filter(x => !x.silindi).length;
-  if ($('home-kampanya-count')) $('home-kampanya-count').innerText = DB.k.length + " Geçmiş ➔";
+  // $('home-cari-count').innerText = DB.c.filter(x => !x.silindi).length;
+  // $('home-urun-count').innerText = DB.u.filter(x => !x.silindi).length;
+  // if ($('home-kampanya-count')) $('home-kampanya-count').innerText = DB.k.length + " Geçmiş ➔";
 }
 
 function renderAnaliz(force = false) {
@@ -1086,6 +1126,7 @@ function renderKatUrun() {
   list.innerHTML = '';
 
   let res = DB.u.filter(x => !x.silindi);
+  
   if (fGrup) res = res.filter(u => String(u.grupId) === String(fGrup));
   if (q) res = res.filter(u => (u.ad + " " + (u.barkod || "") + " " + (u.desc || "")).toLowerCase().includes(q));
 
@@ -1124,6 +1165,7 @@ function selectAllKat() {
   const fGrup = $('filter-kat-grup').value;
 
   let res = DB.u.filter(x => !x.silindi);
+  
   if (fGrup) res = res.filter(u => String(u.grupId) === String(fGrup));
   if (q) res = res.filter(u => (u.ad + " " + (u.barkod || "") + " " + (u.desc || "")).toLowerCase().includes(q));
 
@@ -1214,14 +1256,16 @@ function renderKampanyaListe() {
   const list = $('kl-list');
   list.innerHTML = '';
 
-  if ($('home-kampanya-count')) $('home-kampanya-count').innerText = DB.k.length + " Geçmiş ➔";
+  // if ($('home-kampanya-count')) $('home-kampanya-count').innerText = DB.k.length + " Geçmiş ➔";
 
   if (DB.k.length === 0) {
     list.innerHTML = '<p class="text-muted" style="font-size:0.85rem; padding:1rem; text-align:center;">Kayıtlı kampanya bulunmuyor.</p>';
     return;
   }
 
-  DB.k.forEach(k => {
+  let kampanya = DB.k.filter(x => !x.silindi).sort((a, b) => getTimeMs(b.tarih) - getTimeMs(a.tarih));
+
+  kampanya.forEach(k => {
     list.innerHTML += `
           <div class="list-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; padding:0.75rem;">
             <div style="flex:1; cursor:pointer;" onclick="editKampanya('${k.id}')">
@@ -1900,57 +1944,73 @@ async function executePullMergePush() {
 
 function mergeDatabases(remoteDB) {
   if (!remoteDB) return;
+  const collections = ['c', 'u', 's', 't', 'g', 'ug', 'k']; 
 
-  // Sistemdeki tüm tablolar (Cari, Ürün, Sipariş, Kasa, Gruplar, Katalog vb.)
-  const collections = ['c', 'u', 's', 't', 'g', 'ug', 'k'];
-
-  // Tarih formatını (DD.MM.YYYY HH:mm:ss veya ISO) kıyaslanabilir sayısal süreye çevirir
   function parseTRDate(str) {
     if (!str) return 0;
     if (str.includes('T')) return new Date(str).getTime();
     const parts = str.split(' ');
-    if (parts.length !== 2) return 0;
+    if(parts.length !== 2) return 0;
     const d = parts[0].split('.');
     const t = parts[1].split(':');
-    if (d.length !== 3 || t.length !== 3) return 0;
-    return new Date(d[2], d[1] - 1, d[0], t[0], t[1], t[2]).getTime();
+    if(d.length !== 3 || t.length !== 3) return 0;
+    return new Date(d[2], d[1]-1, d[0], t[0], t[1], t[2]).getTime();
   }
 
-  // Bir kaydın en son ne zaman dokunulduğunu (değiştirildiğini) bulur
   function getLastMod(item) {
     if (item.silinmeTarihi) return parseTRDate(item.silinmeTarihi);
     if (item.guncellenmeTarihi) return parseTRDate(item.guncellenmeTarihi);
     if (item.olusturmaTarihi) return parseTRDate(item.olusturmaTarihi);
-    return 0; // Tarih yoksa 0 döner
+    return 0;
+  }
+
+  // Sipariş Kalemlerini Kendi İçinde Güvenle Birleştiren İç Fonksiyon
+  function mergeOrderItems(localItems, remoteItems) {
+    const itemMap = new Map();
+    localItems.forEach(it => itemMap.set(String(it.id), it));
+
+    remoteItems.forEach(remoteIt => {
+      const rId = String(remoteIt.id);
+      if (itemMap.has(rId)) {
+        const localIt = itemMap.get(rId);
+        if (getLastMod(remoteIt) > getLastMod(localIt)) {
+          Object.assign(localIt, remoteIt);
+        }
+      } else {
+        localItems.push(remoteIt);
+      }
+    });
+    return localItems;
   }
 
   collections.forEach(col => {
-    if (!remoteDB[col]) return; // Drive'da bu tablo yoksa atla
-    if (!DB[col]) DB[col] = []; // Cihazda bu tablo yoksa boş oluştur
+    if (!remoteDB[col]) return;
+    if (!DB[col]) DB[col] = [];
 
     const localMap = new Map();
     DB[col].forEach(item => localMap.set(String(item.id), item));
 
     remoteDB[col].forEach(remoteItem => {
       const id = String(remoteItem.id);
-
+      
       if (localMap.has(id)) {
-        // KAYIT HER İKİ CİHAZDA DA VAR: Hangisi daha güncelse o kazanır
         const localItem = localMap.get(id);
-        const remoteTime = getLastMod(remoteItem);
-        const localTime = getLastMod(localItem);
-
-        // Eğer Drive'daki (başka cihazdan gelen) kayıt daha yeniyse, bendeki (local) veriyi güncelle
-        if (remoteTime > localTime) {
-          Object.assign(localItem, remoteItem);
+        
+        if (col === 's') {
+          // Eğer işlem Sipariş tablosu ise kalemleri akıllıca merge et
+          const mergedItems = mergeOrderItems(localItem.items || [], remoteItem.items || []);
+          if (getLastMod(remoteItem) > getLastMod(localItem)) {
+            Object.assign(localItem, remoteItem);
+          }
+          localItem.items = mergedItems;
+        } else {
+          // Diğer standart tabloların düzgünce güncellenmesi
+          if (getLastMod(remoteItem) > getLastMod(localItem)) {
+            Object.assign(localItem, remoteItem); 
+          }
         }
-        // Eğer bendeki daha yeniyse (localTime > remoteTime), hiçbir şeye dokunma.
-        // Aşağıdaki PUSH işlemi sırasında benim güncel verim Drive'a gidecektir.
-
       } else {
-        // KAYIT SADECE DRIVE'DA VAR: (Demek ki diğer cihaz yeni eklemiş), o zaman bendeki listeye de ekle
         DB[col].push(remoteItem);
-        localMap.set(id, remoteItem);
       }
     });
   });
@@ -2103,4 +2163,15 @@ function showCustomAlert(msg, isSuccess = true) {
   openM('mo-alert');
 }
 
+// --- TARİHLERİ MİLİSANİYEYE ÇEVİRİP SIRALAMA YAPAN YARDIMCI KOD ---
+    function getTimeMs(str) {
+      if (!str) return 0;
+      if (str.includes('T')) return new Date(str).getTime();
+      const parts = str.split(' ');
+      if (parts.length !== 2) return 0;
+      const d = parts[0].split('.');
+      const t = parts[1].split(':');
+      if (d.length !== 3 || t.length !== 3) return 0;
+      return new Date(d[2], d[1] - 1, d[0], t[0], t[1], t[2]).getTime();
+    }
 window.onload = checkAuth;
