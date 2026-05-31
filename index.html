@@ -7,6 +7,7 @@
   <title>OZSECER ERP</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="stylecss.css">
   <link rel="icon" href="data:,">
 </head>
@@ -211,6 +212,28 @@
 
           </div>
         </div>
+        <div class="card mb-4" style="border: 1px solid var(--green);">
+          <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--green);">📊 Excel Veri Yönetimi</h3>
+          <p class="text-muted mb-4" style="font-size: 0.85rem;">Şablon Excel dosyanızı indirebilir, toplu düzenlemeler
+            yapıp tekrar akıllı eşleştirme (Merge) yöntemiyle sisteme yükleyebilirsiniz.</p>
+
+          <div class="grid-2">
+            <button class="btn-primary" style="padding: 1rem; font-size: 1rem; background: var(--green);"
+              onclick="document.getElementById('excel-import-input').click()">
+              📤 Excel'den Yükle
+            </button>
+
+            <button class="btn-outline"
+              style="padding: 1rem; font-size: 1rem; border-color: var(--green); color: var(--green);"
+              onclick="openExcelExportModal()">
+              📥 Şablon / Veri İndir
+            </button>
+
+          </div>
+
+          <input type="file" id="excel-import-input" accept=".xlsx, .xls" style="display: none;"
+            onchange="handleExcelImport(event)">
+        </div>
       </div>
 
 
@@ -245,6 +268,28 @@
   </div>
 
   <!-- MODALS -->
+   <div id="mo-excel-export" class="mo" onclick="closeOnOutside(event, 'mo-excel-export')" style="z-index: 450;">
+      <div class="mo-content">
+        <div class="mo-header">
+          <div class="mo-title" style="color: var(--green);">Excel İndirme Seçenekleri</div>
+          <button class="icon-btn" onclick="closeM('mo-excel-export')">✕</button>
+        </div>
+        <p class="text-muted mb-4" style="font-size:0.85rem">Lütfen indirmek istediğiniz dosya türünü seçin:</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
+          <button class="btn-outline" style="padding: 1rem; border-color: var(--text); color: var(--text); text-align: left; background: var(--bg);" onclick="downloadExcel(false)">
+            📄 <strong style="font-size: 1.05rem;">Boş Şablon İndir</strong>
+            <div style="font-size: 0.8rem; margin-top: 0.4rem;" class="text-muted">Sadece zorunlu kolon başlıklarını içerir. İçini Excel'de doldurup sisteme yüklemek için idealdir.</div>
+          </button>
+          
+          <button class="btn-outline" style="padding: 1rem; border-color: var(--green); color: var(--green); text-align: left; background: var(--bg);" onclick="downloadExcel(true)">
+            📂 <strong style="font-size: 1.05rem;">Tüm Verilerle İndir</strong>
+            <div style="font-size: 0.8rem; margin-top: 0.4rem;">Sistemdeki tüm (Cari, Ürün, Sipariş vb.) kayıtlarınızı güncel haliyle Excel'e aktarır.</div>
+          </button>
+        </div>
+      </div>
+    </div>
+    
   <div id="mo-sync-config" class="mo" onclick="closeOnOutside(event, 'mo-sync-config')" style="z-index: 400;">
     <div class="mo-content">
       <div class="mo-header">
@@ -265,15 +310,13 @@
         <p class="text-muted mb-4" style="font-size:0.85rem">Lütfen yapmak istediğiniz yedekleme türünü seçin:</p>
 
         <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem;">
-          <label
-            style="display: flex; align-items: center; gap: 0.6rem;">
+          <label style="display: flex; align-items: center; gap: 0.6rem;">
             <input type="radio" name="syncMode" id="sync-mode-update" value="update" checked onchange="toggleSyncMode()"
               style="margin: 0; width: 1.2rem; height: 1.2rem; flex-shrink: 0; cursor: pointer;">
             <span style="font-size: 0.95rem; font-weight: 600;">Mevcut Olanı Güncelle</span>
           </label>
 
-          <label
-            style="display: flex; align-items: center; gap: 0.6rem;">
+          <label style="display: flex; align-items: center; gap: 0.6rem;">
             <input type="radio" name="syncMode" id="sync-mode-new" value="new" onchange="toggleSyncMode()"
               style="margin: 0; width: 1.2rem; height: 1.2rem; flex-shrink: 0; cursor: pointer;">
             <span style="font-size: 0.95rem; font-weight: 600;">Yeni Dosya Oluştur</span>

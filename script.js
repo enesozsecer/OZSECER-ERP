@@ -107,11 +107,11 @@ function checkAuth() {
 function login() {
   const u = $('log-user').value.trim();
   const p = $('log-pass').value;
-  
+
   // Hem Kullanıcı Adı (E-Posta) hem de Şifre kontrolü
   if (u === 'oztoptanpazarlama@gmail.com' && p === 'Oztoptan6595.') {
     localStorage.setItem('ozsecer_loggedin', '1');
-    
+
     // Beni Hatırla işaretliyse ikisini de kaydet
     if ($('log-remember').checked) {
       localStorage.setItem('ozsecer_remember', '1');
@@ -122,7 +122,7 @@ function login() {
       localStorage.removeItem('ozsecer_user'); // Hafızadan sil
       localStorage.removeItem('ozsecer_pass');
     }
-    
+
     $('login-screen').classList.add('hidden');
     $('app-container').classList.remove('hidden');
     initApp();
@@ -2355,6 +2355,159 @@ async function executeDriveReset() {
     showCustomAlert(err.message, false);
   }
 }
+
+// --- EXCEL AKILLI İÇE AKTARIM VE MERGE SİSTEMİ ---
+function handleExcelImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  showSpinner("Excel dosyası okunuyor ve veriler çözümleniyor...");
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      // SheetJS (XLSX) kütüphanesi ile dosyayı oku
+      const workbook = XLSX.read(data, { type: 'array' });
+
+      let eklendiCount = 0;
+      let guncellendiCount = 0;
+
+      // Excel'deki her bir sekmeyi (Sheet) dön
+      workbook.SheetNames.forEach(sheetName => {
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+        if (rows.length === 0) return;
+
+        // Hangi sekmeyi hangi DB tablosuna eşleyeceğimizi bulalım
+        let targetDB = null;
+        if (sheetName === 'Cari') targetDB = DB.c;
+        else if (sheetName === 'Urun') targetDB = DB.u;
+        else if (sheetName === 'Siparis') targetDB = DB.s;
+        else if (sheetName === 'Kasa') targetDB = DB.t; // veya kasa için hangi harfi kullanıyorsan
+        else if (sheetName === 'Katalog') targetDB = DB.g; // Gruplar/Katalog
+
+        if (targetDB) {
+          rows.forEach(row => {
+            // Excel'de formül/başlık açıklaması olan ilk rehber satırlarını atla
+            if (!row.ad && !row.belge_no && !row.islem_turu) return;
+
+            const rowId = row.id ? String(row.id).trim() : '';
+
+            // 1. DURUM: ID VAR (GÜNCELLEME - MERGE)
+            if (rowId !== '') {
+              const existingItem = targetDB.find(x => x.id === rowId);
+              if (existingItem) {
+                // Veriyi Excel'deki yeni değerlerle ez, ama sistemin yaşamsal verilerini (olusturmaTarihi) koru
+                Object.keys(row).forEach(key => {
+                  if (key !== 'id') existingItem[key] = row[key];
+                });
+                existingItem.guncellenmeTarihi = tsNow();
+                existingItem.silindi = false;
+                guncellendiCount++;
+              } else {
+                // ID var ama sistemde yoksa yeni kayıt say
+                row.olusturmaTarihi = tsNow();
+                row.guncellenmeTarihi = tsNow();
+                row.silindi = false;
+                targetDB.push(row);
+                eklendiCount++;
+              }
+            }
+            // 2. DURUM: ID YOK VEYA BOŞ (YEPYENİ KAYIT)
+            else {
+              row.id = guid(); // Eşsiz yeni ID üret
+              row.olusturmaTarihi = tsNow();
+              row.guncellenmeTarihi = tsNow();
+              row.silindi = false;
+              targetDB.push(row);
+              eklendiCount++;
+            }
+          });
+        }
+      });
+
+      // Tüm sekmeler bitince veritabanını kaydet ve ana sayfayı yenile
+      saveDB();
+      renderHome();
+      hideSpinner();
+
+      showCustomAlert(`Excel aktarımı başarıyla tamamlandı!\n\nYeni Eklenen: ${eklendiCount} Kayıt\nGüncellenen: ${guncellendiCount} Kayıt`, true);
+
+    } catch (err) {
+      hideSpinner();
+      showCustomAlert("Excel okunurken bir hata oluştu: " + err.message, false);
+    }
+
+    // Input'un içini temizle ki aynı dosyayı bir daha seçebilsin
+    event.target.value = '';
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+// --- EXCEL ŞABLON VE VERİ İNDİRME (EXPORT) SİSTEMİ ---
+    
+    function openExcelExportModal() {
+      openM('mo-excel-export');
+    }
+
+    function downloadExcel(withData) {
+      closeM('mo-excel-export');
+      showSpinner(withData ? "Verileriniz Excel'e dönüştürülüyor..." : "Boş şablon hazırlanıyor...");
+      
+      try {
+        // Yeni bir sanal çalışma kitabı oluştur
+        const wb = XLSX.utils.book_new();
+
+        // Her bir sayfa için sistemdeki standart değişken anahtarlarını belirliyoruz
+        const katalogHeaders = ['id', 'ad', 'tur', 'aciklama'];
+        const cariHeaders = ['id', 'ad', 'kod', 'telefon', 'eposta', 'adres', 'bakiye', 'vergiNo', 'vergiDairesi'];
+        const urunHeaders = ['id', 'ad', 'kod', 'barkod', 'birim', 'alisFiyat', 'satisFiyat', 'kdv', 'katalogId', 'aciklama'];
+        const siparisHeaders = ['id', 'tarih', 'cariId', 'tur', 'toplam', 'durum', 'aciklama'];
+        const kasaHeaders = ['id', 'tarih', 'cariId', 'tur', 'tutar', 'aciklama'];
+
+        // Helper: Sayfa yaratma ve verileri doldurma fonksiyonu
+        function addSheet(sheetName, headers, dbArray) {
+          let wsData = [headers]; // En üst satıra başlıkları koy
+          
+          if (withData && dbArray) {
+            // Silinmemiş verileri filtrele ve Excel satırlarına dönüştür
+            const activeData = dbArray.filter(x => !x.silindi);
+            activeData.forEach(item => {
+              let row = [];
+              headers.forEach(h => {
+                row.push(item[h] !== undefined && item[h] !== null ? item[h] : '');
+              });
+              wsData.push(row);
+            });
+          }
+          
+          const ws = XLSX.utils.aoa_to_sheet(wsData);
+          XLSX.utils.book_append_sheet(wb, ws, sheetName);
+        }
+
+        // Sekmeleri oluştur
+        addSheet('Katalog', katalogHeaders, DB.g);
+        addSheet('Cari', cariHeaders, DB.c);
+        addSheet('Urun', urunHeaders, DB.u);
+        addSheet('Siparis', siparisHeaders, DB.s);
+        addSheet('Kasa', kasaHeaders, DB.t);
+
+        // Dosya ismini duruma göre belirle
+        const dateStr = new Date().toISOString().slice(0,10);
+        const fileName = withData ? `OZSECER_ERP_Yedek_${dateStr}.xlsx` : `OZSECER_ERP_Bos_Sablon.xlsx`;
+        
+        // SheetJS ile dosyayı cihaza indir
+        XLSX.writeFile(wb, fileName);
+        
+        hideSpinner();
+        showToast("Excel dosyası başarıyla indirildi! " + (withData ? "✅" : "📄"));
+
+      } catch (err) {
+        hideSpinner();
+        showCustomAlert("Excel oluşturulurken bir hata meydana geldi:\n" + err.message, false);
+      }
+    }
 
 // --- UI GÖRSEL YARDIMCILARI (SPINNER & ALERT) ---
 function showSpinner(msg) {
