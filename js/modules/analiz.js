@@ -1,34 +1,38 @@
 import { DB } from '../core/db.js';
-import { $, fp, ISLEM, KASA, calcNet } from '../core/utils.js';
+import { $, fp, ISLEM, KASA, calcBalance } from '../core/utils.js';
 
 export function renderAnaliz(force = false) {
   if (!force) return;
   const start = $('an-start').value; const end = $('an-end').value; const fGrup = $('filter-an-grup').value;
-  let ss = DB.s.filter(x => !x.silindi);
+  let ss = DB.Order.filter(x => !x.Deleted);
 
-  if (fGrup) { ss = ss.filter(s => { const c = DB.c.find(x => String(x.id) === String(s.cariId)); return c && String(c.grupId) === String(fGrup); }); }
-  if (start && end) { const sD = new Date(start); const eD = new Date(end); eD.setHours(23, 59, 59); ss = ss.filter(x => { const d = new Date(x.tarih); return d >= sD && d <= eD; }); }
+  if (fGrup) { ss = ss.filter(s => { const c = DB.Current.find(x => String(x.Id) === String(s.CurrentId)); return c && String(c.CurrentGroupId) === String(fGrup); }); }
+  if (start && end) { const sD = new Date(start); const eD = new Date(end); eD.setHours(23, 59, 59); ss = ss.filter(x => { const d = new Date(x.OrderDate); return d >= sD && d <= eD; }); }
 
   let tAlis = 0, tSatis = 0, tKar = 0;
   ss.forEach(s => {
-    if (Number(s.tur) === ISLEM.ALIS) tAlis += s.toplam;
-    if (Number(s.tur) === ISLEM.SATIS) { tSatis += s.toplam; s.items.forEach(it => { const u = DB.u.find(x => String(x.id) === String(it.urunId)); const maliyet = u ? u.alisFiyat : 0; tKar += (it.fiyat - maliyet) * it.miktar; }); }
+    if (Number(s.OrderTypeId) === ISLEM.ALIS) tAlis += s.TotalPrice;
+    if (Number(s.OrderTypeId) === ISLEM.SATIS) { 
+      tSatis += s.TotalPrice; 
+      const kalemler = DB.OrderItem.filter(x => x.OrderId === s.Id && !x.Deleted);
+      kalemler.forEach(it => { const u = DB.Product.find(x => String(x.Id) === String(it.ProductId)); const maliyet = u ? (u.PurchasePrice || 0) : 0; tKar += (it.UnitPrice - maliyet) * it.Amount; }); 
+    }
   });
 
   let mBorc = 0, mAlacak = 0;
-  DB.c.filter(x => !x.silindi).forEach(c => {
-    if (fGrup && String(c.grupId) !== String(fGrup)) return;
-    const n = calcNet(c.id);
+  DB.Current.filter(x => !x.Deleted).forEach(c => {
+    if (fGrup && String(c.CurrentGroupId) !== String(fGrup)) return;
+    const n = calcBalance(c.Id) + (Number(c.Balance) || 0);
     if (n > 0) mBorc += n; if (n < 0) mAlacak += Math.abs(n);
   });
 
   let stokMaliyet = 0, stokDeger = 0;
-  DB.u.filter(x => !x.silindi).forEach(u => { const s = Number(u.stok) || 0; if (s > 0) { stokMaliyet += s * (Number(u.alisFiyat) || 0); stokDeger += s * (Number(u.satisFiyat) || 0); } });
+  DB.Product.filter(x => !x.Deleted).forEach(u => { const s = Number(u.StockQuantity) || 0; if (s > 0) { stokMaliyet += s * (Number(u.PurchasePrice) || 0); stokDeger += s * (Number(u.SalePrice) || 0); } });
 
-  let tTahsilat = 0, tOdeme = 0; let tt = DB.t.filter(x => !x.silindi);
-  if (fGrup) { tt = tt.filter(t => { const c = DB.c.find(x => String(x.id) === String(t.cariId)); return c && String(c.grupId) === String(fGrup); }); }
-  if (start && end) { const sD = new Date(start); const eD = new Date(end); eD.setHours(23, 59, 59); tt = tt.filter(x => { const d = new Date(x.tarih); return d >= sD && d <= eD; }); }
-  tt.forEach(t => { if (Number(t.tur) === KASA.TAHSILAT) tTahsilat += Number(t.tutar); if (Number(t.tur) === KASA.ODEME) tOdeme += Number(t.tutar); });
+  let tTahsilat = 0, tOdeme = 0; let tt = DB.Payment.filter(x => !x.Deleted);
+  if (fGrup) { tt = tt.filter(t => { const c = DB.Current.find(x => String(x.Id) === String(t.CurrentId)); return c && String(c.CurrentGroupId) === String(fGrup); }); }
+  if (start && end) { const sD = new Date(start); const eD = new Date(end); eD.setHours(23, 59, 59); tt = tt.filter(x => { const d = new Date(x.PaymentDate); return d >= sD && d <= eD; }); }
+  tt.forEach(t => { if (Number(t.PaymentTypeId) === KASA.TAHSILAT) tTahsilat += Number(t.Payment); if (Number(t.PaymentTypeId) === KASA.ODEME) tOdeme += Number(t.Payment); });
 
   const or = tSatis > 0 ? ((tKar / tSatis) * 100).toFixed(1) : 0;
 

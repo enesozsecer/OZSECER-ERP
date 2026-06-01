@@ -1,13 +1,12 @@
 import { DB, saveDB } from '../core/db.js';
-import { $, guid, tsNow, fd, showToast, openM, closeM, showConfirm, showSpinner, hideSpinner, showCustomAlert, updateSpinner, getCihazAdi } from '../core/utils.js';
-import { renderHome } from './home.js';
-
-export function exportDB() {
-  const data = JSON.stringify(DB); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `OzToptan_Yedek_${tsNow().replace(/[: ]/g, '_')}.json`; a.click(); URL.revokeObjectURL(url); showToast("Veriler cihaza indirildi.");
-}
+import { $, guid, tsNow, showToast, openM, closeM, showConfirm, showSpinner, hideSpinner, showCustomAlert, updateSpinner, getCihazAdi } from '../core/utils.js';
 
 export let tokenClient; export let driveAccessToken = null; export let lastUsedClientId = null; export let currentDriveFolderId = null; export let currentDriveFileName = null;
-const DRIVE_FILE_NAME = 'ozsecer_erp_data.json'; // Gerektiğinde fallback
+const DRIVE_FILE_NAME = 'ozsecer_erp_data.json'; 
+
+export function exportDB() {
+  const data = JSON.stringify(DB); const blob = new Blob([data], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `OzToptan_Yedek.json`; a.click(); URL.revokeObjectURL(url);
+}
 
 export function openSyncModal() {
   $('sync-client-id').value = localStorage.getItem('ozsecer_client_id') || ''; $('sync-folder-id').value = localStorage.getItem('ozsecer_folder_id') || '';
@@ -17,8 +16,7 @@ export function openSyncModal() {
 export function connectAndFetchFiles() {
   const cId = $('sync-client-id').value.trim(); const fId = $('sync-folder-id').value.trim();
   if (!cId || !fId) return showToast('Lütfen tüm alanları doldurun!');
-  localStorage.setItem('ozsecer_client_id', cId); localStorage.setItem('ozsecer_folder_id', fId);
-  showSpinner("Drive'a bağlanılıyor...");
+  localStorage.setItem('ozsecer_client_id', cId); localStorage.setItem('ozsecer_folder_id', fId); showSpinner("Drive'a bağlanılıyor...");
   try {
     if (cId !== lastUsedClientId || fId !== currentDriveFolderId) { driveAccessToken = null; lastUsedClientId = cId; currentDriveFolderId = fId; }
     tokenClient = google.accounts.oauth2.initTokenClient({
@@ -92,42 +90,27 @@ export async function executePullMergePush() {
       const postRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { 'Authorization': `Bearer ${driveAccessToken}` }, body: form });
       if (!postRes.ok) throw new Error("Yeni dosya başarısız.");
     }
-    saveDB(); renderHome(); hideSpinner(); showCustomAlert(`Başarıyla eşitlendi!`, true);
+    saveDB(); hideSpinner(); window.location.reload(); 
   } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
 
 export function mergeDatabases(remoteDB) {
   if (!remoteDB) return;
-  const collections = ['c', 'u', 's', 't', 'g', 'ug', 'k'];
-  function parseTRDate(str) {
-    if (!str) return 0; if (str.includes('T')) return new Date(str).getTime();
-    const parts = str.split(' '); if (parts.length !== 2) return 0;
-    const d = parts[0].split('.'); const t = parts[1].split(':'); if (d.length !== 3 || t.length !== 3) return 0;
-    return new Date(d[2], d[1] - 1, d[0], t[0], t[1], t[2]).getTime();
-  }
+  const collections = ['Current', 'Product', 'Order', 'OrderItem', 'Payment', 'CurrentGroup', 'ProductGroup', 'Offer', 'OfferItem'];
   function getLastMod(item) {
-    if (item.silinmeTarihi) return parseTRDate(item.silinmeTarihi);
-    if (item.guncellenmeTarihi) return parseTRDate(item.guncellenmeTarihi);
-    if (item.olusturmaTarihi) return parseTRDate(item.olusturmaTarihi); return 0;
-  }
-  function mergeOrderItems(localItems, remoteItems) {
-    const itemMap = new Map(); localItems.forEach(it => itemMap.set(String(it.id), it));
-    remoteItems.forEach(remoteIt => {
-      const rId = String(remoteIt.id);
-      if (itemMap.has(rId)) { const localIt = itemMap.get(rId); if (getLastMod(remoteIt) > getLastMod(localIt)) Object.assign(localIt, remoteIt); } 
-      else { localItems.push(remoteIt); }
-    });
-    return localItems;
+    if (item.DeletedDate) return new Date(item.DeletedDate).getTime();
+    if (item.UpdatedDate) return new Date(item.UpdatedDate).getTime();
+    if (item.CreatedDate) return new Date(item.CreatedDate).getTime();
+    return 0;
   }
   collections.forEach(col => {
     if (!remoteDB[col]) return; if (!DB[col]) DB[col] = [];
-    const localMap = new Map(); DB[col].forEach(item => localMap.set(String(item.id), item));
+    const localMap = new Map(); DB[col].forEach(item => localMap.set(String(item.Id), item));
     remoteDB[col].forEach(remoteItem => {
-      const id = String(remoteItem.id);
+      const id = String(remoteItem.Id);
       if (localMap.has(id)) {
         const localItem = localMap.get(id);
-        if (col === 's') { const mergedItems = mergeOrderItems(localItem.items || [], remoteItem.items || []); if (getLastMod(remoteItem) > getLastMod(localItem)) Object.assign(localItem, remoteItem); localItem.items = mergedItems; } 
-        else { if (getLastMod(remoteItem) > getLastMod(localItem)) Object.assign(localItem, remoteItem); }
+        if (getLastMod(remoteItem) > getLastMod(localItem)) Object.assign(localItem, remoteItem);
       } else { DB[col].push(remoteItem); }
     });
   });
@@ -175,9 +158,9 @@ export function startResetWithSelectedFile() {
 
 export function confirmResetAuth() {
   const u = $('reset-user').value.trim(); const p = $('reset-pass').value.trim();
-  if (u !== 'oztoptantedarik' || p !== 'Oztoptan6595.') return showToast('❌ Hatalı kullanıcı adı veya şifre!');
+  if (u !== 'oztoptanpazarlama@gmail.com' || p !== 'Oztoptan6595.') return showToast('❌ Hatalı kullanıcı adı veya şifre!');
   closeM('mo-reset-auth');
-  if (currentResetTarget === 'local') { if (confirm("⚠️ TÜM VERİLER silinecek?")) { DB.c = []; DB.u = []; DB.s = []; DB.t = []; DB.g = []; DB.ug = []; DB.k = []; saveDB(); renderHome(); showCustomAlert("Sıfırlandı!", true); } } 
+  if (currentResetTarget === 'local') { if (confirm("⚠️ TÜM VERİLER silinecek?")) { DB.Current=[]; DB.Product=[]; DB.Order=[]; DB.OrderItem=[]; DB.Payment=[]; DB.CurrentGroup=[]; DB.ProductGroup=[]; DB.Offer=[]; DB.OfferItem=[]; saveDB(); window.location.reload(); } } 
   else if (currentResetTarget === 'drive') { if (confirm("🚨 DRIVE YEDEKLERİ silinecek?")) { executeDriveReset(); } }
 }
 
@@ -186,7 +169,7 @@ export async function executeDriveReset() {
   if (!fId || !fileName) return showCustomAlert("Hata!", false);
   showSpinner("Sıfırlanıyor...");
   try {
-    const emptyDB = { c: [], u: [], s: [], t: [], g: [], ug: [], k: [] }; const pushData = JSON.stringify(emptyDB);
+    const emptyDB = { Current:[], Product:[], Order:[], OrderItem:[], Payment:[], CurrentGroup:[], ProductGroup:[], Offer:[], OfferItem:[] }; const pushData = JSON.stringify(emptyDB);
     const query = encodeURIComponent(`'${fId}' in parents and name='${fileName}' and trashed=false`);
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, { headers: { 'Authorization': `Bearer ${driveAccessToken}` } });
     const searchData = await searchRes.json();
@@ -206,35 +189,38 @@ export function downloadExcel(withData) {
   try {
     const wb = window.XLSX.utils.book_new();
     const sheetsInfo = {
-      'CariGrup': { db: DB.g, headers: ['id', 'ad'] },
-      'UrunGrup': { db: DB.ug, headers: ['id', 'ad'] },
-      'Cari': { db: DB.c, headers: ['id', 'ad', 'telefon', 'eposta', 'adres', 'grupId', 'bakiye'] },
-      'Urun': { db: DB.u, headers: ['id', 'ad', 'barkod', 'urunGrupId', 'alisFiyat', 'satisFiyat', 'birim', 'desc'] },
-      'Siparis': { db: DB.s, headers: ['id', 'tarih', 'cariId', 'tur', 'toplam', 'durum', 'aciklama'] },
-      'SiparisDetay': { db: null, headers: ['id', 'siparisId', 'urunId', 'miktar', 'fiyat', 'toplam'] },
-      'Kasa': { db: DB.t, headers: ['id', 'tarih', 'cariId', 'tur', 'tutar', 'aciklama'] },
-      'Kampanya': { db: DB.k, headers: ['id', 'ad', 'indirimOrani', 'baslangic', 'bitis'] }
+      'CurrentGroup': { db: DB.CurrentGroup, headers: ['Id', 'Name', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'ProductGroup': { db: DB.ProductGroup, headers: ['Id', 'Name', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'Current': { db: DB.Current, headers: ['Id', 'Name', 'CurrentGroupId', 'PhoneNumber', 'Email', 'VKN', 'IdentityNumber', 'Address', 'Balance', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'Product': { db: DB.Product, headers: ['Id', 'Name', 'ProductGroupId', 'BarCode', 'UnitId', 'StockQuantity', 'PurchasePrice', 'SalePrice', 'PicturePath', 'Description', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'Order': { db: DB.Order, headers: ['Id', 'Code', 'OrderTypeId', 'CurrentId', 'Description', 'OrderDate', 'SubTotalPrice', 'TotalPrice', 'DisCount', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'OrderItem': { db: DB.OrderItem, headers: ['Id', 'OrderId', 'ProductId', 'Amount', 'UnitId', 'UnitPrice', 'TotalPrice', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'Payment': { db: DB.Payment, headers: ['Id', 'PaymentTypeId', 'CurrentId', 'PaymentDate', 'Description', 'Payment', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'Offer': { db: DB.Offer, headers: ['Id', 'Name', 'Description', 'OfferDate', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'OfferItem': { db: DB.OfferItem, headers: ['Id', 'OfferId', 'ProductId', 'Price', 'DiscountRate', 'SalePrice', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] }
     };
-    let siparisDetayData = [];
-    if (withData && DB.s) {
-      DB.s.filter(x => !x.silindi).forEach(sip => {
-        const kalemler = sip.kalemler || sip.items || [];
-        kalemler.forEach(k => { siparisDetayData.push({ id: k.id || guid(), siparisId: sip.id, urunId: k.urunId, miktar: k.miktar, fiyat: k.fiyat, toplam: k.toplam }); });
-      });
-    }
-    sheetsInfo['SiparisDetay'].db = siparisDetayData;
-
+    
     function addSheet(sheetName, info) {
       let wsData = [info.headers];
       if (withData && info.db && Array.isArray(info.db)) {
-        const activeData = sheetName === 'SiparisDetay' ? info.db : info.db.filter(x => !x.silindi);
-        activeData.forEach(item => { let row = []; info.headers.forEach(h => { row.push(item[h] !== undefined && item[h] !== null ? item[h] : ''); }); wsData.push(row); });
+        const activeData = info.db.filter(x => !x.Deleted);
+        activeData.forEach(item => { 
+          let row = []; 
+          info.headers.forEach(h => { 
+            let val = item[h] !== undefined && item[h] !== null ? item[h] : ''; 
+            // EXCEL KORUMASI: Base64 kodlarını basma! 32767 limitini deler.
+            if (h === 'PicturePath' && typeof val === 'string' && val.length > 30000) {
+              val = '[SİSTEMDE KAYITLI GÖRSEL]';
+            }
+            row.push(val); 
+          }); 
+          wsData.push(row); 
+        });
       }
       const ws = window.XLSX.utils.aoa_to_sheet(wsData); window.XLSX.utils.book_append_sheet(wb, ws, sheetName);
     }
     Object.keys(sheetsInfo).forEach(sheetName => addSheet(sheetName, sheetsInfo[sheetName]));
-    const dateStr = new Date().toISOString().slice(0, 10);
-    window.XLSX.writeFile(wb, withData ? `OZSECER_ERP_Yedek_${dateStr}.xlsx` : `OZSECER_ERP_Bos_Sablon.xlsx`);
+    window.XLSX.writeFile(wb, withData ? `OZSECER_ERP_Verili.xlsx` : `OZSECER_ERP_Sablon.xlsx`);
     hideSpinner(); showToast("Excel başarıyla indirildi!");
   } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
@@ -249,34 +235,36 @@ export function handleExcelImport(event) {
       let eklendi = 0, guncellendi = 0;
       workbook.SheetNames.forEach(sheetName => {
         const rows = window.XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" }); if (rows.length === 0) return;
-        let targetDB = null;
-        if (sheetName === 'CariGrup') targetDB = DB.g; else if (sheetName === 'UrunGrup') targetDB = DB.ug; else if (sheetName === 'Cari') targetDB = DB.c; else if (sheetName === 'Urun') targetDB = DB.u; else if (sheetName === 'Siparis') targetDB = DB.s; else if (sheetName === 'Kasa') targetDB = DB.t; else if (sheetName === 'Kampanya') targetDB = DB.k; else if (sheetName === 'SiparisDetay') targetDB = 'SIP_DETAY';
+        let targetDB = DB[sheetName]; 
 
-        if (targetDB && targetDB !== 'SIP_DETAY') {
+        if (targetDB && Array.isArray(targetDB)) {
           rows.forEach(row => {
-            if (!row.ad && !row.tarih) return; 
-            const rowId = row.id ? String(row.id).trim() : '';
+            if (Object.keys(row).length < 2) return;
+            const rowId = row.Id ? String(row.Id).trim() : '';
             if (rowId !== '') {
-              const existing = targetDB.find(x => x.id === rowId);
-              if (existing) { Object.keys(row).forEach(key => { if (key !== 'id') existing[key] = row[key]; }); existing.guncellenmeTarihi = tsNow(); existing.silindi = false; guncellendi++; } 
-              else { row.olusturmaTarihi = tsNow(); row.guncellenmeTarihi = tsNow(); row.silindi = false; targetDB.push(row); eklendi++; }
-            } else { row.id = guid(); row.olusturmaTarihi = tsNow(); row.guncellenmeTarihi = tsNow(); row.silindi = false; targetDB.push(row); eklendi++; }
-          });
-        } else if (targetDB === 'SIP_DETAY') {
-          rows.forEach(row => {
-            if (!row.siparisId || !row.urunId) return;
-            const anaSiparis = DB.s.find(x => x.id === String(row.siparisId).trim());
-            if (anaSiparis) {
-              if (!anaSiparis.kalemler) anaSiparis.kalemler = [];
-              const rowId = row.id ? String(row.id).trim() : ''; const exKalem = anaSiparis.kalemler.find(k => k.id === rowId);
-              if (exKalem) { Object.keys(row).forEach(k => { if (k !== 'id' && k !== 'siparisId') exKalem[k] = row[k]; }); guncellendi++; } 
-              else { row.id = guid(); anaSiparis.kalemler.push(row); eklendi++; }
-              anaSiparis.guncellenmeTarihi = tsNow();
+              const existing = targetDB.find(x => x.Id === rowId);
+              if (existing) { 
+                Object.keys(row).forEach(key => { 
+                  if (key !== 'Id') {
+                    // SİSTEMDEKİ GÖRSELİ KORU: Excelden '[SİSTEMDE KAYITLI GÖRSEL]' geldiyse es geç
+                    if (key === 'PicturePath' && row[key] === '[SİSTEMDE KAYITLI GÖRSEL]') return;
+                    existing[key] = row[key]; 
+                  }
+                }); 
+                existing.UpdatedDate = tsNow(); existing.Deleted = false; guncellendi++; 
+              } 
+              else { 
+                if (row.PicturePath === '[SİSTEMDE KAYITLI GÖRSEL]') row.PicturePath = ''; // Boşalt
+                row.CreatedDate = tsNow(); row.Deleted = false; targetDB.push(row); eklendi++; 
+              }
+            } else { 
+              if (row.PicturePath === '[SİSTEMDE KAYITLI GÖRSEL]') row.PicturePath = '';
+              row.Id = guid(); row.CreatedDate = tsNow(); row.Deleted = false; targetDB.push(row); eklendi++; 
             }
           });
         }
       });
-      saveDB(); renderHome(); hideSpinner(); showCustomAlert(`Aktarım Başarılı!\nYeni Eklenen: ${eklendi}\nGüncellenen: ${guncellendi}`, true);
+      saveDB(); window.location.reload(); 
     } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
     event.target.value = '';
   };
