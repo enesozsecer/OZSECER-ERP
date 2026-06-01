@@ -2356,158 +2356,158 @@ async function executeDriveReset() {
   }
 }
 
+// --- GELİŞMİŞ EXCEL ŞABLON VE VERİ İNDİRME (EXPORT) SİSTEMİ ---
+function openExcelExportModal() { openM('mo-excel-export'); }
+
+function downloadExcel(withData) {
+  closeM('mo-excel-export');
+  showSpinner(withData ? "Verileriniz Excel'e dönüştürülüyor..." : "Boş şablon hazırlanıyor...");
+
+  try {
+    const wb = XLSX.utils.book_new();
+
+    // 1. Doğru özelliklerle kolon başlıklarını tanımlıyoruz
+    const sheetsInfo = {
+      'CariGrup': { db: DB.g, headers: ['id', 'ad'] },
+      'UrunGrup': { db: DB.ug, headers: ['id', 'ad'] },
+      'Cari': { db: DB.c, headers: ['id', 'ad', 'telefon', 'eposta', 'adres', 'grupId', 'bakiye'] },
+      'Urun': { db: DB.u, headers: ['id', 'ad', 'barkod', 'grupId', 'alisFiyat', 'satisFiyat', 'birim', 'desc'] },
+      'Siparis': { db: DB.s, headers: ['id', 'tarih', 'cariId','cariId','olusturmaTarihi','olusturan','silindi','no', 'tur', 'toplam', 'not', 'araToplam', 'indirim', 'genelToplam', 'guncellenmeTarihi', 'guncelleyen'] },
+      'SiparisDetay': { db: null, headers: ['id', 'siparisId', 'urunId', 'miktar', 'fiyat', 'toplam'] }, // Özel işlenecek
+      'Kasa': { db: DB.t, headers: ['id', 'tarih', 'cariId', 'tur', 'tutar', 'aciklama'] },
+      'Kampanya': { db: DB.k, headers: ['id', 'ad', 'indirimOrani', 'baslangic', 'bitis'] }
+    };
+
+    // Sipariş Detaylarını Düzleştir (Flatten) etme mantığı
+    let siparisDetayData = [];
+    if (withData && DB.s) {
+      DB.s.filter(x => !x.silindi).forEach(sip => {
+        // Eğer siparişin içinde 'kalemler' veya 'items' diye bir dizi varsa onları düzleştirip Excel'e hazırlarız
+        const kalemler = sip.kalemler || sip.items || [];
+        kalemler.forEach(k => {
+          siparisDetayData.push({
+            id: k.id || guid(), siparisId: sip.id, urunId: k.urunId,
+            miktar: k.miktar, fiyat: k.fiyat, toplam: k.toplam
+          });
+        });
+      });
+    }
+    sheetsInfo['SiparisDetay'].db = siparisDetayData;
+
+    // Helper: Sayfaları Oluşturma
+    function addSheet(sheetName, info) {
+      let wsData = [info.headers];
+
+      if (withData && info.db && Array.isArray(info.db)) {
+        const activeData = sheetName === 'SiparisDetay' ? info.db : info.db.filter(x => !x.silindi);
+        activeData.forEach(item => {
+          let row = [];
+          info.headers.forEach(h => {
+            row.push(item[h] !== undefined && item[h] !== null ? item[h] : '');
+          });
+          wsData.push(row);
+        });
+      }
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    }
+
+    // Tüm sekmeleri sırayla ekle
+    Object.keys(sheetsInfo).forEach(sheetName => addSheet(sheetName, sheetsInfo[sheetName]));
+
+    const dateStr = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, withData ? `OZSECER_ERP_Yedek_${dateStr}.xlsx` : `OZSECER_ERP_Bos_Sablon.xlsx`);
+    hideSpinner();
+    showToast("Excel başarıyla indirildi!");
+
+  } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
+}
+
+
 // --- EXCEL AKILLI İÇE AKTARIM VE MERGE SİSTEMİ ---
 function handleExcelImport(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  showSpinner("Excel dosyası okunuyor ve veriler çözümleniyor...");
+  showSpinner("Excel okunuyor ve veriler eşitleniyor...");
 
   const reader = new FileReader();
   reader.onload = function (e) {
     try {
       const data = new Uint8Array(e.target.result);
-      // SheetJS (XLSX) kütüphanesi ile dosyayı oku
       const workbook = XLSX.read(data, { type: 'array' });
 
-      let eklendiCount = 0;
-      let guncellendiCount = 0;
+      let eklendi = 0, guncellendi = 0;
 
-      // Excel'deki her bir sekmeyi (Sheet) dön
       workbook.SheetNames.forEach(sheetName => {
         const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
         if (rows.length === 0) return;
 
-        // Hangi sekmeyi hangi DB tablosuna eşleyeceğimizi bulalım
+        // Hangi sekmeyi hangi DB tablosuna eşleyeceğimizi belirle
         let targetDB = null;
-        if (sheetName === 'Cari') targetDB = DB.c;
+        if (sheetName === 'CariGrup') targetDB = DB.g;
+        else if (sheetName === 'UrunGrup') targetDB = DB.ug;
+        else if (sheetName === 'Cari') targetDB = DB.c;
         else if (sheetName === 'Urun') targetDB = DB.u;
         else if (sheetName === 'Siparis') targetDB = DB.s;
-        else if (sheetName === 'Kasa') targetDB = DB.t; // veya kasa için hangi harfi kullanıyorsan
-        else if (sheetName === 'Katalog') targetDB = DB.g; // Gruplar/Katalog
+        else if (sheetName === 'Kasa') targetDB = DB.t;
+        else if (sheetName === 'Kampanya') targetDB = DB.k;
+        // Sipariş Detay için özel işlem
+        else if (sheetName === 'SiparisDetay') targetDB = 'SIP_DETAY';
 
-        if (targetDB) {
+        if (targetDB && targetDB !== 'SIP_DETAY') {
           rows.forEach(row => {
-            // Excel'de formül/başlık açıklaması olan ilk rehber satırlarını atla
-            if (!row.ad && !row.belge_no && !row.islem_turu) return;
-
+            if (!row.ad && !row.tarih) return; // Boş/Rehber satırı atla
             const rowId = row.id ? String(row.id).trim() : '';
 
-            // 1. DURUM: ID VAR (GÜNCELLEME - MERGE)
-            if (rowId !== '') {
-              const existingItem = targetDB.find(x => x.id === rowId);
-              if (existingItem) {
-                // Veriyi Excel'deki yeni değerlerle ez, ama sistemin yaşamsal verilerini (olusturmaTarihi) koru
-                Object.keys(row).forEach(key => {
-                  if (key !== 'id') existingItem[key] = row[key];
-                });
-                existingItem.guncellenmeTarihi = tsNow();
-                existingItem.silindi = false;
-                guncellendiCount++;
-              } else {
-                // ID var ama sistemde yoksa yeni kayıt say
-                row.olusturmaTarihi = tsNow();
-                row.guncellenmeTarihi = tsNow();
-                row.silindi = false;
-                targetDB.push(row);
-                eklendiCount++;
+            if (rowId !== '') { // GÜNCELLEME
+              const existing = targetDB.find(x => x.id === rowId);
+              if (existing) {
+                Object.keys(row).forEach(key => { if (key !== 'id') existing[key] = row[key]; });
+                existing.guncellenmeTarihi = tsNow();
+                existing.silindi = false;
+                guncellendi++;
+              } else { // ID var ama sistemde yok
+                row.olusturmaTarihi = tsNow(); row.guncellenmeTarihi = tsNow(); row.silindi = false;
+                targetDB.push(row); eklendi++;
               }
+            } else { // YENİ KAYIT
+              row.id = guid(); row.olusturmaTarihi = tsNow(); row.guncellenmeTarihi = tsNow(); row.silindi = false;
+              targetDB.push(row); eklendi++;
             }
-            // 2. DURUM: ID YOK VEYA BOŞ (YEPYENİ KAYIT)
-            else {
-              row.id = guid(); // Eşsiz yeni ID üret
-              row.olusturmaTarihi = tsNow();
-              row.guncellenmeTarihi = tsNow();
-              row.silindi = false;
-              targetDB.push(row);
-              eklendiCount++;
+          });
+        } else if (targetDB === 'SIP_DETAY') {
+          // Sipariş Kalemlerini ait olduğu siparişin içine yerleştirme
+          rows.forEach(row => {
+            if (!row.siparisId || !row.urunId) return;
+            const anaSiparis = DB.s.find(x => x.id === String(row.siparisId).trim());
+            if (anaSiparis) {
+              if (!anaSiparis.kalemler) anaSiparis.kalemler = [];
+              // Detay ID'si var mı kontrol et, varsa güncelle, yoksa siparişe yeni kalem olarak ekle
+              const rowId = row.id ? String(row.id).trim() : '';
+              const exKalem = anaSiparis.kalemler.find(k => k.id === rowId);
+              if (exKalem) {
+                Object.keys(row).forEach(k => { if (k !== 'id' && k !== 'siparisId') exKalem[k] = row[k]; });
+                guncellendi++;
+              } else {
+                row.id = guid();
+                anaSiparis.kalemler.push(row);
+                eklendi++;
+              }
+              anaSiparis.guncellenmeTarihi = tsNow();
             }
           });
         }
       });
 
-      // Tüm sekmeler bitince veritabanını kaydet ve ana sayfayı yenile
-      saveDB();
-      renderHome();
-      hideSpinner();
+      saveDB(); renderHome(); hideSpinner();
+      showCustomAlert(`Aktarım Başarılı!\nYeni Eklenen: ${eklendi}\nGüncellenen: ${guncellendi}`, true);
 
-      showCustomAlert(`Excel aktarımı başarıyla tamamlandı!\n\nYeni Eklenen: ${eklendiCount} Kayıt\nGüncellenen: ${guncellendiCount} Kayıt`, true);
-
-    } catch (err) {
-      hideSpinner();
-      showCustomAlert("Excel okunurken bir hata oluştu: " + err.message, false);
-    }
-
-    // Input'un içini temizle ki aynı dosyayı bir daha seçebilsin
+    } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
     event.target.value = '';
   };
-
   reader.readAsArrayBuffer(file);
 }
-
-// --- EXCEL ŞABLON VE VERİ İNDİRME (EXPORT) SİSTEMİ ---
-    
-    function openExcelExportModal() {
-      openM('mo-excel-export');
-    }
-
-    function downloadExcel(withData) {
-      closeM('mo-excel-export');
-      showSpinner(withData ? "Verileriniz Excel'e dönüştürülüyor..." : "Boş şablon hazırlanıyor...");
-      
-      try {
-        // Yeni bir sanal çalışma kitabı oluştur
-        const wb = XLSX.utils.book_new();
-
-        // Her bir sayfa için sistemdeki standart değişken anahtarlarını belirliyoruz
-        const katalogHeaders = ['id', 'ad', 'tur', 'aciklama'];
-        const cariHeaders = ['id', 'ad', 'kod', 'telefon', 'eposta', 'adres', 'bakiye', 'vergiNo', 'vergiDairesi'];
-        const urunHeaders = ['id', 'ad', 'kod', 'barkod', 'birim', 'alisFiyat', 'satisFiyat', 'kdv', 'katalogId', 'aciklama'];
-        const siparisHeaders = ['id', 'tarih', 'cariId', 'tur', 'toplam', 'durum', 'aciklama'];
-        const kasaHeaders = ['id', 'tarih', 'cariId', 'tur', 'tutar', 'aciklama'];
-
-        // Helper: Sayfa yaratma ve verileri doldurma fonksiyonu
-        function addSheet(sheetName, headers, dbArray) {
-          let wsData = [headers]; // En üst satıra başlıkları koy
-          
-          if (withData && dbArray) {
-            // Silinmemiş verileri filtrele ve Excel satırlarına dönüştür
-            const activeData = dbArray.filter(x => !x.silindi);
-            activeData.forEach(item => {
-              let row = [];
-              headers.forEach(h => {
-                row.push(item[h] !== undefined && item[h] !== null ? item[h] : '');
-              });
-              wsData.push(row);
-            });
-          }
-          
-          const ws = XLSX.utils.aoa_to_sheet(wsData);
-          XLSX.utils.book_append_sheet(wb, ws, sheetName);
-        }
-
-        // Sekmeleri oluştur
-        addSheet('Katalog', katalogHeaders, DB.g);
-        addSheet('Cari', cariHeaders, DB.c);
-        addSheet('Urun', urunHeaders, DB.u);
-        addSheet('Siparis', siparisHeaders, DB.s);
-        addSheet('Kasa', kasaHeaders, DB.t);
-
-        // Dosya ismini duruma göre belirle
-        const dateStr = new Date().toISOString().slice(0,10);
-        const fileName = withData ? `OZSECER_ERP_Yedek_${dateStr}.xlsx` : `OZSECER_ERP_Bos_Sablon.xlsx`;
-        
-        // SheetJS ile dosyayı cihaza indir
-        XLSX.writeFile(wb, fileName);
-        
-        hideSpinner();
-        showToast("Excel dosyası başarıyla indirildi! " + (withData ? "✅" : "📄"));
-
-      } catch (err) {
-        hideSpinner();
-        showCustomAlert("Excel oluşturulurken bir hata meydana geldi:\n" + err.message, false);
-      }
-    }
 
 // --- UI GÖRSEL YARDIMCILARI (SPINNER & ALERT) ---
 function showSpinner(msg) {
