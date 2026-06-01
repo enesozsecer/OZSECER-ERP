@@ -1,0 +1,33 @@
+input[type="radio"], input[type="checkbox"] { -webkit-appearance: auto !important; appearance: auto !important; background: initial !important; border: initial !important; box-shadow: none !important; outline: none !important; accent-color: var(--accent); }
+input, select, textarea { width: 100%; padding: 0.6rem; border-radius: 0.4rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; margin-bottom: 0.75rem; font-size: 0.9rem; -webkit-appearance: none; appearance: none; font-family: inherit; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+button { padding: 0.6rem 0.8rem; border-radius: 0.4rem; border: none; font-weight: bold; cursor: pointer; transition: opacity 0.2s; font-size: 0.9rem; }
+button:active { opacity: 0.8; }
+.btn-primary { background: var(--accent); color: #fff; width: 100%; }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); width: 100%; }
+.icon-btn { background: transparent; border: none; font-size: 1.25rem; color: var(--text); padding: 0.4rem; }
+.compact-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; align-items: center; }
+.compact-filters input, .compact-filters select, .compact-filters .c-select-display { margin-bottom: 0 !important; height: 42px; -webkit-appearance: none; appearance: none; box-sizing: border-box; }
+.compact-filters .c-select { margin-bottom: 0 !important; }
+.compact-filters button { height: 42px; margin: 0; }
+.c-select { position: relative; width: 100%; user-select: none; margin-bottom: 0.75rem; }
+.c-select-display { padding: 0.6rem; border-radius: 0.4rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+.c-select-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: 0.4rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000; display: none; flex-direction: column; max-height: 250px; overflow: hidden; }
+.c-select-menu.show { display: flex; }
+.c-select-search { padding: 0.6rem; border: none; border-bottom: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; border-radius: 0; margin: 0; font-size: 0.9rem; }
+.c-select-list { overflow-y: auto; flex: 1; }
+.c-select-item { padding: 0.6rem; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.85rem; }
+.c-select-item:hover { background: var(--border); }
+.dropdown-list { position: absolute; top: calc(100% + 2px); left: 0; right: 0; background: var(--card); border: 1px solid var(--border); max-height: 180px; overflow-y: auto; z-index: 1000; border-radius: 0.4rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.dropdown-item { padding: 0.6rem; border-bottom: 1px solid var(--border); cursor: pointer; font-size:0.85rem; }
+.dropdown-item:hover { background: var(--border); }
+.badge { padding: 0.2rem 0.4rem; border-radius: 1rem; font-size: 0.7rem; font-weight: bold; }
+.bg-green { background: rgba(16, 185, 129, 0.2); color: var(--green); }
+.bg-amber { background: rgba(245, 158, 11, 0.2); color: var(--amber); }
+.bg-red { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+.fab { position: fixed; bottom: 75px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--accent); color: white; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 40; cursor: pointer; border: none; padding-bottom: 4px; }
+.fab:active { opacity: 0.8; transform: scale(0.95); }
+.mo-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 10px 20px; border-radius: 20px; z-index: 300; display: none; font-size:0.85rem;}
+.spinner { width: 50px; height: 50px; border: 5px solid rgba(255, 255, 255, 0.2); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s ease-in-out infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
