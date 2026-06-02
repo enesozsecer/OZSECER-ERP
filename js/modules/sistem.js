@@ -64,7 +64,7 @@ export function connectAndFetchFiles() {
     
     // HESAP SEÇİMİNİ ZORUNLU KIL: prompt: 'select_account'
     if (!driveAccessToken) { 
-      tokenClient.requestAccessToken({ prompt: 'select_account' }); 
+      tokenClient.requestAccessToken({ prompt: 'select_account consent' }); 
     } else { 
       fetchFileListFromDrive(); 
     }
@@ -269,7 +269,7 @@ export function verifyClientForReset() {
     if (!driveAccessToken) { 
       tokenClient.requestAccessToken({ prompt: 'select_account' }); 
     } else { 
-      fetchFileListForReset(); 
+      fetchFileListFromDrive(); 
     }
   } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
