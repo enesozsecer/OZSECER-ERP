@@ -8,7 +8,7 @@ export function getBirimAd(val) { return BIRIM[val] || val || 'Ad'; }
 export function $(id) { return document.getElementById(id); }
 export function guid() { return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }); }
 
-// TARİH FORMATLARI (ISO 8601 ve HTML Uyumlu)
+// TARİH FORMATLARI
 export function tsNow() { return new Date().toISOString(); } 
 export function dtLocalNow() { 
   const d = new Date(); const pad = n => n < 10 ? '0' + n : n;
@@ -23,13 +23,22 @@ export function formatDateOnly(isoString) {
   return isNaN(d) ? isoString : d.toLocaleDateString('tr-TR');
 }
 
-// PARA FORMATLARI
+// METİN VE PARA FORMATLARI
 export function fp(v) { return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(v || 0); }
 export function formatTR(val) { if (val === undefined || val === null || val === '' || isNaN(val)) return ''; return new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val); }
 export function toRawTR(val) { if (val === undefined || val === null || val === '' || isNaN(val)) return ''; if (val === 0) return '0'; return val.toString().replace('.', ','); }
 export function parseRawTR(str) { if (!str) return 0; let clean = str.toString().replace(/\./g, '').replace(/,/g, '.'); return parseFloat(clean) || 0; }
-export function getCihazAdi() { return localStorage.getItem('ozsecer_cihaz') || 'Mobil Cihaz'; }
 
+// TÜRKÇE DUYARLI AKILLI BÜYÜK/KÜÇÜK HARF FORMATLAYICI (Title Case)
+export function toTitleCaseTR(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.toLocaleLowerCase('tr-TR').split(' ').map(word => {
+    if (word.length === 0) return '';
+    return word.charAt(0).toLocaleUpperCase('tr-TR') + word.slice(1);
+  }).join(' ');
+}
+
+export function getCihazAdi() { return localStorage.getItem('ozsecer_cihaz') || 'Mobil Cihaz'; }
 export function softDelete(arr, id) { 
   const i = arr.find(x => String(x.Id) === String(id)); 
   if (i) Object.assign(i, { Deleted: true, DeletedDate: tsNow(), DeletedUser: getCihazAdi() }); 
@@ -46,7 +55,7 @@ export function updateSpinner(msg) { $('spinner-msg').innerText = msg; }
 export function hideSpinner() { closeM('mo-spinner'); }
 export function showCustomAlert(msg, isSuccess = true) { $('alert-icon').innerText = isSuccess ? '✅' : '❌'; $('alert-title').innerText = isSuccess ? 'İşlem Başarılı' : 'Hata Oluştu'; $('alert-title').style.color = isSuccess ? 'var(--green)' : 'var(--red)'; $('alert-msg').innerText = msg; openM('mo-alert'); }
 
-// İŞ MANTIKLARI (Business Logic)
+// İŞ MANTIKLARI
 export function calcBalance(currentId) {
   let net = 0;
   DB.Order.filter(x => !x.Deleted && String(x.CurrentId) === String(currentId)).forEach(x => {

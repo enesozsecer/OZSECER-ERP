@@ -1,5 +1,6 @@
 import { DB, saveDB } from '../core/db.js';
-import { $, guid, tsNow, fp, getBirimAd, parseRawTR, formatTR, toRawTR, getCihazAdi, softDelete, showToast, openM, closeM, showConfirm } from '../core/utils.js';
+import { $, guid, tsNow, fp, getBirimAd, parseRawTR, formatTR, toRawTR, getCihazAdi, softDelete, showToast, openM, closeM, showConfirm, toTitleCaseTR } from '../core/utils.js';
+import { startCam } from './siparis.js';
 
 export function loadUrunGrupSelects() {
   const sel = $('mu-ProductGroupId'); const selFiltre = $('filter-urun-grup');
@@ -33,8 +34,18 @@ export function editUrun(id) {
 }
 
 export function saveUrun() {
-  const name = $('mu-Name').value.trim(); if (!name) return showToast('Ürün adı zorunlu!'); const id = $('mu-Id').value;
-  const data = { Name: name, BarCode: $('mu-BarCode').value, ProductGroupId: $('mu-ProductGroupId').value || null, UnitId: Number($('mu-UnitId').value) || 1, Description: $('mu-Description').value.trim(), PurchasePrice: parseRawTR($('mu-PurchasePrice').value), SalePrice: parseRawTR($('mu-SalePrice').value), StockQuantity: Number($('mu-StockQuantity').value) || 0, PicturePath: $('mu-foto-preview').src.startsWith('data:') ? $('mu-foto-preview').src : '' };
+  const name = toTitleCaseTR($('mu-Name').value.trim()); if (!name) return showToast('Ürün adı zorunlu!'); const id = $('mu-Id').value;
+  const data = { 
+    Name: name, 
+    BarCode: $('mu-BarCode').value, 
+    ProductGroupId: $('mu-ProductGroupId').value || null, 
+    UnitId: Number($('mu-UnitId').value) || 1, 
+    Description: toTitleCaseTR($('mu-Description').value.trim()), 
+    PurchasePrice: parseRawTR($('mu-PurchasePrice').value), 
+    SalePrice: parseRawTR($('mu-SalePrice').value), 
+    StockQuantity: Number($('mu-StockQuantity').value) || 0, 
+    PicturePath: $('mu-foto-preview').src.startsWith('data:') ? $('mu-foto-preview').src : '' 
+  };
   if (id) Object.assign(DB.Product.find(x => String(x.Id) === String(id)), data, { UpdatedDate: tsNow(), UpdatedUser: getCihazAdi() });
   else DB.Product.push({ Id: guid(), ...data, CreatedDate: tsNow(), CreatedUser: getCihazAdi(), Deleted: false });
   saveDB(); closeM('mo-urun'); renderUrun(true);

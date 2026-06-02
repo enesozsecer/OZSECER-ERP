@@ -28,8 +28,18 @@ export function editKasa(id) {
 export function saveKasa() {
   const currentId = $('mk-CurrentId').value; if (!currentId) return showToast('Cari seçimi zorunlu!');
   const payment = parseRawTR($('mk-Payment').value); if (!payment || payment <= 0) return showToast('Geçerli bir tutar girin!');
-  const id = $('mk-Id').value; const data = { PaymentTypeId: Number($('mk-PaymentTypeId').value), CurrentId: String(currentId), PaymentDate: new Date($('mk-PaymentDate').value).toISOString(), Payment: payment, Description: $('mk-Description').value };
+  const id = $('mk-Id').value;
+  
+  const data = { 
+    PaymentTypeId: Number($('mk-PaymentTypeId').value), 
+    CurrentId: String(currentId), 
+    PaymentDate: new Date($('mk-PaymentDate').value).toISOString(), 
+    Payment: payment, 
+    Description: toTitleCaseTR($('mk-Description').value.trim()) // KASA AÇIKLAMASI TITLE CASE YAPILDI
+  };
+  
   if (id) Object.assign(DB.Payment.find(x => String(x.Id) === String(id)), data, { UpdatedDate: tsNow(), UpdatedUser: getCihazAdi() });
   else DB.Payment.push({ Id: guid(), ...data, CreatedDate: tsNow(), CreatedUser: getCihazAdi(), Deleted: false });
-  saveDB(); closeM('mo-kasa'); renderKasa(true);
+  
+  saveDB(); closeM('mo-kasa'); renderKasa(true); renderHome();
 }

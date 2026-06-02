@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -12,6 +13,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="icon" href="data:,">
 </head>
+
 <body>
 
   <div id="toast" class="mo-toast">Mesaj</div>
@@ -49,10 +51,11 @@
     <button id="main-fab" class="fab" onclick="openCurrentAddModal()">+</button>
 
     <div class="p-4" id="views">
-      
+
       <div id="view-home" class="view">
         <div class="grid-2 mb-4">
-          <div class="card card-gradient" onclick="openKatalogModal()" style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-bottom:0;">
+          <div class="card card-gradient" onclick="openKatalogModal()"
+            style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-bottom:0;">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Yeni Kampanya</div>
             <div class="card-value" style="font-size:1.1rem;">Katalog Hazırla ➔</div>
           </div>
@@ -60,7 +63,8 @@
             <div class="card-title">Kayıtlı Kampanyalar</div>
             <div class="card-value" id="home-kampanya-count" style="font-size:1.1rem;">Geçmiş Kampanyalar ➔</div>
           </div>
-          <div class="card card-gradient mb-4" onclick="goTo('ayarlar')" style="background: linear-gradient(135deg, #34495e, #2c3e50);">
+          <div class="card card-gradient mb-4" onclick="goTo('ayarlar')"
+            style="background: linear-gradient(135deg, #34495e, #2c3e50);">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Sistem Yönetimi</div>
             <div class="card-value" style="font-size:1.2rem;">Sistem &amp; Admin ➔</div>
           </div>
@@ -70,14 +74,16 @@
       <div id="view-cari" class="view hidden">
         <div class="card mb-4">
           <div class="compact-filters">
-            <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..." onkeypress="if(event.key === 'Enter') renderCari(true)">
+            <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..."
+              onkeypress="if(event.key === 'Enter') renderCari(true)">
             <select id="filter-cari-durum">
               <option value="hepsi">Tüm Durumlar</option>
               <option value="alacakli">Alacaklı</option>
               <option value="borclu">Borçlu</option>
             </select>
             <button class="btn-primary" onclick="renderCari(true)">Ara</button>
-            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);" onclick="openGrupModal('CurrentGroup')">Cari Grup</button>
+            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);"
+              onclick="openGrupModal('CurrentGroup')">Cari Grup</button>
           </div>
         </div>
         <div id="cari-list"></div>
@@ -86,11 +92,16 @@
       <div id="view-urun" class="view hidden">
         <div class="card mb-4">
           <div class="compact-filters">
-            <select id="filter-urun-grup"><option value="">Tüm Gruplar</option></select>
-            <input type="text" id="filter-urun-q" placeholder="Ad, Barkod, Açıklama..." onkeypress="if(event.key === 'Enter') renderUrun(true)">
-            <button class="icon-btn" onclick="startCam('urun-arama')" style="background:var(--bg); border-radius:0.4rem;">📷</button>
+            <select id="filter-urun-grup">
+              <option value="">Tüm Gruplar</option>
+            </select>
+            <input type="text" id="filter-urun-q" placeholder="Ad, Barkod, Açıklama..."
+              onkeypress="if(event.key === 'Enter') renderUrun(true)">
+            <button class="icon-btn" onclick="startCam('urun-arama')"
+              style="background:var(--bg); border-radius:0.4rem;">📷</button>
             <button class="btn-primary" onclick="renderUrun(true)">Ara</button>
-            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);" onclick="openGrupModal('ProductGroup')">Ürün Grup</button>
+            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);"
+              onclick="openGrupModal('ProductGroup')">Ürün Grup</button>
           </div>
         </div>
         <div id="urun-list"></div>
@@ -99,19 +110,28 @@
       <div id="view-sip" class="view hidden">
         <div class="card mb-4">
           <div class="compact-filters">
-            <select id="filter-sip-tur"><option value="">Tüm Türler</option><option value="2">Satış</option><option value="1">Alış</option></select>
+            <select id="filter-sip-tur">
+              <option value="">Tüm Türler</option>
+              <option value="2">Satış</option>
+              <option value="1">Alış</option>
+            </select>
             <div class="c-select" id="cs-wrap-filter-sip-cari">
               <div class="c-select-display" onclick="toggleCSelect('filter-sip-cari', 'Current')">
-                <span id="csd-filter-sip-cari" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
+                <span id="csd-filter-sip-cari" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+                  Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
               </div>
               <input type="hidden" id="filter-sip-cari">
               <div class="c-select-menu" id="csm-filter-sip-cari">
-                <input type="text" class="c-select-search" id="css-filter-sip-cari" placeholder="Cari Ara (İçeren)..." onkeyup="renderCSelectList('filter-sip-cari', 'Current', this.value)" onclick="event.stopPropagation()">
+                <input type="text" class="c-select-search" id="css-filter-sip-cari" placeholder="Cari Ara (İçeren)..."
+                  onkeyup="renderCSelectList('filter-sip-cari', 'Current', this.value)"
+                  onclick="event.stopPropagation()">
                 <div class="c-select-list" id="csl-filter-sip-cari"></div>
               </div>
             </div>
-            <input type="text" id="filter-sip-start" placeholder="Başlangıç" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
-            <input type="text" id="filter-sip-end" placeholder="Bitiş" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <input type="text" id="filter-sip-start" placeholder="Başlangıç" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
+            <input type="text" id="filter-sip-end" placeholder="Bitiş" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
             <button class="btn-primary" onclick="renderSip(true)">Ara</button>
           </div>
         </div>
@@ -121,20 +141,32 @@
       <div id="view-kasa" class="view hidden">
         <div class="card mb-4">
           <div class="compact-filters">
-            <select id="filter-kasa-tur"><option value="">Tüm Türler</option><option value="1">Tahsilat</option><option value="2">Ödeme</option></select>
-            <select id="filter-kasa-grup"><option value="">Tüm Gruplar</option></select>
+            <select id="filter-kasa-tur">
+              <option value="">Tüm Türler</option>
+              <option value="1">Tahsilat</option>
+              <option value="2">Ödeme</option>
+            </select>
+            <select id="filter-kasa-grup">
+              <option value="">Tüm Gruplar</option>
+            </select>
             <div class="c-select" id="cs-wrap-filter-kasa-cari">
               <div class="c-select-display" onclick="toggleCSelect('filter-kasa-cari', 'Current')">
-                <span id="csd-filter-kasa-cari" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
+                <span id="csd-filter-kasa-cari"
+                  style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span><span
+                  style="font-size:0.7rem; margin-left:8px;">▼</span>
               </div>
               <input type="hidden" id="filter-kasa-cari">
               <div class="c-select-menu" id="csm-filter-kasa-cari">
-                <input type="text" class="c-select-search" id="css-filter-kasa-cari" placeholder="Cari Ara (İçeren)..." onkeyup="renderCSelectList('filter-kasa-cari', 'Current', this.value)" onclick="event.stopPropagation()">
+                <input type="text" class="c-select-search" id="css-filter-kasa-cari" placeholder="Cari Ara (İçeren)..."
+                  onkeyup="renderCSelectList('filter-kasa-cari', 'Current', this.value)"
+                  onclick="event.stopPropagation()">
                 <div class="c-select-list" id="csl-filter-kasa-cari"></div>
               </div>
             </div>
-            <input type="text" id="filter-kasa-start" placeholder="Başlangıç" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
-            <input type="text" id="filter-kasa-end" placeholder="Bitiş" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <input type="text" id="filter-kasa-start" placeholder="Başlangıç" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
+            <input type="text" id="filter-kasa-end" placeholder="Bitiş" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
             <button class="btn-primary" onclick="renderKasa(true)">Ara</button>
           </div>
         </div>
@@ -150,29 +182,40 @@
         </div>
         <div class="card mb-4" style="border: 1px solid var(--red);">
           <h3 style="color: var(--red); margin-bottom: 1rem; font-size: 1.1rem;">⚠️ Tehlikeli İşlemler</h3>
-          <p class="text-muted mb-4" style="font-size: 0.85rem;">Bu alandaki butonlar verilerinizi kalıcı olarak siler ve bu işlem asla geri alınamaz.</p>
+          <p class="text-muted mb-4" style="font-size: 0.85rem;">Bu alandaki butonlar verilerinizi kalıcı olarak siler
+            ve bu işlem asla geri alınamaz.</p>
           <div class="grid-2">
-            <button class="btn-danger" style="padding: 1rem;" onclick="openDriveResetClientModal()">🔥 Yedek Verilerini Sil</button>
-            <button class="btn-outline" style="padding: 1rem; border-color: var(--red); color: var(--red);" onclick="openResetAuthModal('local')">🗑️ Cihaz Verilerini Sil</button>
+            <button class="btn-danger" style="padding: 1rem;" onclick="openDriveResetClientModal()">🔥 Yedek Verilerini
+              Sil</button>
+            <button class="btn-outline" style="padding: 1rem; border-color: var(--red); color: var(--red);"
+              onclick="openResetAuthModal('local')">🗑️ Cihaz Verilerini Sil</button>
           </div>
         </div>
         <div class="card mb-4" style="border: 1px solid var(--green);">
           <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--green);">📊 Excel Veri Yönetimi</h3>
-          <p class="text-muted mb-4" style="font-size: 0.85rem;">Şablon Excel dosyanızı indirebilir, toplu düzenlemeler yapıp akıllı eşleştirme (Merge) yöntemiyle sisteme yükleyebilirsiniz.</p>
+          <p class="text-muted mb-4" style="font-size: 0.85rem;">Şablon Excel dosyanızı indirebilir, toplu düzenlemeler
+            yapıp akıllı eşleştirme (Merge) yöntemiyle sisteme yükleyebilirsiniz.</p>
           <div class="grid-2">
-            <button class="btn-primary" style="padding: 1rem; background: var(--green);" onclick="document.getElementById('excel-import-input').click()">📤 Excel'den Yükle</button>
-            <button class="btn-outline" style="padding: 1rem; border-color: var(--green); color: var(--green);" onclick="openExcelExportModal()">📥 Şablon / Veri İndir</button>
+            <button class="btn-primary" style="padding: 1rem; background: var(--green);"
+              onclick="document.getElementById('excel-import-input').click()">📤 Excel'den Yükle</button>
+            <button class="btn-outline" style="padding: 1rem; border-color: var(--green); color: var(--green);"
+              onclick="openExcelExportModal()">📥 Şablon / Veri İndir</button>
           </div>
-          <input type="file" id="excel-import-input" accept=".xlsx, .xls" style="display: none;" onchange="handleExcelImport(event)">
+          <input type="file" id="excel-import-input" accept=".xlsx, .xls" style="display: none;"
+            onchange="handleExcelImport(event)">
         </div>
       </div>
 
       <div id="view-analiz" class="view hidden">
         <div class="card mb-4">
           <div class="compact-filters">
-            <select id="filter-an-grup"><option value="">Tüm Gruplar</option></select>
-            <input type="text" id="an-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
-            <input type="text" id="an-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')" onblur="if(!this.value) this.type='text'">
+            <select id="filter-an-grup">
+              <option value="">Tüm Gruplar</option>
+            </select>
+            <input type="text" id="an-start" placeholder="Başlangıç Tarihi" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
+            <input type="text" id="an-end" placeholder="Bitiş Tarihi" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'">
             <button class="btn-primary" onclick="renderAnaliz(true)">Hesapla</button>
           </div>
         </div>
@@ -203,21 +246,25 @@
       </div>
       <input type="hidden" id="mc-Id">
       <input type="text" id="mc-Name" placeholder="Firma / Şahıs Adı*">
-      <select id="mc-CurrentGroupId"><option value="">Grup Yok</option></select>
-      
+      <select id="mc-CurrentGroupId">
+        <option value="">Grup Yok</option>
+      </select>
+
       <div class="grid-2">
         <input type="tel" id="mc-PhoneNumber" placeholder="Telefon Numarası">
         <input type="email" id="mc-Email" placeholder="E-Posta Adresi">
       </div>
-      
+
       <div class="grid-2">
         <input type="text" id="mc-VKN" placeholder="Vergi Numarası (VKN)">
         <input type="text" id="mc-IdentityNumber" placeholder="TC Kimlik No">
       </div>
-      
-      <input type="text" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)" onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';" onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
+
+      <input type="text" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)"
+        onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';"
+        onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
       <textarea id="mc-Address" placeholder="Açık Adres" rows="2"></textarea>
-      
+
       <button class="btn-primary mt-4" onclick="saveCari()">Kaydet</button>
     </div>
   </div>
@@ -233,29 +280,47 @@
       </div>
       <input type="hidden" id="mu-Id">
       <input type="text" id="mu-Name" placeholder="Ürün Adı*">
-      <select id="mu-ProductGroupId"><option value="">Grup Yok</option></select>
-      
+      <select id="mu-ProductGroupId">
+        <option value="">Grup Yok</option>
+      </select>
+
       <div class="flex gap-2">
         <input type="text" id="mu-BarCode" placeholder="Barkod">
-        <button class="icon-btn" onclick="startCam('urun-form')" style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
+        <button class="icon-btn" onclick="startCam('urun-form')"
+          style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
       </div>
-      
+
       <div style="margin-bottom:0.75rem; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
-        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün Fotoğrafı</label>
-        <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)" style="padding:0.2rem; font-size:0.8rem; margin:0;">
-        <img id="mu-foto-preview" style="width:100px; height:100px; object-fit:cover; display:none; margin-top:8px; border-radius:0.4rem; border:1px solid var(--border);">
+        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün
+          Fotoğrafı</label>
+        <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)"
+          style="padding:0.2rem; font-size:0.8rem; margin:0;">
+        <img id="mu-foto-preview"
+          style="width:100px; height:100px; object-fit:cover; display:none; margin-top:8px; border-radius:0.4rem; border:1px solid var(--border);">
       </div>
-      
+
       <div class="grid-2">
-        <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı" onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';" onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
-        <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı" onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';" onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
+        <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı"
+          onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
+          onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
+        <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı"
+          onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';"
+          onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
       </div>
-      
+
       <div class="grid-2">
         <input type="number" id="mu-StockQuantity" placeholder="Stok Miktarı">
-        <select id="mu-UnitId"><option value="1">Adet</option><option value="2">Kg</option><option value="3">Gr</option><option value="4">Litre</option><option value="5">Metre</option><option value="6">Paket</option><option value="7">Koli</option></select>
+        <select id="mu-UnitId">
+          <option value="1">Adet</option>
+          <option value="2">Kg</option>
+          <option value="3">Gr</option>
+          <option value="4">Litre</option>
+          <option value="5">Metre</option>
+          <option value="6">Paket</option>
+          <option value="7">Koli</option>
+        </select>
       </div>
-      
+
       <textarea id="mu-Description" placeholder="Açıklama" rows="2"></textarea>
       <button class="btn-primary mt-4" onclick="saveUrun()">Kaydet</button>
     </div>
@@ -272,33 +337,40 @@
         </div>
       </div>
       <input type="hidden" id="ms-Id">
-      
+
       <div class="grid-2">
-        <select id="ms-OrderTypeId"><option value="2" selected>Satış</option><option value="1">Alış</option></select>
+        <select id="ms-OrderTypeId">
+          <option value="2" selected>Satış</option>
+          <option value="1">Alış</option>
+        </select>
         <input type="datetime-local" id="ms-OrderDate">
       </div>
-      
+
       <div class="c-select" id="cs-wrap-ms-CurrentId" style="z-index: 70;">
         <div class="c-select-display" onclick="toggleCSelect('ms-CurrentId', 'Current')">
-          <span id="csd-ms-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
+          <span id="csd-ms-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+            Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
         </div>
         <input type="hidden" id="ms-CurrentId">
         <div class="c-select-menu" id="csm-ms-CurrentId">
-          <input type="text" class="c-select-search" id="css-ms-CurrentId" placeholder="Cari Ara (İçeren)..." onkeyup="renderCSelectList('ms-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
+          <input type="text" class="c-select-search" id="css-ms-CurrentId" placeholder="Cari Ara (İçeren)..."
+            onkeyup="renderCSelectList('ms-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
           <div class="c-select-list" id="csl-ms-CurrentId"></div>
         </div>
       </div>
-      
+
       <div class="flex justify-between items-center mt-4 mb-2">
         <h4 style="font-size:0.95rem;">Kalemler</h4>
         <div class="flex gap-2">
-          <button class="btn-outline" style="padding:0.4rem 0.5rem; font-size:0.8rem;" onclick="startCam('sip-item')">📷 Seri Okut</button>
-          <button class="btn-primary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="addSipItem()">+ Ekle</button>
+          <button class="btn-outline" style="padding:0.4rem 0.5rem; font-size:0.8rem;" onclick="startCam('sip-item')">📷
+            Seri Okut</button>
+          <button class="btn-primary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;"
+            onclick="addSipItem()">+ Ekle</button>
         </div>
       </div>
-      
+
       <div id="ms-items" class="mb-4"></div>
-      
+
       <div class="flex justify-end gap-4 mb-4 text-right">
         <div>
           <div class="text-muted" style="font-size:0.8rem">Ara Toplam:</div>
@@ -307,11 +379,13 @@
         </div>
         <div>
           <div id="ms-SubTotalPrice" style="font-size:0.9rem">₺0,00</div>
-          <div><input type="number" id="ms-DisCount" value="0" style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;" onkeyup="calcSipTotal()"></div>
+          <div><input type="number" id="ms-DisCount" value="0"
+              style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;"
+              onkeyup="calcSipTotal()"></div>
           <div id="ms-TotalPrice" style="font-weight:bold; color:var(--accent); font-size:1.1rem;">₺0,00</div>
         </div>
       </div>
-      
+
       <textarea id="ms-Description" placeholder="Sipariş Notu" rows="2"></textarea>
       <button class="btn-primary mt-4" onclick="saveSip()">Siparişi Kaydet</button>
     </div>
@@ -328,24 +402,31 @@
         </div>
       </div>
       <input type="hidden" id="mk-Id">
-      
+
       <div class="grid-2">
-        <select id="mk-PaymentTypeId"><option value="1" selected>Tahsilat</option><option value="2">Ödeme</option></select>
+        <select id="mk-PaymentTypeId">
+          <option value="1" selected>Tahsilat</option>
+          <option value="2">Ödeme</option>
+        </select>
         <input type="datetime-local" id="mk-PaymentDate">
       </div>
-      
+
       <div class="c-select" id="cs-wrap-mk-CurrentId" style="z-index: 70;">
         <div class="c-select-display" onclick="toggleCSelect('mk-CurrentId', 'Current')">
-          <span id="csd-mk-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
+          <span id="csd-mk-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+            Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
         </div>
         <input type="hidden" id="mk-CurrentId">
         <div class="c-select-menu" id="csm-mk-CurrentId">
-          <input type="text" class="c-select-search" id="css-mk-CurrentId" placeholder="Cari Ara..." onkeyup="renderCSelectList('mk-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
+          <input type="text" class="c-select-search" id="css-mk-CurrentId" placeholder="Cari Ara..."
+            onkeyup="renderCSelectList('mk-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
           <div class="c-select-list" id="csl-mk-CurrentId"></div>
         </div>
       </div>
-      
-      <input type="text" id="mk-Payment" placeholder="İşlem Tutarı*" onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';" onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
+
+      <input type="text" id="mk-Payment" placeholder="İşlem Tutarı*"
+        onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';"
+        onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
       <textarea id="mk-Description" placeholder="Açıklama" rows="2"></textarea>
       <button class="btn-primary mt-4" onclick="saveKasa()">Kaydet</button>
     </div>
@@ -360,21 +441,25 @@
       <input type="hidden" id="kat-Id">
       <div style="flex:1; overflow-y:auto; padding-right:5px;">
         <div class="grid-2">
-           <input type="text" id="kat-Name" placeholder="Kampanya / Katalog Adı*">
-           <input type="datetime-local" id="kat-OfferDate">
+          <input type="text" id="kat-Name" placeholder="Kampanya / Katalog Adı*">
+          <input type="datetime-local" id="kat-OfferDate">
         </div>
         <textarea id="kat-Description" placeholder="Kampanya Açıklaması" rows="2"></textarea>
-        
+
         <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
         <h4 style="margin-bottom:10px;">Ürün Seçimi</h4>
         <div class="compact-filters" style="grid-template-columns: 1fr 2fr auto;">
-          <select id="filter-kat-grup" onchange="renderKatUrun()"><option value="">Tüm Gruplar</option></select>
+          <select id="filter-kat-grup" onchange="renderKatUrun()">
+            <option value="">Tüm Gruplar</option>
+          </select>
           <input type="text" id="filter-kat-q" placeholder="Ürün Ara..." onkeyup="renderKatUrun()">
           <button class="btn-outline" onclick="selectAllKat()">Tümünü Ekle</button>
         </div>
-        
-        <div id="kat-urun-list" style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:0.4rem; padding:0.5rem; margin-bottom:15px;"></div>
-        
+
+        <div id="kat-urun-list"
+          style="max-height:180px; overflow-y:auto; border:1px solid var(--border); border-radius:0.4rem; padding:0.5rem; margin-bottom:15px;">
+        </div>
+
         <h4 style="margin-bottom:10px;">Katalog Sepeti</h4>
         <div id="kat-sepet-list"></div>
       </div>
@@ -386,9 +471,14 @@
 
   <div id="mo-grup" class="mo" onclick="closeOnOutside(event, 'mo-grup')">
     <div class="mo-content" style="max-width: 400px;">
-      <div class="mo-header"><div class="mo-title" id="mg-title">Grup Yönetimi</div><button class="icon-btn" onclick="closeM('mo-grup')">✕</button></div>
+      <div class="mo-header">
+        <div class="mo-title" id="mg-title">Grup Yönetimi</div><button class="icon-btn"
+          onclick="closeM('mo-grup')">✕</button>
+      </div>
       <div id="mg-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
-      <div class="flex gap-2 mb-4"><input type="text" id="mg-new-ad" placeholder="Yeni Grup Adı" style="margin-bottom:0;"><button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;" onclick="addTempGrup()">+</button></div>
+      <div class="flex gap-2 mb-4"><input type="text" id="mg-new-ad" placeholder="Yeni Grup Adı"
+          style="margin-bottom:0;"><button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;"
+          onclick="addTempGrup()">+</button></div>
       <button class="btn-primary" onclick="saveGrup()">Değişiklikleri Kaydet</button>
     </div>
   </div>
@@ -396,40 +486,57 @@
 
   <div id="mo-kampanya-liste" class="mo" onclick="closeOnOutside(event, 'mo-kampanya-liste')" style="z-index: 75;">
     <div class="mo-content" style="max-width: 500px;">
-      <div class="mo-header"><div class="mo-title">Geçmiş Kampanyalar</div><button class="icon-btn" onclick="closeM('mo-kampanya-liste')">✕</button></div>
+      <div class="mo-header">
+        <div class="mo-title">Geçmiş Kampanyalar</div><button class="icon-btn"
+          onclick="closeM('mo-kampanya-liste')">✕</button>
+      </div>
       <div id="kl-list" style="max-height: 400px; overflow-y: auto;"></div>
     </div>
   </div>
 
   <div id="mo-cam" class="mo" style="z-index: 300;">
-    <div class="mo-content" style="padding:0; overflow:hidden; background:#000; display:flex; flex-direction:column; height:85vh; max-height:85vh;">
+    <div class="mo-content"
+      style="padding:0; overflow:hidden; background:#000; display:flex; flex-direction:column; height:85vh; max-height:85vh;">
       <div id="scanner-container" style="position:relative; width:100%; flex:1; overflow:hidden; background:#000;">
-        <video autoplay playsinline muted webkit-playsinline="true" x-webkit-airplay="deny" id="cam-video" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1;"></video>
-        <div id="cam-feedback-pro" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999; background:rgba(0,0,0,0.85); border-radius:1rem; padding:2rem 1rem; text-align:center; color:white; width:80%; max-width:300px; flex-direction:column; justify-content:center; align-items:center; box-shadow:0 10px 25px rgba(0,0,0,0.5); pointer-events:none;">
+        <video autoplay playsinline muted webkit-playsinline="true" x-webkit-airplay="deny" id="cam-video"
+          style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1;"></video>
+        <div id="cam-feedback-pro"
+          style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:9999; background:rgba(0,0,0,0.85); border-radius:1rem; padding:2rem 1rem; text-align:center; color:white; width:80%; max-width:300px; flex-direction:column; justify-content:center; align-items:center; box-shadow:0 10px 25px rgba(0,0,0,0.5); pointer-events:none;">
           <div id="cam-feedback-pro-icon" style="font-size:4.5rem; margin-bottom:0.5rem; line-height:1;">✅</div>
-          <div id="cam-feedback-pro-title" style="font-size:1.2rem; font-weight:bold; margin-bottom:0.5rem; word-wrap: break-word;"></div>
+          <div id="cam-feedback-pro-title"
+            style="font-size:1.2rem; font-weight:bold; margin-bottom:0.5rem; word-wrap: break-word;"></div>
           <div id="cam-feedback-pro-count" style="font-size:2.2rem; font-weight:900;"></div>
         </div>
       </div>
       <div class="p-4" style="background:var(--card); flex-shrink:0; z-index:10; border-top:1px solid var(--border);">
-        <p class="text-center mb-3 text-muted" id="cam-info" style="font-size:0.9rem; font-weight:bold;">Barkodu kameraya okutun</p>
-        <button class="btn-danger w-full" style="padding: 1rem; border-radius: 0.5rem;" onclick="stopCam()">Kamerayı Kapat</button>
+        <p class="text-center mb-3 text-muted" id="cam-info" style="font-size:0.9rem; font-weight:bold;">Barkodu
+          kameraya okutun</p>
+        <button class="btn-danger w-full" style="padding: 1rem; border-radius: 0.5rem;" onclick="stopCam()">Kamerayı
+          Kapat</button>
       </div>
     </div>
   </div>
 
   <div id="mo-excel-export" class="mo" onclick="closeOnOutside(event, 'mo-excel-export')" style="z-index: 450;">
     <div class="mo-content">
-      <div class="mo-header"><div class="mo-title" style="color: var(--green);">Excel İndirme Seçenekleri</div><button class="icon-btn" onclick="closeM('mo-excel-export')">✕</button></div>
+      <div class="mo-header">
+        <div class="mo-title" style="color: var(--green);">Excel İndirme Seçenekleri</div><button class="icon-btn"
+          onclick="closeM('mo-excel-export')">✕</button>
+      </div>
       <p class="text-muted mb-4" style="font-size:0.85rem">Lütfen indirmek istediğiniz dosya türünü seçin:</p>
       <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
-        <button class="btn-outline" style="padding: 1rem; text-align: left; background: var(--bg);" onclick="downloadExcel(false)">
+        <button class="btn-outline" style="padding: 1rem; text-align: left; background: var(--bg);"
+          onclick="downloadExcel(false)">
           📄 <strong style="font-size: 1.05rem;">Boş Şablon İndir</strong>
-          <div style="font-size: 0.8rem; margin-top: 0.4rem;" class="text-muted">Sadece zorunlu kolon başlıklarını içerir.</div>
+          <div style="font-size: 0.8rem; margin-top: 0.4rem;" class="text-muted">Sadece zorunlu kolon başlıklarını
+            içerir.</div>
         </button>
-        <button class="btn-outline" style="padding: 1rem; border-color: var(--green); color: var(--green); text-align: left; background: var(--bg);" onclick="downloadExcel(true)">
+        <button class="btn-outline"
+          style="padding: 1rem; border-color: var(--green); color: var(--green); text-align: left; background: var(--bg);"
+          onclick="downloadExcel(true)">
           📂 <strong style="font-size: 1.05rem;">Tüm Verilerle İndir</strong>
-          <div style="font-size: 0.8rem; margin-top: 0.4rem;">Sistemdeki tüm kayıtlarınızı güncel haliyle Excel'e aktarır.</div>
+          <div style="font-size: 0.8rem; margin-top: 0.4rem;">Sistemdeki tüm kayıtlarınızı güncel haliyle Excel'e
+            aktarır.</div>
         </button>
       </div>
     </div>
@@ -437,9 +544,13 @@
 
   <div id="mo-sync-config" class="mo" onclick="closeOnOutside(event, 'mo-sync-config')" style="z-index: 400;">
     <div class="mo-content">
-      <div class="mo-header"><div class="mo-title">Drive Bağlantısı ve Yedekleme</div><button class="icon-btn" onclick="closeM('mo-sync-config')">✕</button></div>
+      <div class="mo-header">
+        <div class="mo-title">Drive Bağlantısı ve Yedekleme</div><button class="icon-btn"
+          onclick="closeM('mo-sync-config')">✕</button>
+      </div>
       <div id="sync-step-1">
-        <p class="text-muted mb-4" style="font-size:0.85rem">Client ID ve Klasör ID bilginizi girerek buluta bağlanın.</p>
+        <p class="text-muted mb-4" style="font-size:0.85rem">Client ID ve Klasör ID bilginizi girerek buluta bağlanın.
+        </p>
         <input type="text" id="sync-client-id" placeholder="Client ID (İstemci Kimliği)">
         <input type="text" id="sync-folder-id" placeholder="Drive Klasör ID (Folder ID)">
         <button class="btn-primary w-full mt-4" onclick="connectAndFetchFiles()">Bağlan ve Yedekleri Bul</button>
@@ -447,47 +558,91 @@
       <div id="sync-step-2" class="hidden" style="margin-top: 0.5rem;">
         <p class="text-muted mb-4" style="font-size:0.85rem">Lütfen yapmak istediğiniz yedekleme türünü seçin:</p>
         <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem;">
-          <label style="display: flex; align-items: center; gap: 0.6rem;"><input type="radio" name="syncMode" id="sync-mode-update" value="update" checked onchange="toggleSyncMode()"><span style="font-size: 0.95rem; font-weight: 600;">Mevcut Olanı Güncelle</span></label>
-          <label style="display: flex; align-items: center; gap: 0.6rem;"><input type="radio" name="syncMode" id="sync-mode-new" value="new" onchange="toggleSyncMode()"><span style="font-size: 0.95rem; font-weight: 600;">Yeni Dosya Oluştur</span></label>
+          <label style="display: flex; align-items: center; gap: 0.6rem;"><input type="radio" name="syncMode"
+              id="sync-mode-update" value="update" checked onchange="toggleSyncMode()"><span
+              style="font-size: 0.95rem; font-weight: 600;">Mevcut Olanı Güncelle</span></label>
+          <label style="display: flex; align-items: center; gap: 0.6rem;"><input type="radio" name="syncMode"
+              id="sync-mode-new" value="new" onchange="toggleSyncMode()"><span
+              style="font-size: 0.95rem; font-weight: 600;">Yeni Dosya Oluştur</span></label>
         </div>
-        <div id="sync-update-container"><select id="sync-file-select" style="margin-bottom: 1.5rem; width:100%; padding:0.6rem; border-radius:0.4rem; border:1px solid var(--border);"></select></div>
-        <div id="sync-new-container" class="hidden"><input type="text" id="sync-new-file" placeholder="Örn: Haziran_2026_Yedek" style="margin-bottom: 1.5rem;"></div>
-        <button class="btn-primary w-full" style="background:var(--green);" onclick="startSyncWithSelectedFile()">Eşitlemeyi Başlat</button>
+        <div id="sync-update-container"><select id="sync-file-select"
+            style="margin-bottom: 1.5rem; width:100%; padding:0.6rem; border-radius:0.4rem; border:1px solid var(--border);"></select>
+        </div>
+        <div id="sync-new-container" class="hidden"><input type="text" id="sync-new-file"
+            placeholder="Örn: Haziran_2026_Yedek" style="margin-bottom: 1.5rem;"></div>
+        <button class="btn-primary w-full" style="background:var(--green);"
+          onclick="startSyncWithSelectedFile()">Eşitlemeyi Başlat</button>
       </div>
     </div>
   </div>
 
   <div id="mo-reset-client" class="mo" onclick="closeOnOutside(event, 'mo-reset-client')" style="z-index: 450;">
     <div class="mo-content">
-      <div class="mo-header"><div class="mo-title" style="color: var(--red);">Drive Yedek Sıfırlama</div><button class="icon-btn" onclick="closeM('mo-reset-client')">✕</button></div>
+      <div class="mo-header">
+        <div class="mo-title" style="color: var(--red);">Drive Yedek Sıfırlama</div><button class="icon-btn"
+          onclick="closeM('mo-reset-client')">✕</button>
+      </div>
       <div id="reset-step-1">
-        <p class="text-muted mb-4" style="font-size:0.85rem">Sıfırlama işlemi yapabilmek için geçerli Client ID ve Klasör ID bilgilerini girerek buluta bağlanın.</p>
+        <p class="text-muted mb-4" style="font-size:0.85rem">Sıfırlama işlemi yapabilmek için geçerli Client ID ve
+          Klasör ID bilgilerini girerek buluta bağlanın.</p>
         <input type="text" id="reset-client-id-input" placeholder="Client ID (İstemci Kimliği)">
         <input type="text" id="reset-folder-id-input" placeholder="Drive Klasör ID (Folder ID)">
         <button class="btn-danger w-full mt-4" onclick="verifyClientForReset()">Bağlan ve Dosyaları Listele</button>
       </div>
       <div id="reset-step-2" class="hidden" style="margin-top: 0.5rem;">
-        <p class="text-muted mb-4" style="font-size:0.85rem">Bağlantı başarılı! Lütfen kalıcı olarak <b>SIFIRLAMAK</b> istediğiniz yedek dosyasını seçin.</p>
-        <select id="reset-file-select" style="margin-bottom: 1.5rem; width:100%; padding:0.6rem; border-radius:0.4rem; border:1px solid var(--border);"></select>
-        <button class="btn-danger w-full" style="background:var(--red);" onclick="startResetWithSelectedFile()">Seçili Dosyayı Sıfırla (Şifre İstenecek)</button>
+        <p class="text-muted mb-4" style="font-size:0.85rem">Bağlantı başarılı! Lütfen kalıcı olarak <b>SIFIRLAMAK</b>
+          istediğiniz yedek dosyasını seçin.</p>
+        <select id="reset-file-select"
+          style="margin-bottom: 1.5rem; width:100%; padding:0.6rem; border-radius:0.4rem; border:1px solid var(--border);"></select>
+        <button class="btn-danger w-full" style="background:var(--red);" onclick="startResetWithSelectedFile()">Seçili
+          Dosyayı Sıfırla (Şifre İstenecek)</button>
       </div>
     </div>
   </div>
 
   <div id="mo-reset-auth" class="mo" onclick="closeOnOutside(event, 'mo-reset-auth')" style="z-index: 500;">
     <div class="mo-content">
-      <div class="mo-header"><div class="mo-title" style="color: var(--red);">Güvenlik Doğrulaması</div><button class="icon-btn" onclick="closeM('mo-reset-auth')">✕</button></div>
-      <p class="text-muted mb-4" style="font-size:0.85rem">Bu yıkıcı işlemi gerçekleştirebilmek için yetkili giriş bilgilerinizi giriniz.</p>
-      <input type="text" id="reset-user" placeholder="Kullanıcı Adı" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');">
-      <input type="password" id="reset-pass" placeholder="Şifre" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');">
+      <div class="mo-header">
+        <div class="mo-title" style="color: var(--red);">Güvenlik Doğrulaması</div><button class="icon-btn"
+          onclick="closeM('mo-reset-auth')">✕</button>
+      </div>
+      <p class="text-muted mb-4" style="font-size:0.85rem">Bu yıkıcı işlemi gerçekleştirebilmek için yetkili giriş
+        bilgilerinizi giriniz.</p>
+      <input type="text" id="reset-user" placeholder="Kullanıcı Adı" autocomplete="new-password" readonly
+        onfocus="this.removeAttribute('readonly');">
+      <input type="password" id="reset-pass" placeholder="Şifre" autocomplete="new-password" readonly
+        onfocus="this.removeAttribute('readonly');">
       <button class="btn-danger w-full mt-4" onclick="confirmResetAuth()">Doğrula ve Sıfırla</button>
     </div>
   </div>
 
-  <div id="mo-spinner" class="mo" style="z-index: 9999; background: rgba(0,0,0,0.85);"><div style="display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;"><div class="spinner"></div><div id="spinner-msg" style="margin-top:20px; font-weight:bold; font-size:1.1rem; text-align:center; padding: 0 20px;">Lütfen bekleyin...</div></div></div>
-  <div id="mo-alert" class="mo" style="z-index: 99999;"><div class="mo-content" style="text-align:center; padding: 2rem 1.5rem;"><div id="alert-icon" style="font-size:3.5rem; margin-bottom:10px;">✅</div><h3 id="alert-title" class="mb-4" style="font-size:1.4rem;">İşlem Başarılı</h3><p id="alert-msg" class="mb-4 text-muted" style="font-size:0.95rem; line-height: 1.5;">Mesaj detayları.</p><button class="btn-primary" style="padding: 0.8rem; font-size:1rem;" onclick="closeM('mo-alert')">Tamam</button></div></div>
-  <div id="mo-confirm" class="mo" onclick="closeOnOutside(event, 'mo-confirm')"><div class="mo-content"><h3 id="conf-title" class="mb-4">Onay</h3><p id="conf-msg" class="mb-4 text-muted" style="font-size:0.95rem">Emin misiniz?</p><div class="flex justify-between gap-4"><button class="btn-outline" onclick="closeM('mo-confirm')">İptal</button><button class="btn-danger" id="conf-yes" style="width:100%">Evet</button></div></div></div>
+  <div id="mo-spinner" class="mo" style="z-index: 9999; background: rgba(0,0,0,0.85);">
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
+      <div class="spinner"></div>
+      <div id="spinner-msg"
+        style="margin-top:20px; font-weight:bold; font-size:1.1rem; text-align:center; padding: 0 20px;">Lütfen
+        bekleyin...</div>
+    </div>
+  </div>
+  <div id="mo-alert" class="mo" style="z-index: 99999;">
+    <div class="mo-content" style="text-align:center; padding: 2rem 1.5rem;">
+      <div id="alert-icon" style="font-size:3.5rem; margin-bottom:10px;">✅</div>
+      <h3 id="alert-title" class="mb-4" style="font-size:1.4rem;">İşlem Başarılı</h3>
+      <p id="alert-msg" class="mb-4 text-muted" style="font-size:0.95rem; line-height: 1.5;">Mesaj detayları.</p><button
+        class="btn-primary" style="padding: 0.8rem; font-size:1rem;" onclick="closeM('mo-alert')">Tamam</button>
+    </div>
+  </div>
+  <div id="mo-confirm" class="mo" onclick="closeOnOutside(event, 'mo-confirm')">
+    <div class="mo-content">
+      <h3 id="conf-title" class="mb-4">Onay</h3>
+      <p id="conf-msg" class="mb-4 text-muted" style="font-size:0.95rem">Emin misiniz?</p>
+      <div class="flex justify-between gap-4"><button class="btn-outline"
+          onclick="closeM('mo-confirm')">İptal</button><button class="btn-danger" id="conf-yes"
+          style="width:100%">Evet</button></div>
+    </div>
+  </div>
 
   <script type="module" src="js/main.js"></script>
 </body>
+
 </html>

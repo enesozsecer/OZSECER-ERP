@@ -62,24 +62,44 @@ export function saveSip() {
   const currentId = $('ms-CurrentId').value; if (!currentId) return showToast('Cari seçimi zorunlu!');
   const finalItems = tempOrderItems.filter(it => it.ProductId && !it.Deleted).map(it => ({ ...it, UnitPrice: parseFloat(it.UnitPrice) || 0, Amount: parseFloat(it.Amount) || 0, TotalPrice: parseFloat(it.TotalPrice) || 0 }));
   if (finalItems.length === 0) return showToast('Ürün seçili geçerli kalem bulunamadı!');
-  let id = $('ms-Id').value; const tur = Number($('ms-OrderTypeId').value); const isAlis = tur === ISLEM.ALIS; if (!id) id = guid(); 
-  const ara = finalItems.reduce((sum, it) => sum + it.TotalPrice, 0); const ind = Number($('ms-DisCount').value) || 0;
-  const data = { OrderTypeId: tur, CurrentId: String(currentId), OrderDate: new Date($('ms-OrderDate').value).toISOString(), Description: $('ms-Description').value, SubTotalPrice: ara, DisCount: ind, TotalPrice: ara - ind };
+  
+  let id = $('ms-Id').value; const tur = Number($('ms-OrderTypeId').value); const isAlis = tur === ISLEM.ALIS;
+  if (!id) id = guid(); 
+  
+  const ara = finalItems.reduce((sum, it) => sum + it.TotalPrice, 0);
+  const ind = Number($('ms-DisCount').value) || 0;
+  
+  const data = { 
+    OrderTypeId: tur, 
+    CurrentId: String(currentId), 
+    OrderDate: new Date($('ms-OrderDate').value).toISOString(), 
+    Description: toTitleCaseTR($('ms-Description').value.trim()), // SİPARİŞ NOTU TITLE CASE YAPILDI
+    SubTotalPrice: ara, 
+    DisCount: ind, 
+    TotalPrice: ara - ind 
+  };
 
   if ($('ms-Id').value) {
     const s = DB.Order.find(x => String(x.Id) === String(id));
     DB.OrderItem.filter(x => x.OrderId === id && !x.Deleted).forEach(it => { updateStock(it.ProductId, it.Amount, oldOrderType === ISLEM.ALIS, false); });
     Object.assign(s, data, { UpdatedDate: tsNow(), UpdatedUser: getCihazAdi() });
-  } else { data.Code = `SIP-${DB.Order.length + 1}`; DB.Order.push({ Id: id, ...data, CreatedDate: tsNow(), CreatedUser: getCihazAdi(), Deleted: false }); }
+  } else {
+    data.Code = `SIP-${DB.Order.length + 1}`;
+    DB.Order.push({ Id: id, ...data, CreatedDate: tsNow(), CreatedUser: getCihazAdi(), Deleted: false });
+  }
 
   const currentItemIds = tempOrderItems.map(x => x.Id);
   DB.OrderItem.filter(x => x.OrderId === id && (!currentItemIds.includes(x.Id) || tempOrderItems.find(t=>t.Id===x.Id).Deleted)).forEach(x => softDelete(DB.OrderItem, x.Id));
+  
   finalItems.forEach(it => {
-    it.OrderId = id; delete it._TempName; const existing = DB.OrderItem.find(x => x.Id === it.Id);
-    if(existing) { Object.assign(existing, it, { UpdatedDate: tsNow() }); } else { it.Id = it.Id || guid(); DB.OrderItem.push({ ...it, CreatedDate: tsNow(), Deleted: false }); }
+    it.OrderId = id; delete it._TempName; 
+    const existing = DB.OrderItem.find(x => x.Id === it.Id);
+    if(existing) { Object.assign(existing, it, { UpdatedDate: tsNow() }); }
+    else { it.Id = it.Id || guid(); DB.OrderItem.push({ ...it, CreatedDate: tsNow(), Deleted: false }); }
     updateStock(it.ProductId, it.Amount, isAlis, true);
   });
-  saveDB(); closeM('mo-sip'); renderSip(true);
+
+  saveDB(); closeM('mo-sip'); renderSip(true); renderHome();
 }
 
 // BARKOD SİSTEMİ

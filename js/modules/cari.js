@@ -1,5 +1,5 @@
 import { DB, saveDB } from '../core/db.js';
-import { $, guid, tsNow, fp, calcBalance, parseRawTR, formatTR, toRawTR, getCihazAdi, softDelete, showToast, openM, closeM, showConfirm } from '../core/utils.js';
+import { $, guid, tsNow, fp, calcBalance, parseRawTR, formatTR, toRawTR, getCihazAdi, softDelete, showToast, openM, closeM, showConfirm, toTitleCaseTR } from '../core/utils.js';
 import { printEkstre } from '../core/pdf.js';
 import { renderHome } from './home.js';
 
@@ -15,8 +15,11 @@ export function renderGrupList() {
   const list = $('mg-list'); list.innerHTML = ''; if (tempGruplar.length === 0) { list.innerHTML = '<p class="text-muted">Kayıt yok.</p>'; return; }
   tempGruplar.forEach((g, idx) => { list.innerHTML += `<div class="flex items-center gap-2 mb-2"><input type="text" value="${g.Name}" onchange="updateTempGrup(${idx}, this.value)" style="margin:0;"><button class="icon-btn text-red" onclick="deleteTempGrup(${idx})">🗑️</button></div>`; });
 }
-export function addTempGrup() { const name = $('mg-new-ad').value.trim(); if (!name) return; tempGruplar.push({ Id: guid(), Name: name, Deleted: false, CreatedDate: tsNow(), CreatedUser: getCihazAdi() }); $('mg-new-ad').value = ''; renderGrupList(); }
-export function updateTempGrup(idx, val) { tempGruplar[idx].Name = val.trim(); tempGruplar[idx].UpdatedDate = tsNow(); }
+export function addTempGrup() { 
+  const name = toTitleCaseTR($('mg-new-ad').value.trim()); if (!name) return; 
+  tempGruplar.push({ Id: guid(), Name: name, Deleted: false, CreatedDate: tsNow(), CreatedUser: getCihazAdi() }); $('mg-new-ad').value = ''; renderGrupList(); 
+}
+export function updateTempGrup(idx, val) { tempGruplar[idx].Name = toTitleCaseTR(val.trim()); tempGruplar[idx].UpdatedDate = tsNow(); }
 export function deleteTempGrup(idx) { tempGruplar[idx].Deleted = true; tempGruplar[idx].DeletedDate = tsNow(); renderGrupList(); }
 
 export function saveGrup() {
@@ -63,7 +66,8 @@ export function editCari(id) {
 }
 
 export function saveCari() {
-  const name = $('mc-Name').value.trim(); if (!name) return showToast('Ad zorunlu!'); const id = $('mc-Id').value;
+  const name = toTitleCaseTR($('mc-Name').value.trim()); if (!name) return showToast('Ad zorunlu!'); 
+  const id = $('mc-Id').value;
   
   const data = { 
     Name: name, 
@@ -71,8 +75,8 @@ export function saveCari() {
     PhoneNumber: $('mc-PhoneNumber').value, 
     VKN: $('mc-VKN').value, 
     IdentityNumber: $('mc-IdentityNumber').value,
-    Email: $('mc-Email').value, 
-    Address: $('mc-Address').value, 
+    Email: $('mc-Email').value.trim().toLowerCase(), // Email standart gereği hep küçük harftir
+    Address: toTitleCaseTR($('mc-Address').value.trim()), 
     Balance: parseRawTR($('mc-Balance').value) 
   };
   

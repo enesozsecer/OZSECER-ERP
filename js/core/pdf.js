@@ -1,5 +1,5 @@
 import { DB } from './db.js';
-import { calcBalance, fp, formatDateOnly, ISLEM, KASA, getBirimAd } from './utils.js';
+import { calcBalance, fp, formatDateOnly, ISLEM, KASA, getBirimAd, formatTR } from './utils.js';
 
 const PDF_CSS = `body { font-family: Arial; font-size: 14pt; margin:0; padding:15mm; } h1 { font-size: 20pt; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; } p { margin: 5px 0; } .bold { font-weight: bold; } .master-box { border: 1px solid #000; padding: 10px; margin-bottom: 20px; border-radius: 5px; } table { width: 100%; border-collapse: collapse; margin-top: 10px; } th, td { border: 1px solid #ccc; padding: 8px; text-align: left; } th { background: #f4f4f4; } .text-right { text-align: right; } .total-line { font-size: 16pt; font-weight: bold; border-top: 2px solid #000; padding-top:10px; margin-top:10px; text-align: right; }`;
 
@@ -52,13 +52,23 @@ export function printEkstre(cariId) {
 }
 
 export function printKatalog(kat) {
+  const title = kat.Name.toUpperCase('tr-TR');
+  // Yeni özellik: position:relative ve .discount-badge CSS sınıfları eklendi!
+  const KAT_CSS = `body { font-family: Arial; padding:10mm; } .kat-header { text-align: center; border-bottom: 2px solid #e74c3c; margin-bottom: 20px; padding-bottom: 10px; } .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; } .product-card { border: 1px solid #ddd; padding: 15px; text-align: center; position: relative; } .product-img { width: 100%; height: 160px; object-fit: contain; } .price-container { margin-top: 10px; font-weight:bold; font-size:18px; color:#e74c3c; } .discount-badge { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; padding: 5px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }`;
+
   let gridHtml = '';
   DB.OfferItem.filter(x => x.OfferId === kat.Id && !x.Deleted).forEach(it => {
     const product = DB.Product.find(p => p.Id === it.ProductId); if(!product) return;
-    const priceHtml = it.SalePrice < it.Price ? `<span style="text-decoration:line-through; font-size:12px; color:#999; margin-right:5px;">${fp(it.Price)}</span><span>${fp(it.SalePrice)}</span>` : `<span>${fp(it.Price)}</span>`;
-    const imgHtml = product.PicturePath ? `<img src="${product.PicturePath}" style="width:100%; height:140px; object-fit:contain;">` : `<div style="padding:40px; background:#f0f0f0; color:#999; font-size:12px;">Görsel Yok</div>`;
-    gridHtml += `<div style="border:1px solid #ddd; padding:15px; text-align:center;">${imgHtml}<h3>${product.Name}</h3><p style="font-size:12px; color:#666;">${product.Description || ''}</p><div style="margin-top:10px; font-weight:bold; font-size:16px; color:#e74c3c;">${priceHtml}</div></div>`;
+    const isDiscounted = it.SalePrice < it.Price;
+    
+    // Kampanya İndirim Rozeti HTML'i
+    const badgeHtml = isDiscounted ? `<div class="discount-badge">%${formatTR(it.DiscountRate)} İndirim</div>` : '';
+    const priceHtml = isDiscounted ? `<span style="text-decoration:line-through; font-size:12px; color:#999; margin-right:5px;">${fp(it.Price)}</span><span>${fp(it.SalePrice)}</span>` : `<span>${fp(it.Price)}</span>`;
+    const imgHtml = product.PicturePath ? `<img src="${product.PicturePath}" class="product-img">` : `<div style="padding:40px; background:#f0f0f0; color:#999; font-size:12px;">Görsel Yok</div>`;
+    
+    gridHtml += `<div class="product-card">${badgeHtml}${imgHtml}<h3>${product.Name}</h3><p style="font-size:12px; color:#666;">${product.Description || ''}</p><div class="price-container">${priceHtml}</div></div>`;
   });
-  const h = `<div style="text-align:center; border-bottom:2px solid #e74c3c; margin-bottom:20px; padding-bottom:10px;"><h2>${kat.Name}</h2><p>${kat.Description || ''}</p></div><div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px;">${gridHtml}</div>`;
-  const w = window.open(URL.createObjectURL(new Blob([`<!DOCTYPE html><html><head><title>${kat.Name}</title><style>body{font-family:Arial; padding:10mm;}</style></head><body>${h}<script>setTimeout(function(){window.print();}, 800);<\/script></body></html>`], { type: 'text/html;charset=utf-8' })), '_blank');
+  
+  const h = `<div class="kat-header"><h2>${title}</h2><p>${kat.Description || ''}</p></div><div class="product-grid">${gridHtml}</div>`;
+  const w = window.open(URL.createObjectURL(new Blob([`<!DOCTYPE html><html><head><title>${title}</title><style>${KAT_CSS}</style></head><body>${h}<script>setTimeout(function(){window.print();}, 800);<\/script></body></html>`], { type: 'text/html;charset=utf-8' })), '_blank');
 }
