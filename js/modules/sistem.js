@@ -12,66 +12,41 @@ export function exportDB() {
   const blob = new Blob([data], { type: "application/json" }); 
   const url = URL.createObjectURL(blob); 
   const a = document.createElement('a'); 
-  a.href = url; 
-  a.download = `OzToptan_Yedek.json`; 
-  a.click(); 
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = `OzToptan_Yedek.json`; a.click(); URL.revokeObjectURL(url);
 }
 
 export function openSyncModal() {
   $('sync-client-id').value = localStorage.getItem('ozsecer_client_id') || ''; 
   $('sync-folder-id').value = localStorage.getItem('ozsecer_folder_id') || '';
-  $('sync-step-1').classList.remove('hidden'); 
-  $('sync-step-2').classList.add('hidden'); 
-  $('sync-new-file').value = ''; 
-  openM('mo-sync-config');
+  $('sync-step-1').classList.remove('hidden'); $('sync-step-2').classList.add('hidden'); $('sync-new-file').value = ''; openM('mo-sync-config');
 }
 
 export function connectAndFetchFiles() {
-  const cId = $('sync-client-id').value.trim(); 
-  const fId = $('sync-folder-id').value.trim();
+  const cId = $('sync-client-id').value.trim(); const fId = $('sync-folder-id').value.trim();
   if (!cId || !fId) return showToast('Lütfen tüm alanları doldurun!');
   
-  localStorage.setItem('ozsecer_client_id', cId); 
-  localStorage.setItem('ozsecer_folder_id', fId); 
-  showSpinner("Drive'a bağlanılıyor...");
+  localStorage.setItem('ozsecer_client_id', cId); localStorage.setItem('ozsecer_folder_id', fId); showSpinner("Drive'a bağlanılıyor...");
   
   try {
-    if (cId !== lastUsedClientId || fId !== currentDriveFolderId) { 
-      driveAccessToken = null; 
-      lastUsedClientId = cId; 
-      currentDriveFolderId = fId; 
-    }
+    if (cId !== lastUsedClientId || fId !== currentDriveFolderId) { driveAccessToken = null; lastUsedClientId = cId; currentDriveFolderId = fId; }
     
+    // HESAP SEÇİM KURALI (prompt) BURAYA EKLENDİ (MOBİL OS EZEMEZ)
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: cId, 
       scope: 'https://www.googleapis.com/auth/drive.file',
+      prompt: 'select_account', 
       callback: async (response) => {
-        if (response.error) { 
-          hideSpinner(); 
-          driveAccessToken = null; 
-          return showCustomAlert("İptal Edildi!\n" + response.error, false); 
-        }
-        driveAccessToken = response.access_token; 
-        await fetchFileListFromDrive();
+        if (response.error) { hideSpinner(); driveAccessToken = null; return showCustomAlert("İptal Edildi!\n" + response.error, false); }
+        driveAccessToken = response.access_token; await fetchFileListFromDrive();
       },
-      error_callback: (err) => { 
-        hideSpinner(); 
-        driveAccessToken = null; 
-        showCustomAlert("Bağlantı Kurulamadı!", false); 
-      }
+      error_callback: (err) => { hideSpinner(); driveAccessToken = null; showCustomAlert("Bağlantı Kurulamadı!", false); }
     });
     
-    // HESAP SEÇİMİNİ ZORUNLU KIL: prompt: 'select_account'
     if (!driveAccessToken) { 
-      tokenClient.requestAccessToken({ prompt: 'select_account consent' }); 
-    } else { 
-      fetchFileListFromDrive(); 
-    }
-  } catch (err) { 
-    hideSpinner(); 
-    showCustomAlert(err.message, false); 
-  }
+      // Parametre initTokenClient'tan alındığı için burası boş bırakıldı
+      tokenClient.requestAccessToken(); 
+    } else { fetchFileListFromDrive(); }
+  } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
 
 export async function fetchFileListFromDrive() {
@@ -80,107 +55,57 @@ export async function fetchFileListFromDrive() {
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`, { headers: { 'Authorization': `Bearer ${driveAccessToken}` } });
     const searchData = await searchRes.json();
     if (searchData.error) throw new Error("Klasör bulunamadı.");
-    
     const select = $('sync-file-select'); select.innerHTML = ''; let hasFiles = false;
     if (searchData.files && searchData.files.length > 0) {
       const files = searchData.files.filter(f => f.name.endsWith('.json'));
       if (files.length > 0) {
-        hasFiles = true; 
-        files.forEach(file => { select.innerHTML += `<option value="${file.name}">${file.name}</option>`; });
-        const savedFile = localStorage.getItem('ozsecer_file_name'); 
-        if (savedFile) select.value = savedFile;
+        hasFiles = true; files.forEach(file => { select.innerHTML += `<option value="${file.name}">${file.name}</option>`; });
+        const savedFile = localStorage.getItem('ozsecer_file_name'); if (savedFile) select.value = savedFile;
       }
     }
-    if (!hasFiles) { 
-      select.innerHTML = `<option value="">-- Yedek yok --</option>`; 
-      $('sync-mode-new').checked = true; 
-      $('sync-mode-update').disabled = true; 
-      toggleSyncMode(); 
-    } else { 
-      $('sync-mode-update').checked = true; 
-      $('sync-mode-update').disabled = false; 
-      toggleSyncMode(); 
-    }
-    hideSpinner(); 
-    $('sync-step-1').classList.add('hidden'); 
-    $('sync-step-2').classList.remove('hidden');
-  } catch (err) { 
-    hideSpinner(); showCustomAlert(err.message, false); 
-  }
+    if (!hasFiles) { select.innerHTML = `<option value="">-- Yedek yok --</option>`; $('sync-mode-new').checked = true; $('sync-mode-update').disabled = true; toggleSyncMode(); } 
+    else { $('sync-mode-update').checked = true; $('sync-mode-update').disabled = false; toggleSyncMode(); }
+    hideSpinner(); $('sync-step-1').classList.add('hidden'); $('sync-step-2').classList.remove('hidden');
+  } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
 
 export function startSyncWithSelectedFile() {
   const isNewMode = $('sync-mode-new').checked; let targetFile = '';
-  if (isNewMode) { 
-    targetFile = $('sync-new-file').value.trim(); 
-    if (!targetFile) return showToast("Dosya ismi yazın!"); 
-  } else { 
-    targetFile = $('sync-file-select').value; 
-    if (!targetFile) return showToast("Mevcut dosyayı seçin!"); 
-  }
-  
+  if (isNewMode) { targetFile = $('sync-new-file').value.trim(); if (!targetFile) return showToast("Dosya ismi yazın!"); } 
+  else { targetFile = $('sync-file-select').value; if (!targetFile) return showToast("Mevcut dosyayı seçin!"); }
   if (!targetFile.endsWith('.json')) targetFile += '.json';
-  localStorage.setItem('ozsecer_file_name', targetFile); 
-  currentDriveFileName = targetFile;
-  
-  closeM('mo-sync-config'); 
-  executePullMergePush();
+  localStorage.setItem('ozsecer_file_name', targetFile); currentDriveFileName = targetFile;
+  closeM('mo-sync-config'); executePullMergePush();
 }
 
 export function toggleSyncMode() {
-  if ($('sync-mode-new').checked) { 
-    $('sync-update-container').classList.add('hidden'); 
-    $('sync-new-container').classList.remove('hidden'); 
-  } else { 
-    $('sync-update-container').classList.remove('hidden'); 
-    $('sync-new-container').classList.add('hidden'); 
-  }
+  if ($('sync-mode-new').checked) { $('sync-update-container').classList.add('hidden'); $('sync-new-container').classList.remove('hidden'); } 
+  else { $('sync-update-container').classList.remove('hidden'); $('sync-new-container').classList.add('hidden'); }
 }
 
 export async function executePullMergePush() {
-  const fId = currentDriveFolderId || localStorage.getItem('ozsecer_folder_id'); 
-  const fileName = currentDriveFileName || localStorage.getItem('ozsecer_file_name');
+  const fId = currentDriveFolderId || localStorage.getItem('ozsecer_folder_id'); const fileName = currentDriveFileName || localStorage.getItem('ozsecer_file_name');
   if (!fId || !fileName) return showCustomAlert("Klasör veya Dosya ID eksik!", false);
-  
   showSpinner("Eşitleme başladı...");
   try {
     const query = encodeURIComponent(`'${fId}' in parents and name='${fileName}' and trashed=false`);
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, { headers: { 'Authorization': `Bearer ${driveAccessToken}` } });
     const searchData = await searchRes.json();
-    
     let fileId = null; let remoteDB = null;
     if (searchData.files && searchData.files.length > 0) {
-      fileId = searchData.files[0].id; 
-      updateSpinner("Buluttan çekiliyor...");
+      fileId = searchData.files[0].id; updateSpinner("Buluttan çekiliyor...");
       const getRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, { headers: { 'Authorization': `Bearer ${driveAccessToken}` } });
       remoteDB = await getRes.json();
     }
-    
-    if (remoteDB) { 
-      updateSpinner("Birleştiriliyor..."); 
-      mergeDatabases(remoteDB); 
-    }
-    
-    updateSpinner("Buluta yazılıyor..."); 
-    const pushData = JSON.stringify(DB);
-    
+    if (remoteDB) { updateSpinner("Birleştiriliyor..."); mergeDatabases(remoteDB); }
+    updateSpinner("Buluta yazılıyor..."); const pushData = JSON.stringify(DB);
     if (fileId) {
-      const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, { 
-        method: 'PATCH', 
-        headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' }, 
-        body: pushData 
-      });
+      const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, { method: 'PATCH', headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' }, body: pushData });
       if (!patchRes.ok) throw new Error("Güncelleme başarısız.");
     } else {
-      const metadata = { name: fileName, parents: [fId] }; 
-      const form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' })); 
-      form.append('file', new Blob([pushData], { type: 'application/json' }));
-      const postRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { 
-        method: 'POST', 
-        headers: { 'Authorization': `Bearer ${driveAccessToken}` }, 
-        body: form 
-      });
+      const metadata = { name: fileName, parents: [fId] }; const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' })); form.append('file', new Blob([pushData], { type: 'application/json' }));
+      const postRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { 'Authorization': `Bearer ${driveAccessToken}` }, body: form });
       if (!postRes.ok) throw new Error("Yeni dosya başarısız.");
     }
     saveDB(); hideSpinner(); window.location.reload(); 
@@ -190,87 +115,46 @@ export async function executePullMergePush() {
 export function mergeDatabases(remoteDB) {
   if (!remoteDB) return;
   const collections = ['Current', 'Product', 'Order', 'OrderItem', 'Payment', 'CurrentGroup', 'ProductGroup', 'Offer', 'OfferItem'];
-  
   function getLastMod(item) {
     if (item.DeletedDate) return new Date(item.DeletedDate).getTime();
     if (item.UpdatedDate) return new Date(item.UpdatedDate).getTime();
     if (item.CreatedDate) return new Date(item.CreatedDate).getTime();
     return 0;
   }
-  
   collections.forEach(col => {
-    if (!remoteDB[col]) return; 
-    if (!DB[col]) DB[col] = [];
-    const localMap = new Map(); 
-    DB[col].forEach(item => localMap.set(String(item.Id), item));
-    
+    if (!remoteDB[col]) return; if (!DB[col]) DB[col] = [];
+    const localMap = new Map(); DB[col].forEach(item => localMap.set(String(item.Id), item));
     remoteDB[col].forEach(remoteItem => {
       const id = String(remoteItem.Id);
       if (localMap.has(id)) {
         const localItem = localMap.get(id);
         if (getLastMod(remoteItem) > getLastMod(localItem)) Object.assign(localItem, remoteItem);
-      } else { 
-        DB[col].push(remoteItem); 
-      }
+      } else { DB[col].push(remoteItem); }
     });
   });
 }
 
 export let currentResetTarget = '';
-export function openResetAuthModal(target) { 
-  currentResetTarget = target; 
-  $('reset-user').value = ''; 
-  $('reset-pass').value = ''; 
-  $('reset-user').setAttribute('readonly', 'readonly'); 
-  $('reset-pass').setAttribute('readonly', 'readonly'); 
-  openM('mo-reset-auth'); 
-}
+export function openResetAuthModal(target) { currentResetTarget = target; $('reset-user').value = ''; $('reset-pass').value = ''; $('reset-user').setAttribute('readonly', 'readonly'); $('reset-pass').setAttribute('readonly', 'readonly'); openM('mo-reset-auth'); }
 
-export function openDriveResetClientModal() { 
-  $('reset-client-id-input').value = localStorage.getItem('ozsecer_client_id') || ''; 
-  $('reset-folder-id-input').value = localStorage.getItem('ozsecer_folder_id') || ''; 
-  $('reset-step-1').classList.remove('hidden'); 
-  $('reset-step-2').classList.add('hidden'); 
-  openM('mo-reset-client'); 
-}
+export function openDriveResetClientModal() { $('reset-client-id-input').value = localStorage.getItem('ozsecer_client_id') || ''; $('reset-folder-id-input').value = localStorage.getItem('ozsecer_folder_id') || ''; $('reset-step-1').classList.remove('hidden'); $('reset-step-2').classList.add('hidden'); openM('mo-reset-client'); }
 
 export function verifyClientForReset() {
-  const cId = $('reset-client-id-input').value.trim(); 
-  const fId = $('reset-folder-id-input').value.trim();
+  const cId = $('reset-client-id-input').value.trim(); const fId = $('reset-folder-id-input').value.trim();
   if (!cId || !fId) return showToast('Tüm alanları doldurunuz!');
-  
-  localStorage.setItem('ozsecer_client_id', cId); 
-  localStorage.setItem('ozsecer_folder_id', fId); 
-  showSpinner("Google kimliği doğrulanıyor...");
-  
+  localStorage.setItem('ozsecer_client_id', cId); localStorage.setItem('ozsecer_folder_id', fId); showSpinner("Google kimliği doğrulanıyor...");
   try {
-    if (cId !== lastUsedClientId || fId !== currentDriveFolderId) { 
-      driveAccessToken = null; 
-      lastUsedClientId = cId; 
-      currentDriveFolderId = fId; 
-    }
+    if (cId !== lastUsedClientId || fId !== currentDriveFolderId) { driveAccessToken = null; lastUsedClientId = cId; currentDriveFolderId = fId; }
     
+    // HESAP SEÇİM KURALI BURAYA DA EKLENDİ
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: cId, 
       scope: 'https://www.googleapis.com/auth/drive.file',
-      callback: async (response) => { 
-        if (response.error) { 
-          hideSpinner(); driveAccessToken = null; return showCustomAlert("İşlem İptal Edildi!", false); 
-        } 
-        driveAccessToken = response.access_token; 
-        await fetchFileListForReset(); 
-      },
-      error_callback: () => { 
-        hideSpinner(); driveAccessToken = null; showCustomAlert("Bağlantı kurulamadı!", false); 
-      }
+      prompt: 'select_account',
+      callback: async (response) => { if (response.error) { hideSpinner(); driveAccessToken = null; return showCustomAlert("İşlem İptal Edildi!", false); } driveAccessToken = response.access_token; await fetchFileListForReset(); },
+      error_callback: () => { hideSpinner(); driveAccessToken = null; showCustomAlert("Bağlantı kurulamadı!", false); }
     });
-    
-    // HESAP SEÇİMİNİ ZORUNLU KIL: prompt: 'select_account'
-    if (!driveAccessToken) { 
-      tokenClient.requestAccessToken({ prompt: 'select_account' }); 
-    } else { 
-      fetchFileListFromDrive(); 
-    }
+    if (!driveAccessToken) { tokenClient.requestAccessToken(); } else { fetchFileListForReset(); }
   } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
 
@@ -280,65 +164,42 @@ export async function fetchFileListForReset() {
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)`, { headers: { 'Authorization': `Bearer ${driveAccessToken}` } });
     const searchData = await searchRes.json();
     if (searchData.error) throw new Error("Klasör bulunamadı.");
-    
     const select = $('reset-file-select'); select.innerHTML = '';
     if (searchData.files && searchData.files.length > 0) {
       const files = searchData.files.filter(f => f.name.endsWith('.json'));
-      if (files.length === 0) select.innerHTML = `<option value="">-- Yedek yok --</option>`; 
-      else files.forEach(file => { select.innerHTML += `<option value="${file.name}">${file.name}</option>`; });
+      if (files.length === 0) select.innerHTML = `<option value="">-- Yedek yok --</option>`; else files.forEach(file => { select.innerHTML += `<option value="${file.name}">${file.name}</option>`; });
     } else { select.innerHTML = `<option value="">-- Boş --</option>`; }
-    
     hideSpinner(); $('reset-step-1').classList.add('hidden'); $('reset-step-2').classList.remove('hidden');
   } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
 
 export function startResetWithSelectedFile() {
-  const targetFile = $('reset-file-select').value; 
-  if (!targetFile) return showToast("Dosya seçin!");
-  currentDriveFileName = targetFile; 
-  closeM('mo-reset-client'); 
-  openResetAuthModal('drive');
+  const targetFile = $('reset-file-select').value; if (!targetFile) return showToast("Dosya seçin!");
+  currentDriveFileName = targetFile; closeM('mo-reset-client'); openResetAuthModal('drive');
 }
 
 export function confirmResetAuth() {
   const u = $('reset-user').value.trim(); const p = $('reset-pass').value.trim();
   if (u !== 'oztoptantedarik' || p !== 'Oztoptan6595.') return showToast('❌ Hatalı kullanıcı adı veya şifre!');
   closeM('mo-reset-auth');
-  
-  if (currentResetTarget === 'local') { 
-    if (confirm("⚠️ TÜM VERİLER silinecek?")) { 
-      DB.Current=[]; DB.Product=[]; DB.Order=[]; DB.OrderItem=[]; DB.Payment=[]; DB.CurrentGroup=[]; DB.ProductGroup=[]; DB.Offer=[]; DB.OfferItem=[]; 
-      saveDB(); 
-      window.location.reload(); 
-    } 
-  } else if (currentResetTarget === 'drive') { 
-    if (confirm("🚨 DRIVE YEDEKLERİ silinecek?")) { executeDriveReset(); } 
-  }
+  if (currentResetTarget === 'local') { if (confirm("⚠️ TÜM VERİLER silinecek?")) { DB.Current=[]; DB.Product=[]; DB.Order=[]; DB.OrderItem=[]; DB.Payment=[]; DB.CurrentGroup=[]; DB.ProductGroup=[]; DB.Offer=[]; DB.OfferItem=[]; saveDB(); window.location.reload(); } } 
+  else if (currentResetTarget === 'drive') { if (confirm("🚨 DRIVE YEDEKLERİ silinecek?")) { executeDriveReset(); } }
 }
 
 export async function executeDriveReset() {
-  const fId = currentDriveFolderId || localStorage.getItem('ozsecer_folder_id'); 
-  const fileName = currentDriveFileName;
+  const fId = currentDriveFolderId || localStorage.getItem('ozsecer_folder_id'); const fileName = currentDriveFileName;
   if (!fId || !fileName) return showCustomAlert("Hata!", false);
-  
   showSpinner("Sıfırlanıyor...");
   try {
-    const emptyDB = { Current:[], Product:[], Order:[], OrderItem:[], Payment:[], CurrentGroup:[], ProductGroup:[], Offer:[], OfferItem:[] }; 
-    const pushData = JSON.stringify(emptyDB);
+    const emptyDB = { Current:[], Product:[], Order:[], OrderItem:[], Payment:[], CurrentGroup:[], ProductGroup:[], Offer:[], OfferItem:[] }; const pushData = JSON.stringify(emptyDB);
     const query = encodeURIComponent(`'${fId}' in parents and name='${fileName}' and trashed=false`);
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, { headers: { 'Authorization': `Bearer ${driveAccessToken}` } });
     const searchData = await searchRes.json();
-    
     if (searchData.files && searchData.files.length > 0) {
       const fileId = searchData.files[0].id;
-      const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, { 
-        method: 'PATCH', 
-        headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' }, 
-        body: pushData 
-      });
+      const patchRes = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, { method: 'PATCH', headers: { 'Authorization': `Bearer ${driveAccessToken}`, 'Content-Type': 'application/json' }, body: pushData });
       if (!patchRes.ok) throw new Error("Sıfırlanamadı.");
     } else { throw new Error("Dosya bulunamadı."); }
-    
     hideSpinner(); showCustomAlert(`Başarıyla sıfırlandı!`, true);
   } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
@@ -369,7 +230,6 @@ export function downloadExcel(withData) {
           let row = []; 
           info.headers.forEach(h => { 
             let val = item[h] !== undefined && item[h] !== null ? item[h] : ''; 
-            // EXCEL KORUMASI: Base64 kodlarını basma!
             if (h === 'PicturePath' && typeof val === 'string' && val.length > 30000) {
               val = '[SİSTEMDE KAYITLI GÖRSEL]';
             }
