@@ -9,17 +9,26 @@ export function openKatalogModal() {
   $('kat-Id').value = ''; $('kat-Name').value = ''; $('kat-Description').value = ''; $('filter-kat-q').value = ''; 
   $('kat-OfferDate').value = dtLocalNow();
   tempOfferItems = [];
-  const sel = $('filter-kat-grup'); sel.innerHTML = '<option value="">Tüm Gruplar</option>';
-  DB.ProductGroup.filter(x=>!x.Deleted).forEach(g => { sel.innerHTML += `<option value="${g.Id}">${g.Name}</option>`; });
+  
+  // FİLTREYİ GRUP YERİNE KATEGORİ OLARAK DEĞİŞTİRDİK
+  const sel = $('filter-kat-grup'); sel.innerHTML = '<option value="">Tüm Kategoriler</option>';
+  DB.Category.filter(x=>!x.Deleted).forEach(c => { sel.innerHTML += `<option value="${c.Id}">${c.Name}</option>`; });
+  
   renderKatUrun(); renderKatSepet(); openM('mo-katalog');
 }
 
 export function renderKatUrun() {
-  const q = $('filter-kat-q').value.toLowerCase().trim(); const fGrup = $('filter-kat-grup').value; const list = $('kat-urun-list'); list.innerHTML = '';
+  const q = $('filter-kat-q').value.toLowerCase().trim(); 
+  const fCat = $('filter-kat-grup').value; // Artık kategori ID'sini tutuyor
+  const list = $('kat-urun-list'); list.innerHTML = '';
+  
   let res = DB.Product.filter(x => !x.Deleted);
-  if (fGrup) res = res.filter(u => String(u.ProductGroupId) === String(fGrup));
+  // KATEGORİYE GÖRE FİLTRELE
+  if (fCat) res = res.filter(u => String(u.CategoryId) === String(fCat));
   if (q) res = res.filter(u => (u.Name + " " + (u.BarCode || "") + " " + (u.Description || "")).toLowerCase().includes(q));
+  
   if (res.length === 0) { list.innerHTML = '<p class="text-muted" style="font-size:0.85rem;">Ürün bulunamadı.</p>'; return; }
+  
   res.forEach(u => {
     const isAdded = tempOfferItems.some(k => k.ProductId === u.Id && !k.Deleted);
     list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem; border-bottom:1px solid var(--border);"><div style="font-size:0.85rem; font-weight:bold;">${u.Name} <span style="font-weight:normal; color:var(--text-muted); font-size:0.75rem;">(S.Fiyat: ${fp(u.SalePrice)})</span></div><button class="${isAdded ? 'btn-outline' : 'btn-primary'}" style="width:auto; padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="addKatItem('${u.Id}')" ${isAdded ? 'disabled' : ''}>${isAdded ? 'Eklendi' : '+ Ekle'}</button></div>`;
@@ -33,8 +42,14 @@ export function addKatItem(id) {
 }
 
 export function selectAllKat() {
-  const q = $('filter-kat-q').value.toLowerCase().trim(); const fGrup = $('filter-kat-grup').value; let res = DB.Product.filter(x => !x.Deleted);
-  if (fGrup) res = res.filter(u => String(u.ProductGroupId) === String(fGrup)); if (q) res = res.filter(u => (u.Name + " " + (u.BarCode || "") + " " + (u.Description || "")).toLowerCase().includes(q));
+  const q = $('filter-kat-q').value.toLowerCase().trim(); 
+  const fCat = $('filter-kat-grup').value; 
+  let res = DB.Product.filter(x => !x.Deleted);
+  
+  // KATEGORİYE GÖRE FİLTRELE
+  if (fCat) res = res.filter(u => String(u.CategoryId) === String(fCat));
+  if (q) res = res.filter(u => (u.Name + " " + (u.BarCode || "") + " " + (u.Description || "")).toLowerCase().includes(q));
+  
   res.forEach(u => { if (!tempOfferItems.some(k => k.ProductId === u.Id && !k.Deleted)) { tempOfferItems.push({ Id: guid(), ProductId: u.Id, Price: u.SalePrice || 0, DiscountRate: 0, SalePrice: u.SalePrice || 0, Deleted: false }); } });
   renderKatUrun(); renderKatSepet();
 }

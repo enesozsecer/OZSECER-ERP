@@ -53,22 +53,57 @@ export function printEkstre(cariId) {
 
 export function printKatalog(kat) {
   const title = kat.Name.toUpperCase('tr-TR');
-  // Yeni özellik: position:relative ve .discount-badge CSS sınıfları eklendi!
-  const KAT_CSS = `body { font-family: Arial; padding:10mm; } .kat-header { text-align: center; border-bottom: 2px solid #e74c3c; margin-bottom: 20px; padding-bottom: 10px; } .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; } .product-card { border: 1px solid #ddd; padding: 15px; text-align: center; position: relative; } .product-img { width: 100%; height: 160px; object-fit: contain; } .price-container { margin-top: 10px; font-weight:bold; font-size:18px; color:#e74c3c; } .discount-badge { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; padding: 5px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }`;
+  
+  // NİHAİ KATALOG TASARIMI (Hiza Kaymalarını Kökten Çözer)
+  const KAT_CSS = `
+    body { font-family: Arial, sans-serif; padding: 10mm; background: #fff; margin:0; } 
+    .kat-header { text-align: center; border-bottom: 2px solid #e74c3c; margin-bottom: 20px; padding-bottom: 10px; } 
+    .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; } 
+    
+    /* Kutu her zaman 360px yüksekliğinde, içindekiler flex ile dikey dizilir */
+    .product-card { border: 1px solid #e0e0e0; padding: 15px; text-align: center; position: relative; display: flex; flex-direction: column; height: 360px; box-sizing: border-box; page-break-inside: avoid; border-radius: 8px; } 
+    
+    /* Resim alanı her zaman sabit yer kaplar (resim olmasa bile) */
+    .img-wrapper { height: 150px; width: 100%; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; background: #fcfcfc; border-radius: 4px; overflow: hidden; }
+    .product-img { max-width: 100%; max-height: 100%; object-fit: contain; } 
+    
+    /* Başlık maksimum 2 satır */
+    h3 { font-size: 15px; margin: 0 0 5px 0; color: #333; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 39px; }
+    
+    /* Açıklama maksimum 3 satır ve margin-bottom:auto ile fiyatı EN ALTA iter */
+    .desc { font-size: 12px; color: #7f8c8d; line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; margin-bottom: auto; }
+    
+    /* Fiyat Kutusu her zaman en altta kalır */
+    .price-container { margin-top: 10px; font-weight: bold; font-size: 18px; color: #e74c3c; border-top: 1px dashed #eee; padding-top: 10px; } 
+    
+    .discount-badge { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; z-index: 2; } 
+  `;
 
   let gridHtml = '';
   DB.OfferItem.filter(x => x.OfferId === kat.Id && !x.Deleted).forEach(it => {
     const product = DB.Product.find(p => p.Id === it.ProductId); if(!product) return;
     const isDiscounted = it.SalePrice < it.Price;
     
-    // Kampanya İndirim Rozeti HTML'i
+    const brand = product.BrandId ? DB.Brand.find(b => String(b.Id) === String(product.BrandId)) : null;
+    const brandHtml = brand ? `<span style="font-weight:900; color:#e74c3c;">${brand.Name}</span> ` : '';
+
     const badgeHtml = isDiscounted ? `<div class="discount-badge">%${formatTR(it.DiscountRate)} İndirim</div>` : '';
     const priceHtml = isDiscounted ? `<span style="text-decoration:line-through; font-size:12px; color:#999; margin-right:5px;">${fp(it.Price)}</span><span>${fp(it.SalePrice)}</span>` : `<span>${fp(it.Price)}</span>`;
-    const imgHtml = product.PicturePath ? `<img src="${product.PicturePath}" class="product-img">` : `<div style="padding:40px; background:#f0f0f0; color:#999; font-size:12px;">Görsel Yok</div>`;
     
-    gridHtml += `<div class="product-card">${badgeHtml}${imgHtml}<h3>${product.Name}</h3><p style="font-size:12px; color:#666;">${product.Description || ''}</p><div class="price-container">${priceHtml}</div></div>`;
+    // Eğer fotoğraf yoksa aynı büyüklükte bir placeholder basıyoruz
+    const imgHtml = product.PicturePath ? `<img src="${product.PicturePath}" class="product-img">` : `<div style="color:#bdc3c7; font-size:12px; font-style:italic;">Görsel Yok</div>`;
+    
+    gridHtml += `
+      <div class="product-card">
+        ${badgeHtml}
+        <div class="img-wrapper">${imgHtml}</div>
+        <h3>${brandHtml}${product.Name}</h3>
+        <div class="desc">${product.Description || ''}</div>
+        <div class="price-container">${priceHtml}</div>
+      </div>
+    `;
   });
   
-  const h = `<div class="kat-header"><h2>${title}</h2><p>${kat.Description || ''}</p></div><div class="product-grid">${gridHtml}</div>`;
+  const h = `<div class="kat-header"><h2>${title}</h2><p style="color:#7f8c8d; font-size:14px;">${kat.Description || ''}</p></div><div class="product-grid">${gridHtml}</div>`;
   const w = window.open(URL.createObjectURL(new Blob([`<!DOCTYPE html><html><head><title>${title}</title><style>${KAT_CSS}</style></head><body>${h}<script>setTimeout(function(){window.print();}, 800);<\/script></body></html>`], { type: 'text/html;charset=utf-8' })), '_blank');
 }
