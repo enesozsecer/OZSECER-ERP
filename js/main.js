@@ -12,9 +12,6 @@ window.addEventListener('unhandledrejection', function(event) {
 });
 // =======================================================
 
-import * as DBModule from './core/db.js';
-// ... (geri kalan kodların aynı şekilde devam etsin)
-
 
 import * as DBModule from './core/db.js';
 import * as Utils from './core/utils.js';
