@@ -177,10 +177,18 @@ export function startResetWithSelectedFile() {
   const targetFile = $('reset-file-select').value; if (!targetFile) return showToast("Dosya seçin!");
   currentDriveFileName = targetFile; closeM('mo-reset-client'); openResetAuthModal('drive');
 }
+const ADMIN_USER_HASH = '$2a$12$s8NV9XgVcqK3HRwio.FoS.2TnJYBNzVkinmDYfuSrxCTBbTKWCxkm'; 
+const ADMIN_PASS_HASH = '$2a$10$1PFl6c.YxZdHOnUlydJP7.p9erQtaybRySWBuNBSt/fpDezHb9NZy'; 
 
 export function confirmResetAuth() {
   const u = $('reset-user').value.trim(); const p = $('reset-pass').value.trim();
-  if (u !== 'oztoptantedarik' || p !== 'Oztoptan6595.') return showToast('❌ Hatalı kullanıcı adı veya şifre!');
+  const bcrypt = window.dcodeIO ? window.dcodeIO.bcrypt : window.bcrypt;
+
+    // 1. Düz metin olarak girilen E-Posta, kayıtlı Bcrypt Hash ile eşleşiyor mu?
+  const isUserValid = bcrypt.compareSync(u, ADMIN_USER_HASH);
+  // 2. Düz metin olarak girilen Şifre, kayıtlı Bcrypt Hash ile eşleşiyor mu?
+  const isPassValid = bcrypt.compareSync(p, ADMIN_PASS_HASH);
+  if (!isUserValid || !isPassValid) return showToast('❌ Hatalı kullanıcı adı veya şifre!');
   closeM('mo-reset-auth');
   if (currentResetTarget === 'local') { if (confirm("⚠️ TÜM VERİLER silinecek?")) { DB.Current=[]; DB.Product=[]; DB.Order=[]; DB.OrderItem=[]; DB.Payment=[]; DB.CurrentGroup=[]; DB.ProductGroup=[]; DB.Category=[]; DB.Brand=[]; DB.Offer=[]; DB.OfferItem=[]; saveDB(); window.location.reload(); } } 
   else if (currentResetTarget === 'drive') { if (confirm("🚨 DRIVE YEDEKLERİ silinecek?")) { executeDriveReset(); } }

@@ -77,6 +77,7 @@ export function previewUrunFoto(event) {
 
           $('mu-foto-preview').src = dataUrl; 
           $('mu-foto-preview').style.display = 'block'; 
+          $('mu-foto-remove').style.display = 'flex';
         } catch(err) {
           alert("🚨 Görsel Küçültme Hatası: " + err.message);
         }
@@ -89,6 +90,12 @@ export function previewUrunFoto(event) {
   } catch(err) {
     alert("🚨 Genel Görsel Hatası: " + err.message);
   }
+}
+export function removeUrunFoto() {
+  $('mu-foto-preview').src = '';
+  $('mu-foto-preview').style.display = 'none';
+  $('mu-foto-remove').style.display = 'none';
+  $('mu-PicturePath-input').value = '';
 }
 // ==============================================================================
 
@@ -129,7 +136,7 @@ export function openUrunModal() {
   $('mu-CategoryId').value = ''; $('csd-mu-CategoryId').innerText = 'Kategori Seç';
   $('mu-BrandId').value = ''; $('csd-mu-BrandId').innerText = 'Marka Seç';
 
-  $('mu-PicturePath-input').value = ''; $('mu-foto-preview').src = ''; $('mu-foto-preview').style.display = 'none'; 
+  $('mu-PicturePath-input').value = ''; $('mu-foto-preview').src = ''; $('mu-foto-preview').style.display = 'none'; $('mu-foto-remove').style.display = 'none';
   $('mu-del').classList.add('hidden'); 
   loadUrunGrupSelects(); 
   openM('mo-urun');
@@ -148,7 +155,17 @@ export function editUrun(id) {
   $('mu-BrandId').value = u.BrandId || '';
   $('csd-mu-BrandId').innerText = u.BrandId ? (DB.Brand.find(x => String(x.Id) === String(u.BrandId))?.Name || 'Marka Seç') : 'Marka Seç';
 
-  if (u.PicturePath) { $('mu-foto-preview').src = u.PicturePath; $('mu-foto-preview').style.display = 'block'; } else { $('mu-PicturePath-input').value = ''; $('mu-foto-preview').src = ''; $('mu-foto-preview').style.display = 'none'; }
+  // if (u.PicturePath) bloğunu bul ve tamamen şöyle değiştir:
+  if (u.PicturePath) { 
+    $('mu-foto-preview').src = u.PicturePath; 
+    $('mu-foto-preview').style.display = 'block'; 
+    $('mu-foto-remove').style.display = 'flex'; 
+  } else { 
+    $('mu-PicturePath-input').value = ''; 
+    $('mu-foto-preview').src = ''; 
+    $('mu-foto-preview').style.display = 'none'; 
+    $('mu-foto-remove').style.display = 'none'; 
+  }
   $('mu-del').classList.remove('hidden'); $('mu-del').onclick = () => { showConfirm(`${u.Name} silinecek?`, () => { softDelete(DB.Product, id); saveDB(); closeM('mo-urun'); renderUrun(true); }, '🗑️', 'Sil'); }; openM('mo-urun');
 }
 

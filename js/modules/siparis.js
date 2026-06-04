@@ -23,7 +23,22 @@ export function renderSipItems() {
   if (visibleItems.length > 0) { p.innerHTML += `<div style="display:flex; gap:0.4rem; padding:0 0.5rem; font-size:0.8rem; font-weight:bold; color:var(--text-muted);"><div style="flex:3;">Ürün Seç</div><div style="flex:2;">Miktar</div><div style="flex:2;">Birim Fiyat</div><div style="flex:2;">Toplam Fiyat</div><div style="width:1.1rem;"></div></div>`; }
   visibleItems.forEach((it) => {
     const product = DB.Product.find(x => x.Id === it.ProductId); const pName = product ? product.Name : (it._TempName || ''); 
-    p.innerHTML += `<div style="display:flex; gap:0.4rem; margin-top:0.5rem; align-items:center; background:var(--bg); padding:0.5rem; border-radius:0.4rem;"><div style="flex:3; position:relative;"><input type="text" value="${pName}" placeholder="Ara..." onkeyup="ddUrunSearch('${it.Id}', this)" style="margin:0; padding:0.4rem; font-size:0.85rem" autocomplete="off"></div><div style="flex:2; position:relative;"><input type="number" value="${it.Amount || ''}" oninput="handleSipRowChange('${it.Id}', 'Amount', this.value)" style="margin:0; padding:0.4rem; padding-right:2.4rem; font-size:0.85rem;"><span style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:0.75rem; color:var(--text-muted); pointer-events:none;">${getBirimAd(it.UnitId)}</span></div><div style="flex:2"><input type="text" id="sip-fiy-${it.Id}" value="${formatTR(it.UnitPrice)}" onfocus="this.value=toRawTR(findSipItem('${it.Id}').UnitPrice)" onblur="this.value=formatTR(findSipItem('${it.Id}').UnitPrice)" oninput="handleSipRowChangeText('${it.Id}', 'UnitPrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem"></div><div style="flex:2"><input type="text" id="sip-top-${it.Id}" value="${formatTR(it.TotalPrice)}" onfocus="this.value=toRawTR(findSipItem('${it.Id}').TotalPrice)" onblur="this.value=formatTR(findSipItem('${it.Id}').TotalPrice)" oninput="handleSipRowChangeText('${it.Id}', 'TotalPrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem"></div><button class="icon-btn text-red" style="padding:0; font-size:1.1rem;" onclick="delSipItem('${it.Id}')">✕</button></div>`;
+    p.innerHTML += `<div style="display:flex; gap:0.4rem; margin-top:0.5rem; align-items:center; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
+      <div style="flex:3; position:relative;">
+        <input type="text" value="${pName}" placeholder="Ara..." onkeyup="ddUrunSearch('${it.Id}', this)" style="margin:0; padding:0.4rem; font-size:0.85rem" autocomplete="off">
+      </div>
+      <div style="flex:2; position:relative;">
+        <input type="number" value="${it.Amount || ''}" inputmode="decimal" oninput="handleSipRowChange('${it.Id}', 'Amount', this.value)" style="margin:0; padding:0.4rem; padding-right:2.4rem; font-size:0.85rem;">
+        <span style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:0.75rem; color:var(--text-muted); pointer-events:none;">${getBirimAd(it.UnitId)}</span>
+      </div>
+      <div style="flex:2">
+        <input type="text" id="sip-fiy-${it.Id}" value="${formatTR(it.UnitPrice)}" inputmode="decimal" onfocus="this.value=toRawTR(findSipItem('${it.Id}').UnitPrice)" onblur="this.value=formatTR(findSipItem('${it.Id}').UnitPrice)" oninput="handleSipRowChangeText('${it.Id}', 'UnitPrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+      </div>
+      <div style="flex:2">
+        <input type="text" id="sip-top-${it.Id}" value="${formatTR(it.TotalPrice)}" inputmode="decimal" onfocus="this.value=toRawTR(findSipItem('${it.Id}').TotalPrice)" onblur="this.value=formatTR(findSipItem('${it.Id}').TotalPrice)" oninput="handleSipRowChangeText('${it.Id}', 'TotalPrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+      </div>
+      <button class="icon-btn text-red" style="padding:0; font-size:1.1rem;" onclick="delSipItem('${it.Id}')">✕</button>
+    </div>`;
   }); calcSipTotal();
 }
 
