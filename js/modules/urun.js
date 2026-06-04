@@ -6,11 +6,7 @@ let tempGroupType = '';
 let tempItems = [];
 
 export function loadUrunGrupSelects() {
-  // Sadece ana sayfadaki (Ürün Listesi) arama filtrelerini doldurur, Modal içindeki c-selectler dinamik çalışır.
-  const filterPg = $('filter-urun-grup');
-  const filterCat = $('filter-urun-kategori');
-  const filterBrand = $('filter-urun-marka');
-
+  const filterPg = $('filter-urun-grup'); const filterCat = $('filter-urun-kategori'); const filterBrand = $('filter-urun-marka');
   if (filterPg) filterPg.innerHTML = '<option value="">Tüm Gruplar</option>';
   if (filterCat) filterCat.innerHTML = '<option value="">Tüm Kategoriler</option>';
   if (filterBrand) filterBrand.innerHTML = '<option value="">Tüm Markalar</option>';
@@ -46,7 +42,48 @@ export function saveUrunTanimi() {
   saveDB(); closeM('mo-urun-tanimi'); loadUrunGrupSelects(); renderUrun(true); showToast("Kayıtlar güncellendi!");
 }
 
-export function previewUrunFoto(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function (e) { $('mu-foto-preview').src = e.target.result; $('mu-foto-preview').style.display = 'block'; }; reader.readAsDataURL(file); }
+// ==============================================================================
+// YENİ: MOBİL CİHAZ (iOS) GÖRSEL SIKIŞTIRMA VE OPTİMİZASYON MOTORU
+// ==============================================================================
+export function previewUrunFoto(event) { 
+  const file = event.target.files[0]; 
+  if (!file) return; 
+  
+  const reader = new FileReader(); 
+  reader.onload = function (e) { 
+    const img = new Image();
+    img.onload = function() {
+      // Devasa iPhone fotoğraflarını tarayıcıda Canvas ile küçültüyoruz
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 600;  // Katalogda net görünmesi için ideal sınır
+      const MAX_HEIGHT = 600;
+      let width = img.width;
+      let height = img.height;
+
+      // Orantıyı koruyarak yeniden boyutlandır
+      if (width > height) {
+        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+      } else {
+        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // %70 kalite ile JPEG formatında sıkıştır. (5MB -> ~50KB seviyesine düşer)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+
+      $('mu-foto-preview').src = dataUrl; 
+      $('mu-foto-preview').style.display = 'block'; 
+    };
+    img.src = e.target.result;
+  }; 
+  reader.readAsDataURL(file); 
+}
+// ==============================================================================
 
 export function renderUrun(force = false) {
   if (!force) return; 
@@ -81,7 +118,6 @@ export function renderUrun(force = false) {
 export function openUrunModal() {
   $('mu-Id').value = ''; $('mu-Name').value = ''; $('mu-BarCode').value = ''; $('mu-PurchasePrice').value = ''; $('mu-SalePrice').value = ''; $('mu-StockQuantity').value = ''; $('mu-UnitId').value = '1'; $('mu-Description').value = ''; 
   
-  // Custom Select (Dropdown) İçeriklerini Temizle
   $('mu-ProductGroupId').value = ''; $('csd-mu-ProductGroupId').innerText = 'Grup Seç';
   $('mu-CategoryId').value = ''; $('csd-mu-CategoryId').innerText = 'Kategori Seç';
   $('mu-BrandId').value = ''; $('csd-mu-BrandId').innerText = 'Marka Seç';
@@ -96,7 +132,6 @@ export function editUrun(id) {
   const u = DB.Product.find(x => String(x.Id) === String(id)); if (!u) return; loadUrunGrupSelects();
   $('mu-Id').value = u.Id; $('mu-Name').value = u.Name; $('mu-BarCode').value = u.BarCode || ''; $('mu-PurchasePrice').value = formatTR(u.PurchasePrice); $('mu-SalePrice').value = formatTR(u.SalePrice); $('mu-StockQuantity').value = u.StockQuantity || 0; $('mu-UnitId').value = u.UnitId || '1'; $('mu-Description').value = u.Description || ''; 
   
-  // Custom Select (Dropdown) İçeriklerini Eşle
   $('mu-ProductGroupId').value = u.ProductGroupId || '';
   $('csd-mu-ProductGroupId').innerText = u.ProductGroupId ? (DB.ProductGroup.find(x => String(x.Id) === String(u.ProductGroupId))?.Name || 'Grup Seç') : 'Grup Seç';
   
@@ -118,7 +153,17 @@ export function saveUrun() {
     UnitId: Number($('mu-UnitId').value) || 1, Description: toTitleCaseTR($('mu-Description').value.trim()), 
     PurchasePrice: parseRawTR($('mu-PurchasePrice').value), SalePrice: parseRawTR($('mu-SalePrice').value), StockQuantity: Number($('mu-StockQuantity').value) || 0, PicturePath: $('mu-foto-preview').src.startsWith('data:') ? $('mu-foto-preview').src : '' 
   };
+  
   if (id) Object.assign(DB.Product.find(x => String(x.Id) === String(id)), data, { UpdatedDate: tsNow(), UpdatedUser: getCihazAdi() });
   else DB.Product.push({ Id: guid(), ...data, CreatedDate: tsNow(), CreatedUser: getCihazAdi(), Deleted: false });
-  saveDB(); closeM('mo-urun'); renderUrun(true);
+  
+  // HATA YAKALAMA MEKANİZMASI (Cihaz hafızası dolsa bile uyarı verir)
+  try {
+    saveDB(); 
+    closeM('mo-urun'); 
+    renderUrun(true);
+  } catch(e) {
+    showToast("Kayıt Hatası: Cihaz hafızası dolu! Çok fazla görsel eklenmiş olabilir.");
+    console.error(e);
+  }
 }
