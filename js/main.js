@@ -1,3 +1,21 @@
+// =======================================================
+// MOBİL CİHAZ HATA YAKALAYICI (DEBUGGER)
+// =======================================================
+window.onerror = function(message, source, lineno, colno, error) {
+    alert("🚨 SİSTEM HATASI:\n" + message + "\nSatır: " + lineno);
+    return true; // Hatanın tarayıcıyı çökertmesini engeller
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+    let errorMsg = event.reason ? (event.reason.message || event.reason) : "Bilinmiyor";
+    alert("🚨 GİZLİ HATA (Async):\n" + errorMsg);
+});
+// =======================================================
+
+import * as DBModule from './core/db.js';
+// ... (geri kalan kodların aynı şekilde devam etsin)
+
+
 import * as DBModule from './core/db.js';
 import * as Utils from './core/utils.js';
 import * as PdfEngine from './core/pdf.js';

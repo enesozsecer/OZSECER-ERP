@@ -46,42 +46,49 @@ export function saveUrunTanimi() {
 // YENİ: MOBİL CİHAZ (iOS) GÖRSEL SIKIŞTIRMA VE OPTİMİZASYON MOTORU
 // ==============================================================================
 export function previewUrunFoto(event) { 
-  const file = event.target.files[0]; 
-  if (!file) return; 
-  
-  const reader = new FileReader(); 
-  reader.onload = function (e) { 
-    const img = new Image();
-    img.onload = function() {
-      // Devasa iPhone fotoğraflarını tarayıcıda Canvas ile küçültüyoruz
-      const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 600;  // Katalogda net görünmesi için ideal sınır
-      const MAX_HEIGHT = 600;
-      let width = img.width;
-      let height = img.height;
+  try {
+    const file = event.target.files[0]; 
+    if (!file) return; 
+    
+    const reader = new FileReader(); 
+    reader.onload = function (e) { 
+      const img = new Image();
+      img.onload = function() {
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 600;  
+          const MAX_HEIGHT = 600;
+          let width = img.width;
+          let height = img.height;
 
-      // Orantıyı koruyarak yeniden boyutlandır
-      if (width > height) {
-        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-      } else {
-        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-      }
-      
-      canvas.width = width;
-      canvas.height = height;
+          if (width > height) {
+            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+          } else {
+            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
 
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
 
-      // %70 kalite ile JPEG formatında sıkıştır. (5MB -> ~50KB seviyesine düşer)
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
 
-      $('mu-foto-preview').src = dataUrl; 
-      $('mu-foto-preview').style.display = 'block'; 
-    };
-    img.src = e.target.result;
-  }; 
-  reader.readAsDataURL(file); 
+          $('mu-foto-preview').src = dataUrl; 
+          $('mu-foto-preview').style.display = 'block'; 
+        } catch(err) {
+          alert("🚨 Görsel Küçültme Hatası: " + err.message);
+        }
+      };
+      img.onerror = function() { alert("🚨 Görsel yüklenemedi veya bozuk format!"); };
+      img.src = e.target.result;
+    }; 
+    reader.onerror = function() { alert("🚨 Dosya okuma hatası!"); };
+    reader.readAsDataURL(file); 
+  } catch(err) {
+    alert("🚨 Genel Görsel Hatası: " + err.message);
+  }
 }
 // ==============================================================================
 
