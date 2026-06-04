@@ -2,33 +2,92 @@ import { DB, saveDB } from '../core/db.js';
 import { $, guid, tsNow, fp, getBirimAd, parseRawTR, formatTR, toRawTR, getCihazAdi, softDelete, showToast, openM, closeM, showConfirm, toTitleCaseTR } from '../core/utils.js';
 import { startCam } from './siparis.js';
 
+let tempGroupType = ''; // 'ProductGroup', 'Category', 'Brand'
+let tempItems = [];
+
 export function loadUrunGrupSelects() {
-  const sel = $('mu-ProductGroupId'); const selFiltre = $('filter-urun-grup');
-  if (sel) sel.innerHTML = '<option value="">Grup Yok</option>'; if (selFiltre) selFiltre.innerHTML = '<option value="">Tüm Gruplar</option>';
-  DB.ProductGroup.filter(x=>!x.Deleted).forEach(g => { if (sel) sel.innerHTML += `<option value="${g.Id}">${g.Name}</option>`; if (selFiltre) selFiltre.innerHTML += `<option value="${g.Id}">${g.Name}</option>`; });
+  const selPg = $('mu-ProductGroupId'); const filterPg = $('filter-urun-grup');
+  if (selPg) selPg.innerHTML = '<option value="">Grup Yok</option>'; if (filterPg) filterPg.innerHTML = '<option value="">Tüm Gruplar</option>';
+  const selCat = $('mu-CategoryId'); const filterCat = $('filter-urun-kategori');
+  if (selCat) selCat.innerHTML = '<option value="">Kategori Yok</option>'; if (filterCat) filterCat.innerHTML = '<option value="">Tüm Kategoriler</option>';
+  const selBrand = $('mu-BrandId'); const filterBrand = $('filter-urun-marka');
+  if (selBrand) selBrand.innerHTML = '<option value="">Marka Yok</option>'; if (filterBrand) filterBrand.innerHTML = '<option value="">Tüm Markalar</option>';
+
+  DB.ProductGroup.filter(x=>!x.Deleted).forEach(g => { if (selPg) selPg.innerHTML += `<option value="${g.Id}">${g.Name}</option>`; if (filterPg) filterPg.innerHTML += `<option value="${g.Id}">${g.Name}</option>`; });
+  DB.Category.filter(x=>!x.Deleted).forEach(c => { if (selCat) selCat.innerHTML += `<option value="${c.Id}">${c.Name}</option>`; if (filterCat) filterCat.innerHTML += `<option value="${c.Id}">${c.Name}</option>`; });
+  DB.Brand.filter(x=>!x.Deleted).forEach(b => { if (selBrand) selBrand.innerHTML += `<option value="${b.Id}">${b.Name}</option>`; if (filterBrand) filterBrand.innerHTML += `<option value="${b.Id}">${b.Name}</option>`; });
+}
+
+// TEK BİR MODAL İLE 3 FARKLI TABLOYU (Grup, Kategori, Marka) YÖNETME MOTORU
+export function openUrunTanimiModal(type) { 
+  tempGroupType = type; let targetDB = []; let title = '';
+  if(type === 'ProductGroup') { targetDB = DB.ProductGroup; title = 'Ürün Grupları'; }
+  else if(type === 'Category') { targetDB = DB.Category; title = 'Kategoriler'; }
+  else if(type === 'Brand') { targetDB = DB.Brand; title = 'Markalar'; }
+  
+  $('mut-title').innerText = title;
+  tempItems = JSON.parse(JSON.stringify(targetDB.filter(x=>!x.Deleted))); 
+  $('mut-new-ad').value = ''; renderUrunTanimiList(); openM('mo-urun-tanimi'); 
+}
+
+export function renderUrunTanimiList() {
+  const list = $('mut-list'); list.innerHTML = ''; if (tempItems.length === 0) { list.innerHTML = '<p class="text-muted">Kayıt yok.</p>'; return; }
+  tempItems.forEach((g, idx) => { list.innerHTML += `<div class="flex items-center gap-2 mb-2"><input type="text" value="${g.Name}" onchange="updateTempUrunTanimi(${idx}, this.value)" style="margin:0;"><button class="icon-btn text-red" onclick="deleteTempUrunTanimi(${idx})">🗑️</button></div>`; });
+}
+export function addTempUrunTanimi() { const name = toTitleCaseTR($('mut-new-ad').value.trim()); if (!name) return; tempItems.push({ Id: guid(), Name: name, Deleted: false, CreatedDate: tsNow(), CreatedUser: getCihazAdi() }); $('mut-new-ad').value = ''; renderUrunTanimiList(); }
+export function updateTempUrunTanimi(idx, val) { tempItems[idx].Name = toTitleCaseTR(val.trim()); tempItems[idx].UpdatedDate = tsNow(); }
+export function deleteTempUrunTanimi(idx) { tempItems[idx].Deleted = true; tempItems[idx].DeletedDate = tsNow(); renderUrunTanimiList(); }
+
+export function saveUrunTanimi() {
+  let targetDB = [];
+  if(tempGroupType === 'ProductGroup') targetDB = DB.ProductGroup; else if(tempGroupType === 'Category') targetDB = DB.Category; else if(tempGroupType === 'Brand') targetDB = DB.Brand;
+  tempItems.forEach(tg => { const existing = targetDB.find(g => g.Id === tg.Id); if(existing) Object.assign(existing, tg); else targetDB.push(tg); });
+  saveDB(); closeM('mo-urun-tanimi'); loadUrunGrupSelects(); renderUrun(true); showToast("Kayıtlar güncellendi!");
 }
 
 export function previewUrunFoto(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function (e) { $('mu-foto-preview').src = e.target.result; $('mu-foto-preview').style.display = 'block'; }; reader.readAsDataURL(file); }
 
 export function renderUrun(force = false) {
-  if (!force) return; const q = $('filter-urun-q').value.toLowerCase().trim(); const fGrup = $('filter-urun-grup') ? $('filter-urun-grup').value : ''; const list = $('urun-list'); list.innerHTML = '';
+  if (!force) return; 
+  const q = $('filter-urun-q').value.toLowerCase().trim(); 
+  const fGrup = $('filter-urun-grup') ? $('filter-urun-grup').value : ''; 
+  const fCat = $('filter-urun-kategori') ? $('filter-urun-kategori').value : ''; 
+  const fBrand = $('filter-urun-marka') ? $('filter-urun-marka').value : ''; 
+  const list = $('urun-list'); list.innerHTML = '';
+  
   DB.Product.filter(x => !x.Deleted).sort((a, b) => new Date(b.CreatedDate) - new Date(a.CreatedDate)).forEach(u => {
-    const content = (u.Name + " " + (u.BarCode || "") + " " + (u.Description || "")).toLowerCase(); if (q && !content.includes(q)) return;
+    const content = (u.Name + " " + (u.BarCode || "") + " " + (u.Description || "")).toLowerCase(); 
+    if (q && !content.includes(q)) return;
     if (fGrup && String(u.ProductGroupId) !== String(fGrup)) return;
+    if (fCat && String(u.CategoryId) !== String(fCat)) return;
+    if (fBrand && String(u.BrandId) !== String(fBrand)) return;
+    
     const gName = u.ProductGroupId ? (DB.ProductGroup.find(x => String(x.Id) === String(u.ProductGroupId))?.Name || '') : '';
+    const cName = u.CategoryId ? (DB.Category.find(x => String(x.Id) === String(u.CategoryId))?.Name || '') : '';
+    const bName = u.BrandId ? (DB.Brand.find(x => String(x.Id) === String(u.BrandId))?.Name || '') : '';
+    
     let stok = Number(u.StockQuantity || 0); let bClass = stok >= 10 ? 'bg-green' : (stok > 0 ? 'bg-amber' : 'bg-red');
-    list.innerHTML += `<div class="list-item" onclick="editUrun('${u.Id}')"><div><div style="font-weight:bold">${u.Name} <span class="badge" style="display:${gName?'inline-block':'none'}">${gName}</span></div><div style="font-size:0.75rem; color:var(--text-muted)">Barkod: ${u.BarCode || '-'}</div></div><div style="text-align:right"><div style="font-weight:bold; color:var(--accent)">${fp(u.SalePrice)}</div><span class="badge ${bClass}">${stok} ${getBirimAd(u.UnitId)}</span></div></div>`;
+    
+    // Etiketleri yan yana dizme
+    let tagsHtml = '';
+    if(gName) tagsHtml += `<span class="badge" style="border:1px solid var(--accent); color:var(--accent);">${gName}</span>`;
+    if(cName) tagsHtml += `<span class="badge" style="border:1px solid var(--green); color:var(--green);">${cName}</span>`;
+    if(bName) tagsHtml += `<span class="badge" style="border:1px solid var(--amber); color:var(--amber);">${bName}</span>`;
+
+    list.innerHTML += `<div class="list-item" onclick="editUrun('${u.Id}')"><div><div style="font-weight:bold; margin-bottom:4px;">${u.Name}</div><div style="display:flex; gap:4px; margin-bottom:4px;">${tagsHtml}</div><div style="font-size:0.75rem; color:var(--text-muted)">Barkod: ${u.BarCode || '-'}</div></div><div style="text-align:right"><div style="font-weight:bold; color:var(--accent)">${fp(u.SalePrice)}</div><span class="badge ${bClass}">${stok} ${getBirimAd(u.UnitId)}</span></div></div>`;
   });
 }
 
 export function openUrunModal() {
-  $('mu-Id').value = ''; $('mu-Name').value = ''; $('mu-BarCode').value = ''; $('mu-PurchasePrice').value = ''; $('mu-SalePrice').value = ''; $('mu-StockQuantity').value = ''; $('mu-UnitId').value = '1'; $('mu-Description').value = ''; $('mu-ProductGroupId').value = '';
+  $('mu-Id').value = ''; $('mu-Name').value = ''; $('mu-BarCode').value = ''; $('mu-PurchasePrice').value = ''; $('mu-SalePrice').value = ''; $('mu-StockQuantity').value = ''; $('mu-UnitId').value = '1'; $('mu-Description').value = ''; 
+  $('mu-ProductGroupId').value = ''; $('mu-CategoryId').value = ''; $('mu-BrandId').value = '';
   $('mu-PicturePath-input').value = ''; $('mu-foto-preview').src = ''; $('mu-foto-preview').style.display = 'none'; $('mu-del').classList.add('hidden'); loadUrunGrupSelects(); openM('mo-urun');
 }
 
 export function editUrun(id) {
   const u = DB.Product.find(x => String(x.Id) === String(id)); if (!u) return; loadUrunGrupSelects();
-  $('mu-Id').value = u.Id; $('mu-Name').value = u.Name; $('mu-BarCode').value = u.BarCode || ''; $('mu-PurchasePrice').value = formatTR(u.PurchasePrice); $('mu-SalePrice').value = formatTR(u.SalePrice); $('mu-StockQuantity').value = u.StockQuantity || 0; $('mu-UnitId').value = u.UnitId || '1'; $('mu-Description').value = u.Description || ''; $('mu-ProductGroupId').value = u.ProductGroupId || '';
+  $('mu-Id').value = u.Id; $('mu-Name').value = u.Name; $('mu-BarCode').value = u.BarCode || ''; $('mu-PurchasePrice').value = formatTR(u.PurchasePrice); $('mu-SalePrice').value = formatTR(u.SalePrice); $('mu-StockQuantity').value = u.StockQuantity || 0; $('mu-UnitId').value = u.UnitId || '1'; $('mu-Description').value = u.Description || ''; 
+  $('mu-ProductGroupId').value = u.ProductGroupId || ''; $('mu-CategoryId').value = u.CategoryId || ''; $('mu-BrandId').value = u.BrandId || '';
   if (u.PicturePath) { $('mu-foto-preview').src = u.PicturePath; $('mu-foto-preview').style.display = 'block'; } else { $('mu-PicturePath-input').value = ''; $('mu-foto-preview').src = ''; $('mu-foto-preview').style.display = 'none'; }
   $('mu-del').classList.remove('hidden'); $('mu-del').onclick = () => { showConfirm(`${u.Name} silinecek?`, () => { softDelete(DB.Product, id); saveDB(); closeM('mo-urun'); renderUrun(true); }, '🗑️', 'Sil'); }; openM('mo-urun');
 }
@@ -36,15 +95,10 @@ export function editUrun(id) {
 export function saveUrun() {
   const name = toTitleCaseTR($('mu-Name').value.trim()); if (!name) return showToast('Ürün adı zorunlu!'); const id = $('mu-Id').value;
   const data = { 
-    Name: name, 
-    BarCode: $('mu-BarCode').value, 
-    ProductGroupId: $('mu-ProductGroupId').value || null, 
-    UnitId: Number($('mu-UnitId').value) || 1, 
-    Description: toTitleCaseTR($('mu-Description').value.trim()), 
-    PurchasePrice: parseRawTR($('mu-PurchasePrice').value), 
-    SalePrice: parseRawTR($('mu-SalePrice').value), 
-    StockQuantity: Number($('mu-StockQuantity').value) || 0, 
-    PicturePath: $('mu-foto-preview').src.startsWith('data:') ? $('mu-foto-preview').src : '' 
+    Name: name, BarCode: $('mu-BarCode').value, 
+    ProductGroupId: $('mu-ProductGroupId').value || null, CategoryId: $('mu-CategoryId').value || null, BrandId: $('mu-BrandId').value || null,
+    UnitId: Number($('mu-UnitId').value) || 1, Description: toTitleCaseTR($('mu-Description').value.trim()), 
+    PurchasePrice: parseRawTR($('mu-PurchasePrice').value), SalePrice: parseRawTR($('mu-SalePrice').value), StockQuantity: Number($('mu-StockQuantity').value) || 0, PicturePath: $('mu-foto-preview').src.startsWith('data:') ? $('mu-foto-preview').src : '' 
   };
   if (id) Object.assign(DB.Product.find(x => String(x.Id) === String(id)), data, { UpdatedDate: tsNow(), UpdatedUser: getCihazAdi() });
   else DB.Product.push({ Id: guid(), ...data, CreatedDate: tsNow(), CreatedUser: getCihazAdi(), Deleted: false });

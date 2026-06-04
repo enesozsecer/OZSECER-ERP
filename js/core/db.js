@@ -6,12 +6,14 @@ export let DB = {
   Payment: [], 
   CurrentGroup: [], 
   ProductGroup: [], 
+  Category: [], 
+  Brand: [], 
   Offer: [],
   OfferItem: []  
 };
 
 export function loadDB() {
-  const keys = ['Current', 'Product', 'Order', 'OrderItem', 'Payment', 'CurrentGroup', 'ProductGroup', 'Offer', 'OfferItem'];
+  const keys = ['Current', 'Product', 'Order', 'OrderItem', 'Payment', 'CurrentGroup', 'ProductGroup', 'Category', 'Brand', 'Offer', 'OfferItem'];
   keys.forEach(k => {
     try { DB[k] = JSON.parse(localStorage.getItem('e3_' + k)) || []; } catch(e) { DB[k] = []; }
   });

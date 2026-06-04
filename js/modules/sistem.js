@@ -114,7 +114,7 @@ export async function executePullMergePush() {
 
 export function mergeDatabases(remoteDB) {
   if (!remoteDB) return;
-  const collections = ['Current', 'Product', 'Order', 'OrderItem', 'Payment', 'CurrentGroup', 'ProductGroup', 'Offer', 'OfferItem'];
+  const collections = ['Current', 'Product', 'Order', 'OrderItem', 'Payment', 'CurrentGroup', 'ProductGroup','Category', 'Brand', 'Offer', 'OfferItem'];
   function getLastMod(item) {
     if (item.DeletedDate) return new Date(item.DeletedDate).getTime();
     if (item.UpdatedDate) return new Date(item.UpdatedDate).getTime();
@@ -182,7 +182,7 @@ export function confirmResetAuth() {
   const u = $('reset-user').value.trim(); const p = $('reset-pass').value.trim();
   if (u !== 'oztoptantedarik' || p !== 'Oztoptan6595.') return showToast('❌ Hatalı kullanıcı adı veya şifre!');
   closeM('mo-reset-auth');
-  if (currentResetTarget === 'local') { if (confirm("⚠️ TÜM VERİLER silinecek?")) { DB.Current=[]; DB.Product=[]; DB.Order=[]; DB.OrderItem=[]; DB.Payment=[]; DB.CurrentGroup=[]; DB.ProductGroup=[]; DB.Offer=[]; DB.OfferItem=[]; saveDB(); window.location.reload(); } } 
+  if (currentResetTarget === 'local') { if (confirm("⚠️ TÜM VERİLER silinecek?")) { DB.Current=[]; DB.Product=[]; DB.Order=[]; DB.OrderItem=[]; DB.Payment=[]; DB.CurrentGroup=[]; DB.ProductGroup=[]; DB.Category=[]; DB.Brand=[]; DB.Offer=[]; DB.OfferItem=[]; saveDB(); window.location.reload(); } } 
   else if (currentResetTarget === 'drive') { if (confirm("🚨 DRIVE YEDEKLERİ silinecek?")) { executeDriveReset(); } }
 }
 
@@ -191,7 +191,7 @@ export async function executeDriveReset() {
   if (!fId || !fileName) return showCustomAlert("Hata!", false);
   showSpinner("Sıfırlanıyor...");
   try {
-    const emptyDB = { Current:[], Product:[], Order:[], OrderItem:[], Payment:[], CurrentGroup:[], ProductGroup:[], Offer:[], OfferItem:[] }; const pushData = JSON.stringify(emptyDB);
+    const emptyDB = { Current:[], Product:[], Order:[], OrderItem:[], Payment:[], CurrentGroup:[], ProductGroup:[], Category:[], Brand:[], Offer:[], OfferItem:[] }; const pushData = JSON.stringify(emptyDB);
     const query = encodeURIComponent(`'${fId}' in parents and name='${fileName}' and trashed=false`);
     const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${query}`, { headers: { 'Authorization': `Bearer ${driveAccessToken}` } });
     const searchData = await searchRes.json();
@@ -213,8 +213,10 @@ export function downloadExcel(withData) {
     const sheetsInfo = {
       'CurrentGroup': { db: DB.CurrentGroup, headers: ['Id', 'Name', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
       'ProductGroup': { db: DB.ProductGroup, headers: ['Id', 'Name', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'Category': { db: DB.Category, headers: ['Id', 'Name', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'Brand': { db: DB.Brand, headers: ['Id', 'Name', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
       'Current': { db: DB.Current, headers: ['Id', 'Name', 'CurrentGroupId', 'PhoneNumber', 'Email', 'VKN', 'IdentityNumber', 'Address', 'Balance', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
-      'Product': { db: DB.Product, headers: ['Id', 'Name', 'ProductGroupId', 'BarCode', 'UnitId', 'StockQuantity', 'PurchasePrice', 'SalePrice', 'PicturePath', 'Description', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
+      'Product': { db: DB.Product, headers: ['Id', 'Name', 'ProductGroupId', 'CategoryId', 'BrandId', 'BarCode', 'UnitId', 'StockQuantity', 'PurchasePrice', 'SalePrice', 'PicturePath', 'Description', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
       'Order': { db: DB.Order, headers: ['Id', 'Code', 'OrderTypeId', 'CurrentId', 'Description', 'OrderDate', 'SubTotalPrice', 'TotalPrice', 'DisCount', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
       'OrderItem': { db: DB.OrderItem, headers: ['Id', 'OrderId', 'ProductId', 'Amount', 'UnitId', 'UnitPrice', 'TotalPrice', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },
       'Payment': { db: DB.Payment, headers: ['Id', 'PaymentTypeId', 'CurrentId', 'PaymentDate', 'Description', 'Payment', 'Deleted', 'CreatedDate', 'UpdatedDate', 'DeletedDate', 'CreatedUser', 'UpdatedUser', 'DeletedUser'] },

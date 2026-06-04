@@ -91,17 +91,29 @@
 
       <div id="view-urun" class="view hidden">
         <div class="card mb-4">
-          <div class="compact-filters">
+          <div class="compact-filters" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
             <select id="filter-urun-grup">
               <option value="">Tüm Gruplar</option>
             </select>
-            <input type="text" id="filter-urun-q" placeholder="Ad, Barkod, Açıklama..."
+            <select id="filter-urun-kategori">
+              <option value="">Tüm Kategoriler</option>
+            </select>
+            <select id="filter-urun-marka">
+              <option value="">Tüm Markalar</option>
+            </select>
+            <input type="text" id="filter-urun-q" placeholder="Arama..."
               onkeypress="if(event.key === 'Enter') renderUrun(true)">
             <button class="icon-btn" onclick="startCam('urun-arama')"
               style="background:var(--bg); border-radius:0.4rem;">📷</button>
             <button class="btn-primary" onclick="renderUrun(true)">Ara</button>
-            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);"
-              onclick="openGrupModal('ProductGroup')">Ürün Grup</button>
+          </div>
+          <div class="grid-2 mt-4" style="grid-template-columns: 1fr 1fr 1fr;">
+            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent); font-size:0.75rem;"
+              onclick="openUrunTanimiModal('ProductGroup')">⚙️ Gruplar</button>
+            <button class="btn-outline" style="border-color:var(--green); color:var(--green); font-size:0.75rem;"
+              onclick="openUrunTanimiModal('Category')">⚙️ Kategoriler</button>
+            <button class="btn-outline" style="border-color:var(--amber); color:var(--amber); font-size:0.75rem;"
+              onclick="openUrunTanimiModal('Brand')">⚙️ Markalar</button>
           </div>
         </div>
         <div id="urun-list"></div>
@@ -280,47 +292,34 @@
       </div>
       <input type="hidden" id="mu-Id">
       <input type="text" id="mu-Name" placeholder="Ürün Adı*">
-      <select id="mu-ProductGroupId">
-        <option value="">Grup Yok</option>
-      </select>
-
+      
+      <div class="grid-4">
+         <select id="mu-CategoryId"><option value="">Kategori Seçin</option></select>
+         <select id="mu-ProductGroupId"><option value="">Grup Seçin</option></select>
+         <select id="mu-BrandId"><option value="">Marka Seçin</option></select>
+      </div>
+      
       <div class="flex gap-2">
         <input type="text" id="mu-BarCode" placeholder="Barkod">
-        <button class="icon-btn" onclick="startCam('urun-form')"
-          style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
+        <button class="icon-btn" onclick="startCam('urun-form')" style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
       </div>
-
+      
       <div style="margin-bottom:0.75rem; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
-        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün
-          Fotoğrafı</label>
-        <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)"
-          style="padding:0.2rem; font-size:0.8rem; margin:0;">
-        <img id="mu-foto-preview"
-          style="width:100px; height:100px; object-fit:cover; display:none; margin-top:8px; border-radius:0.4rem; border:1px solid var(--border);">
+        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün Fotoğrafı</label>
+        <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)" style="padding:0.2rem; font-size:0.8rem; margin:0;">
+        <img id="mu-foto-preview" style="width:100px; height:100px; object-fit:cover; display:none; margin-top:8px; border-radius:0.4rem; border:1px solid var(--border);">
       </div>
-
+      
       <div class="grid-2">
-        <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı"
-          onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
-          onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
-        <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı"
-          onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';"
-          onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
+        <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı" onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';" onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
+        <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı" onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';" onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
       </div>
-
+      
       <div class="grid-2">
         <input type="number" id="mu-StockQuantity" placeholder="Stok Miktarı">
-        <select id="mu-UnitId">
-          <option value="1">Adet</option>
-          <option value="2">Kg</option>
-          <option value="3">Gr</option>
-          <option value="4">Litre</option>
-          <option value="5">Metre</option>
-          <option value="6">Paket</option>
-          <option value="7">Koli</option>
-        </select>
+        <select id="mu-UnitId"><option value="1">Adet</option><option value="2">Kg</option><option value="3">Gr</option><option value="4">Lt</option><option value="5">Metre</option><option value="6">Paket</option><option value="7">Koli</option></select>
       </div>
-
+      
       <textarea id="mu-Description" placeholder="Açıklama" rows="2"></textarea>
       <button class="btn-primary mt-4" onclick="saveUrun()">Kaydet</button>
     </div>
@@ -483,6 +482,14 @@
     </div>
   </div>
 
+  <div id="mo-urun-tanimi" class="mo" onclick="closeOnOutside(event, 'mo-urun-tanimi')">
+    <div class="mo-content" style="max-width: 400px;">
+      <div class="mo-header"><div class="mo-title" id="mut-title">Tanım Yönetimi</div><button class="icon-btn" onclick="closeM('mo-urun-tanimi')">✕</button></div>
+      <div id="mut-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
+      <div class="flex gap-2 mb-4"><input type="text" id="mut-new-ad" placeholder="Yeni Kayıt Adı" style="margin-bottom:0;"><button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;" onclick="addTempUrunTanimi()">+</button></div>
+      <button class="btn-primary" onclick="saveUrunTanimi()">Değişiklikleri Kaydet</button>
+    </div>
+  </div>
 
   <div id="mo-kampanya-liste" class="mo" onclick="closeOnOutside(event, 'mo-kampanya-liste')" style="z-index: 75;">
     <div class="mo-content" style="max-width: 500px;">
