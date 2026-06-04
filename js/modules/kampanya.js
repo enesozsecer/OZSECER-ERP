@@ -65,13 +65,13 @@ export function renderKatSepet() {
     p.innerHTML += `<div style="display:flex; gap:0.4rem; margin-bottom:0.5rem; align-items:center; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
       <div style="flex:3; font-size:0.85rem; font-weight:bold; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">${product.Name}</div>
       <div style="flex:2">
-        <input type="number" value="${formatTR(it.Price)}" inputmode="decimal" onfocus="this.value=toRawTR(tempOfferItems[${idx}].Price)" onblur="this.value=formatTR(tempOfferItems[${idx}].Price)" oninput="handleKatRow(${idx}, 'Price', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+        <input type="text" value="${formatTR(it.Price)}" inputmode="decimal" onfocus="this.value=toRawTR(tempOfferItems[${idx}].Price)" onblur="this.value=formatTR(tempOfferItems[${idx}].Price)" oninput="handleKatRow(${idx}, 'Price', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
       </div>
       <div style="flex:2">
-        <input type="number" id="kat-yuz-${idx}" value="${formatTR(it.DiscountRate)}" inputmode="decimal" onfocus="this.value=toRawTR(tempOfferItems[${idx}].DiscountRate)" onblur="this.value=formatTR(tempOfferItems[${idx}].DiscountRate)" oninput="handleKatRow(${idx}, 'DiscountRate', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+        <input type="text" id="kat-yuz-${idx}" value="${formatTR(it.DiscountRate)}" inputmode="decimal" onfocus="this.value=toRawTR(tempOfferItems[${idx}].DiscountRate)" onblur="this.value=formatTR(tempOfferItems[${idx}].DiscountRate)" oninput="handleKatRow(${idx}, 'DiscountRate', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
       </div>
       <div style="flex:2">
-        <input type="number" id="kat-ind-${idx}" value="${formatTR(it.SalePrice)}" inputmode="decimal" onfocus="this.value=toRawTR(tempOfferItems[${idx}].SalePrice)" onblur="this.value=formatTR(tempOfferItems[${idx}].SalePrice)" oninput="handleKatRow(${idx}, 'SalePrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+        <input type="text" id="kat-ind-${idx}" value="${formatTR(it.SalePrice)}" inputmode="decimal" onfocus="this.value=toRawTR(tempOfferItems[${idx}].SalePrice)" onblur="this.value=formatTR(tempOfferItems[${idx}].SalePrice)" oninput="handleKatRow(${idx}, 'SalePrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
       </div>
       <button class="icon-btn text-red" style="padding:0; font-size:1.1rem; margin-left:4px;" onclick="removeKatItem(${idx})">✕</button>
     </div>`;
