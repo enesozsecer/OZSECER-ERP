@@ -65,12 +65,22 @@ export function toggleCSelect(id, dataSource) {
 
 export function renderCSelectList(id, dataSource, query) {
   const q = query.toLowerCase().trim(); const list = $('csl-' + id); list.innerHTML = '';
-  if (id.startsWith('filter')) {
-    const div = document.createElement('div'); div.className = 'c-select-item text-muted'; div.innerText = 'Tümü / Seçimi Temizle';
-    div.onclick = (e) => { e.stopPropagation(); selectCItem(id, '', 'Cari Seçiniz...'); }; list.appendChild(div);
-  }
+  
+  // Seçimi temizleme butonu
+  const div = document.createElement('div'); div.className = 'c-select-item text-muted'; div.innerText = 'Seçimi Temizle / Boş';
+  div.onclick = (e) => { e.stopPropagation(); selectCItem(id, '', 'Seçim İptal'); }; list.appendChild(div);
+  
   let res = [];
-  if (dataSource === 'Current') { res = DB.Current.filter(x => !x.Deleted && (x.Name + " " + (x.VKN || "") + " " + (x.PhoneNumber || "")).toLowerCase().includes(q)); }
+  if (dataSource === 'Current') { 
+    res = DB.Current.filter(x => !x.Deleted && (x.Name + " " + (x.VKN || "") + " " + (x.PhoneNumber || "")).toLowerCase().includes(q)); 
+  } else if (dataSource === 'ProductGroup') {
+    res = DB.ProductGroup.filter(x => !x.Deleted && x.Name.toLowerCase().includes(q));
+  } else if (dataSource === 'Category') {
+    res = DB.Category.filter(x => !x.Deleted && x.Name.toLowerCase().includes(q));
+  } else if (dataSource === 'Brand') {
+    res = DB.Brand.filter(x => !x.Deleted && x.Name.toLowerCase().includes(q));
+  }
+
   res.slice(0, 30).forEach(item => {
     const div = document.createElement('div'); div.className = 'c-select-item'; div.innerText = item.Name;
     div.onclick = (e) => { e.stopPropagation(); selectCItem(id, item.Id, item.Name); }; list.appendChild(div);

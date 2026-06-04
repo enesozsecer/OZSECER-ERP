@@ -293,10 +293,44 @@
       <input type="hidden" id="mu-Id">
       <input type="text" id="mu-Name" placeholder="Ürün Adı*">
       
-      <div class="grid-4">
-         <select id="mu-CategoryId"><option value="">Kategori Seçin</option></select>
-         <select id="mu-ProductGroupId"><option value="">Grup Seçin</option></select>
-         <select id="mu-BrandId"><option value="">Marka Seçin</option></select>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; position: relative; z-index: 60;">
+        
+        <div class="c-select" id="cs-wrap-mu-CategoryId">
+          <div class="c-select-display" onclick="toggleCSelect('mu-CategoryId', 'Category')" style="padding:0.4rem; font-size:0.8rem;">
+            <span id="csd-mu-CategoryId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Kategori Seç</span>
+            <span style="font-size:0.6rem; margin-left:2px;">▼</span>
+          </div>
+          <input type="hidden" id="mu-CategoryId">
+          <div class="c-select-menu" id="csm-mu-CategoryId">
+            <input type="text" class="c-select-search" id="css-mu-CategoryId" placeholder="Ara..." onkeyup="renderCSelectList('mu-CategoryId', 'Category', this.value)" onclick="event.stopPropagation()">
+            <div class="c-select-list" id="csl-mu-CategoryId"></div>
+          </div>
+        </div>
+
+        <div class="c-select" id="cs-wrap-mu-ProductGroupId">
+          <div class="c-select-display" onclick="toggleCSelect('mu-ProductGroupId', 'ProductGroup')" style="padding:0.4rem; font-size:0.8rem;">
+            <span id="csd-mu-ProductGroupId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Grup Seç</span>
+            <span style="font-size:0.6rem; margin-left:2px;">▼</span>
+          </div>
+          <input type="hidden" id="mu-ProductGroupId">
+          <div class="c-select-menu" id="csm-mu-ProductGroupId">
+            <input type="text" class="c-select-search" id="css-mu-ProductGroupId" placeholder="Ara..." onkeyup="renderCSelectList('mu-ProductGroupId', 'ProductGroup', this.value)" onclick="event.stopPropagation()">
+            <div class="c-select-list" id="csl-mu-ProductGroupId"></div>
+          </div>
+        </div>
+
+        <div class="c-select" id="cs-wrap-mu-BrandId">
+          <div class="c-select-display" onclick="toggleCSelect('mu-BrandId', 'Brand')" style="padding:0.4rem; font-size:0.8rem;">
+            <span id="csd-mu-BrandId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Marka Seç</span>
+            <span style="font-size:0.6rem; margin-left:2px;">▼</span>
+          </div>
+          <input type="hidden" id="mu-BrandId">
+          <div class="c-select-menu" id="csm-mu-BrandId">
+            <input type="text" class="c-select-search" id="css-mu-BrandId" placeholder="Ara..." onkeyup="renderCSelectList('mu-BrandId', 'Brand', this.value)" onclick="event.stopPropagation()">
+            <div class="c-select-list" id="csl-mu-BrandId"></div>
+          </div>
+        </div>
+
       </div>
       
       <div class="flex gap-2">
@@ -317,7 +351,7 @@
       
       <div class="grid-2">
         <input type="number" id="mu-StockQuantity" placeholder="Stok Miktarı">
-        <select id="mu-UnitId"><option value="1">Adet</option><option value="2">Kg</option><option value="3">Gr</option><option value="4">Lt</option><option value="5">Metre</option><option value="6">Paket</option><option value="7">Koli</option></select>
+        <select id="mu-UnitId"><option value="1">Adet</option><option value="2">Kg</option><option value="3">Gr</option><option value="4">Litre</option><option value="5">Metre</option><option value="6">Paket</option><option value="7">Koli</option></select>
       </div>
       
       <textarea id="mu-Description" placeholder="Açıklama" rows="2"></textarea>

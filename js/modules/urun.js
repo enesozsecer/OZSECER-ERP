@@ -2,23 +2,24 @@ import { DB, saveDB } from '../core/db.js';
 import { $, guid, tsNow, fp, getBirimAd, parseRawTR, formatTR, toRawTR, getCihazAdi, softDelete, showToast, openM, closeM, showConfirm, toTitleCaseTR } from '../core/utils.js';
 import { startCam } from './siparis.js';
 
-let tempGroupType = ''; // 'ProductGroup', 'Category', 'Brand'
+let tempGroupType = ''; 
 let tempItems = [];
 
 export function loadUrunGrupSelects() {
-  const selPg = $('mu-ProductGroupId'); const filterPg = $('filter-urun-grup');
-  if (selPg) selPg.innerHTML = '<option value="">Grup Yok</option>'; if (filterPg) filterPg.innerHTML = '<option value="">Tüm Gruplar</option>';
-  const selCat = $('mu-CategoryId'); const filterCat = $('filter-urun-kategori');
-  if (selCat) selCat.innerHTML = '<option value="">Kategori Yok</option>'; if (filterCat) filterCat.innerHTML = '<option value="">Tüm Kategoriler</option>';
-  const selBrand = $('mu-BrandId'); const filterBrand = $('filter-urun-marka');
-  if (selBrand) selBrand.innerHTML = '<option value="">Marka Yok</option>'; if (filterBrand) filterBrand.innerHTML = '<option value="">Tüm Markalar</option>';
+  // Sadece ana sayfadaki (Ürün Listesi) arama filtrelerini doldurur, Modal içindeki c-selectler dinamik çalışır.
+  const filterPg = $('filter-urun-grup');
+  const filterCat = $('filter-urun-kategori');
+  const filterBrand = $('filter-urun-marka');
 
-  DB.ProductGroup.filter(x=>!x.Deleted).forEach(g => { if (selPg) selPg.innerHTML += `<option value="${g.Id}">${g.Name}</option>`; if (filterPg) filterPg.innerHTML += `<option value="${g.Id}">${g.Name}</option>`; });
-  DB.Category.filter(x=>!x.Deleted).forEach(c => { if (selCat) selCat.innerHTML += `<option value="${c.Id}">${c.Name}</option>`; if (filterCat) filterCat.innerHTML += `<option value="${c.Id}">${c.Name}</option>`; });
-  DB.Brand.filter(x=>!x.Deleted).forEach(b => { if (selBrand) selBrand.innerHTML += `<option value="${b.Id}">${b.Name}</option>`; if (filterBrand) filterBrand.innerHTML += `<option value="${b.Id}">${b.Name}</option>`; });
+  if (filterPg) filterPg.innerHTML = '<option value="">Tüm Gruplar</option>';
+  if (filterCat) filterCat.innerHTML = '<option value="">Tüm Kategoriler</option>';
+  if (filterBrand) filterBrand.innerHTML = '<option value="">Tüm Markalar</option>';
+
+  DB.ProductGroup.filter(x=>!x.Deleted).forEach(g => { if (filterPg) filterPg.innerHTML += `<option value="${g.Id}">${g.Name}</option>`; });
+  DB.Category.filter(x=>!x.Deleted).forEach(c => { if (filterCat) filterCat.innerHTML += `<option value="${c.Id}">${c.Name}</option>`; });
+  DB.Brand.filter(x=>!x.Deleted).forEach(b => { if (filterBrand) filterBrand.innerHTML += `<option value="${b.Id}">${b.Name}</option>`; });
 }
 
-// TEK BİR MODAL İLE 3 FARKLI TABLOYU (Grup, Kategori, Marka) YÖNETME MOTORU
 export function openUrunTanimiModal(type) { 
   tempGroupType = type; let targetDB = []; let title = '';
   if(type === 'ProductGroup') { targetDB = DB.ProductGroup; title = 'Ürün Grupları'; }
@@ -68,7 +69,6 @@ export function renderUrun(force = false) {
     
     let stok = Number(u.StockQuantity || 0); let bClass = stok >= 10 ? 'bg-green' : (stok > 0 ? 'bg-amber' : 'bg-red');
     
-    // Etiketleri yan yana dizme
     let tagsHtml = '';
     if(gName) tagsHtml += `<span class="badge" style="border:1px solid var(--accent); color:var(--accent);">${gName}</span>`;
     if(cName) tagsHtml += `<span class="badge" style="border:1px solid var(--green); color:var(--green);">${cName}</span>`;
@@ -80,14 +80,32 @@ export function renderUrun(force = false) {
 
 export function openUrunModal() {
   $('mu-Id').value = ''; $('mu-Name').value = ''; $('mu-BarCode').value = ''; $('mu-PurchasePrice').value = ''; $('mu-SalePrice').value = ''; $('mu-StockQuantity').value = ''; $('mu-UnitId').value = '1'; $('mu-Description').value = ''; 
-  $('mu-ProductGroupId').value = ''; $('mu-CategoryId').value = ''; $('mu-BrandId').value = '';
-  $('mu-PicturePath-input').value = ''; $('mu-foto-preview').src = ''; $('mu-foto-preview').style.display = 'none'; $('mu-del').classList.add('hidden'); loadUrunGrupSelects(); openM('mo-urun');
+  
+  // Custom Select (Dropdown) İçeriklerini Temizle
+  $('mu-ProductGroupId').value = ''; $('csd-mu-ProductGroupId').innerText = 'Grup Seç';
+  $('mu-CategoryId').value = ''; $('csd-mu-CategoryId').innerText = 'Kategori Seç';
+  $('mu-BrandId').value = ''; $('csd-mu-BrandId').innerText = 'Marka Seç';
+
+  $('mu-PicturePath-input').value = ''; $('mu-foto-preview').src = ''; $('mu-foto-preview').style.display = 'none'; 
+  $('mu-del').classList.add('hidden'); 
+  loadUrunGrupSelects(); 
+  openM('mo-urun');
 }
 
 export function editUrun(id) {
   const u = DB.Product.find(x => String(x.Id) === String(id)); if (!u) return; loadUrunGrupSelects();
   $('mu-Id').value = u.Id; $('mu-Name').value = u.Name; $('mu-BarCode').value = u.BarCode || ''; $('mu-PurchasePrice').value = formatTR(u.PurchasePrice); $('mu-SalePrice').value = formatTR(u.SalePrice); $('mu-StockQuantity').value = u.StockQuantity || 0; $('mu-UnitId').value = u.UnitId || '1'; $('mu-Description').value = u.Description || ''; 
-  $('mu-ProductGroupId').value = u.ProductGroupId || ''; $('mu-CategoryId').value = u.CategoryId || ''; $('mu-BrandId').value = u.BrandId || '';
+  
+  // Custom Select (Dropdown) İçeriklerini Eşle
+  $('mu-ProductGroupId').value = u.ProductGroupId || '';
+  $('csd-mu-ProductGroupId').innerText = u.ProductGroupId ? (DB.ProductGroup.find(x => String(x.Id) === String(u.ProductGroupId))?.Name || 'Grup Seç') : 'Grup Seç';
+  
+  $('mu-CategoryId').value = u.CategoryId || '';
+  $('csd-mu-CategoryId').innerText = u.CategoryId ? (DB.Category.find(x => String(x.Id) === String(u.CategoryId))?.Name || 'Kategori Seç') : 'Kategori Seç';
+  
+  $('mu-BrandId').value = u.BrandId || '';
+  $('csd-mu-BrandId').innerText = u.BrandId ? (DB.Brand.find(x => String(x.Id) === String(u.BrandId))?.Name || 'Marka Seç') : 'Marka Seç';
+
   if (u.PicturePath) { $('mu-foto-preview').src = u.PicturePath; $('mu-foto-preview').style.display = 'block'; } else { $('mu-PicturePath-input').value = ''; $('mu-foto-preview').src = ''; $('mu-foto-preview').style.display = 'none'; }
   $('mu-del').classList.remove('hidden'); $('mu-del').onclick = () => { showConfirm(`${u.Name} silinecek?`, () => { softDelete(DB.Product, id); saveDB(); closeM('mo-urun'); renderUrun(true); }, '🗑️', 'Sil'); }; openM('mo-urun');
 }
