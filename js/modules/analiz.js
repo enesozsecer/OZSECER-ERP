@@ -15,7 +15,14 @@ export function renderAnaliz(force = false) {
     if (Number(s.OrderTypeId) === ISLEM.SATIS) { 
       tSatis += s.TotalPrice; 
       const kalemler = DB.OrderItem.filter(x => x.OrderId === s.Id && !x.Deleted);
-      kalemler.forEach(it => { const u = DB.Product.find(x => String(x.Id) === String(it.ProductId)); const maliyet = u ? (u.PurchasePrice || 0) : 0; tKar += (it.UnitPrice - maliyet) * it.Amount; }); 
+      kalemler.forEach(it => { 
+        const u = DB.Product.find(x => String(x.Id) === String(it.ProductId)); 
+        const maliyet = u ? (Number(u.PurchasePrice) || 0) : 0; 
+        tKar += (Number(it.UnitPrice) - maliyet) * Number(it.Amount); 
+      }); 
+      
+      // SİPARİŞE UYGULANAN İNDİRİMİ NET KÂRDAN DÜŞÜYORUZ
+      tKar -= Number(s.DisCount) || 0;
     }
   });
 
