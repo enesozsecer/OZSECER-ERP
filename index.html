@@ -271,11 +271,11 @@
       </div>
 
       <div class="grid-2">
-        <input type="text" id="mc-VKN" placeholder="Vergi Numarası (VKN)" inputmode="numeric">
-        <input type="text" id="mc-IdentityNumber" placeholder="TC Kimlik No" inputmode="numeric">
+        <input type="number" id="mc-VKN" placeholder="Vergi Numarası (VKN)" inputmode="numeric">
+        <input type="number" id="mc-IdentityNumber" placeholder="TC Kimlik No" inputmode="numeric">
       </div>
 
-      <input type="text" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)" inputmode="decimal" onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';" onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
+      <input type="number" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)" inputmode="decimal" onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';" onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
       <textarea id="mc-Address" placeholder="Açık Adres" rows="2"></textarea>
 
       <button class="btn-primary mt-4" onclick="saveCari()">Kaydet</button>
@@ -335,7 +335,7 @@
       </div>
       
       <div class="flex gap-2">
-        <input type="text" id="mu-BarCode" placeholder="Barkod" inputmode="numeric">
+        <input type="number" id="mu-BarCode" placeholder="Barkod" inputmode="numeric">
         <button class="icon-btn" onclick="startCam('urun-form')" style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
       </div>
       
@@ -349,8 +349,8 @@
       </div>
       
 <div class="grid-2">
-        <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı" inputmode="decimal" onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';" onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
-        <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı" inputmode="decimal" onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';" onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
+        <input type="number" id="mu-PurchasePrice" placeholder="Alış Fiyatı" inputmode="decimal" onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';" onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
+        <input type="number" id="mu-SalePrice" placeholder="Satış Fiyatı" inputmode="decimal" onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';" onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
       </div>
       
       <div class="grid-2">
@@ -459,7 +459,7 @@
         </div>
       </div>
 
-      <input type="text" id="mk-Payment" placeholder="İşlem Tutarı*" inputmode="decimal" onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';" onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
+      <input type="number" id="mk-Payment" placeholder="İşlem Tutarı*" inputmode="decimal" onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';" onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
       <textarea id="mk-Description" placeholder="Açıklama" rows="2"></textarea>
       <button class="btn-primary mt-4" onclick="saveKasa()">Kaydet</button>
     </div>

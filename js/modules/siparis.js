@@ -32,10 +32,10 @@ export function renderSipItems() {
         <span style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:0.75rem; color:var(--text-muted); pointer-events:none;">${getBirimAd(it.UnitId)}</span>
       </div>
       <div style="flex:2">
-        <input type="text" id="sip-fiy-${it.Id}" value="${formatTR(it.UnitPrice)}" inputmode="decimal" onfocus="this.value=toRawTR(findSipItem('${it.Id}').UnitPrice)" onblur="this.value=formatTR(findSipItem('${it.Id}').UnitPrice)" oninput="handleSipRowChangeText('${it.Id}', 'UnitPrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+        <input type="number" id="sip-fiy-${it.Id}" value="${formatTR(it.UnitPrice)}" inputmode="decimal" onfocus="this.value=toRawTR(findSipItem('${it.Id}').UnitPrice)" onblur="this.value=formatTR(findSipItem('${it.Id}').UnitPrice)" oninput="handleSipRowChangeText('${it.Id}', 'UnitPrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
       </div>
       <div style="flex:2">
-        <input type="text" id="sip-top-${it.Id}" value="${formatTR(it.TotalPrice)}" inputmode="decimal" onfocus="this.value=toRawTR(findSipItem('${it.Id}').TotalPrice)" onblur="this.value=formatTR(findSipItem('${it.Id}').TotalPrice)" oninput="handleSipRowChangeText('${it.Id}', 'TotalPrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
+        <input type="number" id="sip-top-${it.Id}" value="${formatTR(it.TotalPrice)}" inputmode="decimal" onfocus="this.value=toRawTR(findSipItem('${it.Id}').TotalPrice)" onblur="this.value=formatTR(findSipItem('${it.Id}').TotalPrice)" oninput="handleSipRowChangeText('${it.Id}', 'TotalPrice', this.value)" style="margin:0; padding:0.4rem; font-size:0.85rem">
       </div>
       <button class="icon-btn text-red" style="padding:0; font-size:1.1rem;" onclick="delSipItem('${it.Id}')">✕</button>
     </div>`;
