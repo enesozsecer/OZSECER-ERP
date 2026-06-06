@@ -1,6 +1,6 @@
 {
   "name": "Özseçer ERP",
-  "short_name": "ERP",
+  "short_name": "OzsecerERP",
   "description": "Özseçer Toptan Yönetim Sistemi",
   "start_url": "./index.html",
   "display": "standalone",
