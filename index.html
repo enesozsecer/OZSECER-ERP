@@ -22,7 +22,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Özseçer ERP">
-  <link rel="apple-touch-icon" href="img/logo192.png">
+  <link rel="apple-touch-icon" href="img/logo-192.png">
 </head>
 
 <body>
@@ -31,6 +31,7 @@
 
   <div id="login-screen">
     <div style="text-align: center; margin-bottom: 2rem;">
+      <img src="img/logo-512.png" alt="Logo" style="width: 150px; height: 150px; border-radius: 1rem; margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
       <h1 style="color: var(--accent); margin-bottom: 0.5rem;">OZSECER ERP</h1>
       <p style="color: var(--text-muted);">Yönetim Sistemine Giriş Yapın</p>
     </div>
@@ -52,7 +53,12 @@
 
   <div id="app-container" class="hidden">
     <div class="topbar">
-      <h2 id="top-title" style="font-size:1.2rem;">Ana Sayfa</h2>
+      <!-- <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
+      <h2 id="top-title" style="font-size:1.2rem;">Ana Sayfa</h2> -->
+      <div class="nav-brand" style="display: flex; align-items: center; gap: 10px;">
+          <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
+          <h2 id="top-title" style="font-size:1.2rem;">Ana Sayfa</h2>
+        </div>
       <div class="flex gap-2">
         <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">☀️</button>
         <button class="icon-btn" onclick="logoutConfirm()">🚪</button>
