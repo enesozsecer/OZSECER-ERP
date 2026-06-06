@@ -76,17 +76,18 @@
 
       <div id="view-cari" class="view hidden">
         <div class="card mb-4">
-          <div class="compact-filters">
-            <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..."
-              onkeypress="if(event.key === 'Enter') renderCari(true)">
-            <select id="filter-cari-durum">
-              <option value="hepsi">Tüm Durumlar</option>
-              <option value="alacakli">Alacaklı</option>
-              <option value="borclu">Borçlu</option>
-            </select>
+          <div class="compact-filters" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
+            <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..." onkeypress="if(event.key === 'Enter') renderCari(true)">
+            <select id="filter-cari-durum"><option value="hepsi">Tüm Durumlar</option><option value="alacakli">Alacaklı</option><option value="borclu">Borçlu</option></select>
+            
+            <select id="filter-cari-grup"><option value="">Tüm Gruplar</option></select>
+            
+            <select id="filter-cari-sector"><option value="">Tüm Sektörler</option></select>
             <button class="btn-primary" onclick="renderCari(true)">Ara</button>
-            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent);"
-              onclick="openGrupModal('CurrentGroup')">Cari Grup</button>
+          </div>
+          <div class="grid-2 mt-4">
+            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent); font-size:0.8rem;" onclick="openGrupModal('CurrentGroup')">⚙️ Cari Grupları</button>
+            <button class="btn-outline" style="border-color:var(--amber); color:var(--amber); font-size:0.8rem;" onclick="openGrupModal('Sector')">⚙️ Sektörler</button>
           </div>
         </div>
         <div id="cari-list"></div>
@@ -111,10 +112,10 @@
             <button class="btn-primary" onclick="renderUrun(true)">Ara</button>
           </div>
           <div class="grid-2 mt-4" style="grid-template-columns: 1fr 1fr 1fr;">
-            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent); font-size:0.75rem;"
-              onclick="openUrunTanimiModal('ProductGroup')">⚙️ Gruplar</button>
             <button class="btn-outline" style="border-color:var(--green); color:var(--green); font-size:0.75rem;"
               onclick="openUrunTanimiModal('Category')">⚙️ Kategoriler</button>
+            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent); font-size:0.75rem;"
+              onclick="openUrunTanimiModal('ProductGroup')">⚙️ Gruplar</button>
             <button class="btn-outline" style="border-color:var(--amber); color:var(--amber); font-size:0.75rem;"
               onclick="openUrunTanimiModal('Brand')">⚙️ Markalar</button>
           </div>
@@ -261,9 +262,10 @@
       </div>
       <input type="hidden" id="mc-Id">
       <input type="text" id="mc-Name" placeholder="Firma / Şahıs Adı*">
-      <select id="mc-CurrentGroupId">
-        <option value="">Grup Yok</option>
-      </select>
+      <div class="grid-2">
+        <select id="mc-CurrentGroupId"><option value="">Grup Yok</option></select>
+        <select id="mc-SectorId"><option value="">Sektör Yok</option></select>
+      </div>
 
       <div class="grid-2">
         <input type="tel" id="mc-PhoneNumber" placeholder="Telefon Numarası" inputmode="tel">

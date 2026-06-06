@@ -7,13 +7,14 @@ export let DB = {
   CurrentGroup: [], 
   ProductGroup: [], 
   Category: [], 
-  Brand: [], 
+  Brand: [],    
   Offer: [],
-  OfferItem: []  
+  OfferItem: [],
+  Sector: [] 
 };
 
 export function loadDB() {
-  const keys = ['Current', 'Product', 'Order', 'OrderItem', 'Payment', 'CurrentGroup', 'ProductGroup', 'Category', 'Brand', 'Offer', 'OfferItem'];
+  const keys = ['Current', 'Product', 'Order', 'OrderItem', 'Payment', 'CurrentGroup', 'ProductGroup', 'Category', 'Brand', 'Offer', 'OfferItem', 'Sector'];
   keys.forEach(k => {
     try { DB[k] = JSON.parse(localStorage.getItem('e3_' + k)) || []; } catch(e) { DB[k] = []; }
   });
