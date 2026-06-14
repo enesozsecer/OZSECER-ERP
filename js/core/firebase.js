@@ -91,9 +91,13 @@ export async function initFirebase(forceErp = false, forceMarket = false) {
         let activeSystems = [];
         if (erpSuccess) {
             activeSystems.push("ERP");
+            window.erpDB = erpDB;
             if (!isListening) listenToCloudChanges(); 
         }
-        if (marketSuccess) activeSystems.push("Market");
+        if (marketSuccess) {
+            activeSystems.push("Market");
+            window.marketDB = marketDB;
+        }
 
         if (activeSystems.length > 0) return activeSystems.join(" & ");
         return false;
@@ -249,6 +253,11 @@ export async function saveMarketConfig() {
         if (res && res.includes("Market")) { 
             closeM('mo-market-config'); 
             showToast("Market Bağlantısı Doğrulandı!"); 
+            
+            // 🔥 YENİ: Bağlantı başarıyla sağlandığı an Yayın sayfasının canlı veri motorunu anında tetikliyoruz!
+            if (typeof window.initPublishView === 'function') {
+                window.initPublishView();
+            }
         } else throw new Error();
     } catch (err) {
         if (oldBackup) localStorage.setItem('e3_firebase_market', oldBackup); else localStorage.removeItem('e3_firebase_market');
