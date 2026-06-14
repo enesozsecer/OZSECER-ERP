@@ -69,11 +69,15 @@ export function login() {
   }
 }
 
-export function logoutConfirm() { 
-  showConfirm("Oturumu kapatmak istediğinize emin misiniz?", () => { 
-      localStorage.removeItem('ozsecer_loggedin'); 
-      window.location.reload(); 
-  }, '🚪', 'Çıkış'); 
+export function logoutConfirm() {
+    showConfirm("Çıkış yapmak ve tüm yerel veriler ile bulut bağlantılarını temizlemek istediğinize emin misiniz?", () => {
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('e3_') || key.startsWith('ozsecer_')) {
+                localStorage.removeItem(key);
+            }
+        });
+        window.location.reload();
+    }, '🚪', 'Çıkış Yap');
 }
 
 export function togglePass() { 

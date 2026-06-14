@@ -28,12 +28,44 @@ export function openUrunTanimiModal(type) {
 }
 
 export function renderUrunTanimiList() {
-  const list = $('mut-list'); list.innerHTML = ''; if (tempItems.length === 0) { list.innerHTML = '<p class="text-muted">Kayıt yok.</p>'; return; }
-  tempItems.forEach((g, idx) => { list.innerHTML += `<div class="flex items-center gap-2 mb-2"><input type="text" value="${g.Name}" onchange="updateTempUrunTanimi(${idx}, this.value)" style="margin:0;"><button class="icon-btn text-red" onclick="deleteTempUrunTanimi(${idx})">🗑️</button></div>`; });
+  const list = $('mut-list'); list.innerHTML = ''; 
+  const activeItems = tempItems.filter(i => !i.Deleted); 
+  
+  if (activeItems.length === 0) { 
+      list.innerHTML = '<p class="text-muted">Kayıt yok.</p>'; 
+      return; 
+  }
+  
+  // Burada filter ile döngü yapmıyoruz, tüm diziye bakıyoruz ki Idx'ler (Sıralar) kaymasın!
+  tempItems.forEach((g, idx) => { 
+      if (!g.Deleted) {
+          list.innerHTML += `<div class="flex items-center gap-2 mb-2">
+            <input type="text" value="${g.Name}" onchange="updateTempUrunTanimi(${idx}, this.value)" style="margin:0;">
+            <button class="icon-btn text-red" onclick="deleteTempUrunTanimi(${idx})">🗑️</button>
+          </div>`; 
+      }
+  });
 }
-export function addTempUrunTanimi() { const name = toTitleCaseTR($('mut-new-ad').value.trim()); if (!name) return; tempItems.push({ Id: guid(), Name: name, Deleted: false, CreatedDate: tsNow(), CreatedUser: getCihazAdi() }); $('mut-new-ad').value = ''; renderUrunTanimiList(); }
-export function updateTempUrunTanimi(idx, val) { tempItems[idx].Name = toTitleCaseTR(val.trim()); tempItems[idx].UpdatedDate = tsNow(); }
-export function deleteTempUrunTanimi(idx) { tempItems[idx].Deleted = true; tempItems[idx].DeletedDate = tsNow(); renderUrunTanimiList(); }
+
+export function addTempUrunTanimi() { 
+  const name = toTitleCaseTR($('mut-new-ad').value.trim()); 
+  if (!name) return; 
+  tempItems.push({ Id: guid(), Name: name, Deleted: false, CreatedDate: tsNow(), CreatedUser: getCihazAdi() }); 
+  $('mut-new-ad').value = ''; 
+  renderUrunTanimiList(); 
+}
+
+export function updateTempUrunTanimi(idx, val) { 
+  tempItems[idx].Name = toTitleCaseTR(val.trim()); 
+  tempItems[idx].UpdatedDate = tsNow(); 
+}
+
+export function deleteTempUrunTanimi(idx) { 
+  tempItems[idx].Deleted = true; 
+  tempItems[idx].DeletedDate = tsNow(); 
+  tempItems[idx].DeletedUser = getCihazAdi();
+  renderUrunTanimiList(); 
+}
 
 export function saveUrunTanimi() {
   let targetDB = [];
@@ -56,8 +88,9 @@ export function previewUrunFoto(event) {
       img.onload = function() {
         try {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 600;  
-          const MAX_HEIGHT = 600;
+          // E-ticaret vitrini için yeterli olan ultra-hafif boyutlar
+          const MAX_WIDTH = 400;  
+          const MAX_HEIGHT = 400;
           let width = img.width;
           let height = img.height;
 
@@ -73,22 +106,23 @@ export function previewUrunFoto(event) {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
 
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          // 0.6 kalite ile fotoğrafı yaklaşık 20-40 KB seviyesine indiriyoruz
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
 
           $('mu-foto-preview').src = dataUrl; 
           $('mu-foto-preview').style.display = 'block'; 
           $('mu-foto-remove').style.display = 'flex';
         } catch(err) {
-          alert("🚨 Görsel Küçültme Hatası: " + err.message);
+          alert("Görsel Küçültme Hatası: " + err.message);
         }
       };
-      img.onerror = function() { alert("🚨 Görsel yüklenemedi veya bozuk format!"); };
+      img.onerror = function() { alert("Görsel yüklenemedi veya bozuk format!"); };
       img.src = e.target.result;
     }; 
-    reader.onerror = function() { alert("🚨 Dosya okuma hatası!"); };
+    reader.onerror = function() { alert("Dosya okuma hatası!"); };
     reader.readAsDataURL(file); 
   } catch(err) {
-    alert("🚨 Genel Görsel Hatası: " + err.message);
+    alert("Genel Görsel Hatası: " + err.message);
   }
 }
 export function removeUrunFoto() {
@@ -169,25 +203,41 @@ export function editUrun(id) {
   $('mu-del').classList.remove('hidden'); $('mu-del').onclick = () => { showConfirm(`${u.Name} silinecek?`, () => { softDelete(DB.Product, id); saveDB(); closeM('mo-urun'); renderUrun(true); }, '🗑️', 'Sil'); }; openM('mo-urun');
 }
 
-export function saveUrun() {
-  const name = toTitleCaseTR($('mu-Name').value.trim()); if (!name) return showToast('Ürün adı zorunlu!'); const id = $('mu-Id').value;
+export async function saveUrun() {
+  const name = toTitleCaseTR($('mu-Name').value.trim()); 
+  if (!name) return showToast('Ürün adı zorunlu!'); 
+  
+  let id = $('mu-Id').value;
+  let isNew = false;
+  if (!id) { id = guid(); isNew = true; }
+
+  // Zaten önceki adımda ultra sıkıştırılmış Base64 metnimiz src içinde duruyor
+  let picturePath = $('mu-foto-preview').src || '';
+  if ($('mu-foto-preview').style.display === 'none') {
+      picturePath = ''; 
+  }
+
   const data = { 
     Name: name, BarCode: $('mu-BarCode').value, 
     ProductGroupId: $('mu-ProductGroupId').value || null, CategoryId: $('mu-CategoryId').value || null, BrandId: $('mu-BrandId').value || null,
     UnitId: Number($('mu-UnitId').value) || 1, Description: toTitleCaseTR($('mu-Description').value.trim()), 
-    PurchasePrice: parseRawTR($('mu-PurchasePrice').value), SalePrice: parseRawTR($('mu-SalePrice').value), StockQuantity: Number($('mu-StockQuantity').value) || 0, PicturePath: $('mu-foto-preview').src.startsWith('data:') ? $('mu-foto-preview').src : '' 
+    PurchasePrice: parseRawTR($('mu-PurchasePrice').value), SalePrice: parseRawTR($('mu-SalePrice').value), StockQuantity: Number($('mu-StockQuantity').value) || 0, 
+    PicturePath: picturePath // Base64 kodunu doğrudan DB'ye gömüyoruz
   };
   
-  if (id) Object.assign(DB.Product.find(x => String(x.Id) === String(id)), data, { UpdatedDate: tsNow(), UpdatedUser: getCihazAdi() });
-  else DB.Product.push({ Id: guid(), ...data, CreatedDate: tsNow(), CreatedUser: getCihazAdi(), Deleted: false });
+  if (!isNew) {
+      Object.assign(DB.Product.find(x => String(x.Id) === String(id)), data, { UpdatedDate: tsNow(), UpdatedUser: getCihazAdi() });
+  } else {
+      DB.Product.push({ Id: id, ...data, CreatedDate: tsNow(), CreatedUser: getCihazAdi(), Deleted: false });
+  }
   
-  // HATA YAKALAMA MEKANİZMASI (Cihaz hafızası dolsa bile uyarı verir)
   try {
-    saveDB(); 
+    saveDB(); // Veriyi doğrudan LocalStorage'a ve oradan Firestore'a yazar
     closeM('mo-urun'); 
     renderUrun(true);
+    showToast("Ürün başarıyla kaydedildi!");
   } catch(e) {
-    showToast("Kayıt Hatası: Cihaz hafızası dolu! Çok fazla görsel eklenmiş olabilir.");
+    showToast("Kayıt Hatası: Cihaz hafızası dolu olabilir!");
     console.error(e);
   }
 }

@@ -3,14 +3,15 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>OZSECER ERP</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
-  
+
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/layout.css">
@@ -19,6 +20,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#e74c3c">
 
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Özseçer ERP">
@@ -31,7 +33,8 @@
 
   <div id="login-screen">
     <div style="text-align: center; margin-bottom: 2rem;">
-      <img src="img/logo-512.png" alt="Logo" style="width: 150px; height: 150px; border-radius: 1rem; margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+      <img src="img/logo-512.png" alt="Logo"
+        style="width: 150px; height: 150px; border-radius: 1rem; margin-bottom: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
       <h1 style="color: var(--accent); margin-bottom: 0.5rem;">OZSECER ERP</h1>
       <p style="color: var(--text-muted);">Yönetim Sistemine Giriş Yapın</p>
     </div>
@@ -56,9 +59,9 @@
       <!-- <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
       <h2 id="top-title" style="font-size:1.2rem;">Ana Sayfa</h2> -->
       <div class="nav-brand" style="display: flex; align-items: center; gap: 10px;">
-          <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
-          <h2 id="top-title" style="font-size:1.2rem;">Ana Sayfa</h2>
-        </div>
+        <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
+        <h2 id="top-title" style="font-size:1.2rem;">Ana Sayfa</h2>
+      </div>
       <div class="flex gap-2">
         <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">☀️</button>
         <button class="icon-btn" onclick="logoutConfirm()">🚪</button>
@@ -80,10 +83,25 @@
             <div class="card-title">Kayıtlı Kampanyalar</div>
             <div class="card-value" id="home-kampanya-count" style="font-size:1.1rem;">Geçmiş Kampanyalar ➔</div>
           </div>
-          <div class="card card-gradient mb-4" onclick="goTo('ayarlar')"
+          <div class="card card-gradient" onclick="initPublishView(); goTo('publish');"
+            style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">B2B Vitrin Yayını</div>
+            <div class="card-value" style="font-size:1.2rem;">Yayın ➔</div>
+          </div>
+          <div class="card card-gradient" onclick="goTo('analiz')"
+            style="background: linear-gradient(135deg, #8e44ad, #9b59b6); margin-bottom:0;">
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">Finansal Analiz</div>
+            <div class="card-value" style="font-size:1.2rem;">Grafik & Raporlar ➔</div>
+          </div>
+          <div class="card card-gradient" onclick="goTo('ayarlar')"
             style="background: linear-gradient(135deg, #34495e, #2c3e50);">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Sistem Yönetimi</div>
             <div class="card-value" style="font-size:1.2rem;">Sistem &amp; Admin ➔</div>
+          </div>
+          <div class="card card-gradient" onclick="initCloudSettingsView(); goTo('cloud-settings');"
+            style="background: linear-gradient(135deg, #3498db, #3498db); margin-bottom:0;">
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">Bulut Bağlantıları</div>
+            <div class="card-value" style="font-size:1.2rem;">Bağlantı Ayarları ➔</div>
           </div>
         </div>
       </div>
@@ -91,15 +109,26 @@
       <div id="view-cari" class="view hidden">
         <div class="card mb-4">
           <div class="compact-filters" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
-            <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..." onkeypress="if(event.key === 'Enter') renderCari(true)">
-            <select id="filter-cari-grup"><option value="">Tüm Gruplar</option></select>
-            <select id="filter-cari-sector"><option value="">Tüm Sektörler</option></select>
-            <select id="filter-cari-durum"><option value="hepsi">Tüm Durumlar</option><option value="alacakli">Alacaklı</option><option value="borclu">Borçlu</option></select>
+            <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..."
+              onkeypress="if(event.key === 'Enter') renderCari(true)">
+            <select id="filter-cari-grup">
+              <option value="">Tüm Gruplar</option>
+            </select>
+            <select id="filter-cari-sector">
+              <option value="">Tüm Sektörler</option>
+            </select>
+            <select id="filter-cari-durum">
+              <option value="hepsi">Tüm Durumlar</option>
+              <option value="alacakli">Alacaklı</option>
+              <option value="borclu">Borçlu</option>
+            </select>
             <button class="btn-primary" onclick="renderCari(true)">Ara</button>
           </div>
           <div class="grid-2 mt-4">
-            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent); font-size:0.8rem;" onclick="openGrupModal('CurrentGroup')">⚙️ Cari Grupları</button>
-            <button class="btn-outline" style="border-color:var(--amber); color:var(--amber); font-size:0.8rem;" onclick="openGrupModal('Sector')">⚙️ Sektörler</button>
+            <button class="btn-outline" style="border-color:var(--accent); color:var(--accent); font-size:0.8rem;"
+              onclick="openGrupModal('CurrentGroup')">⚙️ Cari Grupları</button>
+            <button class="btn-outline" style="border-color:var(--amber); color:var(--amber); font-size:0.8rem;"
+              onclick="openGrupModal('Sector')">⚙️ Sektörler</button>
           </div>
         </div>
         <div id="cari-list"></div>
@@ -201,6 +230,65 @@
         <div id="kasa-list"></div>
       </div>
 
+      <div id="view-publish" class="view hidden">
+        <div class="card mb-2">
+          <div class="compact-filters" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
+            <select id="filter-pub-cat" onchange="renderPublishProducts()">
+              <option value="">Tüm Kategoriler</option>
+            </select>
+            <select id="filter-pub-group" onchange="renderPublishProducts()">
+              <option value="">Tüm Gruplar</option>
+            </select>
+            <select id="filter-pub-brand" onchange="renderPublishProducts()">
+              <option value="">Tüm Markalar</option>
+            </select>
+            <select id="filter-pub-status" onchange="renderPublishProducts()">
+              <option value="all">Tüm Ürünler</option>
+              <option value="published">Yayındakiler</option>
+              <option value="unpublished">Yayında Olmayanlar</option>
+            </select>
+            <input type="text" id="filter-pub-q" placeholder="Ürün Ara..." onkeyup="renderPublishProducts()">
+          </div>
+        </div>
+
+        <div
+          style="background:var(--bg); border:1px solid var(--border); border-radius:0.5rem; padding:0.5rem; margin-bottom: 80px; margin-top: 10px;">
+
+          <div
+            style="display:flex; gap:0.4rem; font-size:0.75rem; font-weight:bold; color:var(--text-muted); align-items:center; border-bottom:2px solid var(--border); padding-bottom:0.5rem; margin-bottom:0.5rem;">
+            <div style="width:24px; display:flex; justify-content:center;">
+              <input type="checkbox" id="pub-master-cb" onclick="toggleAllPublish(this.checked)"
+                style="width:18px; height:18px; accent-color:var(--green); cursor:pointer; margin:0;">
+            </div>
+            <div style="flex:3; text-align:left;">Ürün Adı</div>
+            <div style="flex:2;">N. Fiyat</div>
+            <div style="flex:1.5;">İnd.%</div>
+            <div style="flex:2;">S. Fiyat</div>
+            <div style="flex:1.5;">Stok</div>
+          </div>
+
+          <div id="publish-list"></div>
+        </div>
+
+        <button class="icon-btn" onclick="openPublishListModal()"
+          style="position: fixed; bottom: 80px; right: 20px; z-index: 40; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 1.5rem; display: flex; justify-content: center; align-items: center;">🚀</button>
+      </div>
+
+      <div id="mo-publish-list" class="mo" onclick="closeOnOutside(event, 'mo-publish-list')" style="z-index: 80;">
+        <div class="mo-content"
+          style="max-width: 600px; width: 95%; height: 85vh; display: flex; flex-direction: column;">
+          <div class="mo-header">
+            <div class="mo-title">Yayınlanacak Ürünler</div>
+            <button class="icon-btn" onclick="closeM('mo-publish-list')">✕</button>
+          </div>
+          <div style="flex:1; overflow-y:auto; padding-right:5px;" id="publish-cart-list"></div>
+          <div style="margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
+            <button class="btn-primary" onclick="publishAction()" style="background: var(--green);">Web Sitesinde
+              Yayınla / Güncelle</button>
+          </div>
+        </div>
+      </div>
+
       <div id="view-ayarlar" class="view hidden">
         <div class="card mb-4">
           <div class="grid-2">
@@ -234,6 +322,85 @@
         </div>
       </div>
 
+      <div id="view-cloud-settings" class="view hidden">
+        <div class="grid-2 mb-4">
+
+          <div class="card card-gradient" onclick="openErpConfigModal()"
+            style="background: linear-gradient(135deg, #3498db, #2980b9); margin-bottom:0;">
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">🏢 ERP Bulut Erişimi</div>
+            <div class="card-value" style="font-size:1.1rem;">Ozsecer-ERP Ayarları ➔</div>
+          </div>
+
+          <div class="card card-gradient" onclick="openMarketConfigModal()"
+            style="background: linear-gradient(135deg, #2ecc71, #27ae60); margin-bottom:0;">
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">🛒 Market Bulut Erişimi</div>
+            <div class="card-value" style="font-size:1.1rem;">E-Esnaf Vitrin Ayarları ➔</div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div id="mo-erp-config" class="mo" onclick="closeOnOutside(event, 'mo-erp-config')" style="z-index: 95;">
+        <div class="mo-content" style="max-width: 500px; width: 95%;">
+          <div class="mo-header">
+            <div class="mo-title">🏢 ERP Bulut Ayarları (Ozsecer-ERP)</div>
+            <button class="icon-btn" onclick="closeM('mo-erp-config')">✕</button>
+          </div>
+          <div style="margin-bottom:15px; font-size:0.8rem; color:var(--text-muted);">
+            Güvenliğiniz için anahtarlar sadece bu tarayıcının hafızasında şifreli saklanır.
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" id="fb-erp-apiKey" placeholder="apiKey">
+            <input type="text" id="fb-erp-authDomain" placeholder="authDomain">
+            <input type="text" id="fb-erp-projectId" placeholder="projectId">
+            <input type="text" id="fb-erp-storageBucket" placeholder="storageBucket">
+            <input type="text" id="fb-erp-messagingSenderId" placeholder="messagingSenderId">
+            <input type="text" id="fb-erp-appId" placeholder="appId">
+            <hr style="border-color: var(--border); margin: 5px 0;">
+            <div style="font-size: 0.75rem; color: var(--accent); font-weight:bold;">🔒 Yetkili Girişi</div>
+            <input type="email" id="fb-erp-email" placeholder="Firebase Admin Email">
+            <input type="password" id="fb-erp-pass" placeholder="Firebase Admin Şifre">
+          </div>
+          <button class="btn-primary mt-4" onclick="saveErpConfig()"
+            style="background: #3498db; border-color: #3498db; width: 100%;">💾 ERP Sistemine Bağlan</button>
+          <button class="btn-danger" onclick="disconnectErp()"
+            style="background: var(--red); border-color: #3498db; width: 100%;">
+            🔌 Bağlantıyı Kes
+          </button>
+        </div>
+      </div>
+
+      <div id="mo-market-config" class="mo" onclick="closeOnOutside(event, 'mo-market-config')" style="z-index: 95;">
+        <div class="mo-content" style="max-width: 500px; width: 95%;">
+          <div class="mo-header">
+            <div class="mo-title">🛒 Market Bulut Ayarları (E-Esnaf)</div>
+            <button class="icon-btn" onclick="closeM('mo-market-config')">✕</button>
+          </div>
+          <div style="margin-bottom:15px; font-size:0.8rem; color:var(--text-muted);">
+            Vitrin projenizin ürünleri çekeceği harici B2B veri tabanı anahtarları.
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <input type="text" id="fb-mkt-apiKey" placeholder="apiKey">
+            <input type="text" id="fb-mkt-authDomain" placeholder="authDomain">
+            <input type="text" id="fb-mkt-projectId" placeholder="projectId">
+            <input type="text" id="fb-mkt-storageBucket" placeholder="storageBucket">
+            <input type="text" id="fb-mkt-messagingSenderId" placeholder="messagingSenderId">
+            <input type="text" id="fb-mkt-appId" placeholder="appId">
+            <hr style="border-color: var(--border); margin: 5px 0;">
+            <div style="font-size: 0.75rem; color: var(--accent); font-weight:bold;">🔒 Yetkili Girişi</div>
+            <input type="email" id="fb-erp-email" placeholder="Firebase Admin Email">
+            <input type="password" id="fb-erp-pass" placeholder="Firebase Admin Şifre">
+          </div>
+          <button class="btn-primary mt-4" onclick="saveMarketConfig()"
+            style="background: #3498db; border-color: #3498db; width: 100%;">💾 Market Vitrinine Bağlan</button>
+          <button class="btn-danger" onclick="disconnectMarket()"
+            style="background: var(--red); border-color: #3498db; width: 100%;">
+            🔌 Bağlantıyı Kes
+          </button>
+        </div>
+      </div>
+
       <div id="view-analiz" class="view hidden">
         <div class="card mb-4">
           <div class="compact-filters">
@@ -257,7 +424,6 @@
       <div class="nav-item" onclick="goTo('urun')" id="nav-urun"><span>📦</span><span>Ürün</span></div>
       <div class="nav-item" onclick="goTo('sip')" id="nav-sip"><span>📋</span><span>Sipariş</span></div>
       <div class="nav-item" onclick="goTo('kasa')" id="nav-kasa"><span>💰</span><span>Kasa</span></div>
-      <div class="nav-item" onclick="goTo('analiz')" id="nav-analiz"><span>📊</span><span>Analiz</span></div>
     </div>
   </div>
 
@@ -275,8 +441,12 @@
       <input type="hidden" id="mc-Id">
       <input type="text" id="mc-Name" placeholder="Firma / Şahıs Adı*">
       <div class="grid-2">
-        <select id="mc-CurrentGroupId"><option value="">Grup Yok</option></select>
-        <select id="mc-SectorId"><option value="">Sektör Yok</option></select>
+        <select id="mc-CurrentGroupId">
+          <option value="">Grup Yok</option>
+        </select>
+        <select id="mc-SectorId">
+          <option value="">Sektör Yok</option>
+        </select>
       </div>
 
       <div class="grid-2">
@@ -289,7 +459,9 @@
         <input type="text" id="mc-IdentityNumber" placeholder="TC Kimlik No" inputmode="numeric">
       </div>
 
-      <input type="text" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)" inputmode="decimal" onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';" onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
+      <input type="text" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)" inputmode="decimal"
+        onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';"
+        onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
       <textarea id="mc-Address" placeholder="Açık Adres" rows="2"></textarea>
 
       <button class="btn-primary mt-4" onclick="saveCari()">Kaydet</button>
@@ -307,71 +479,100 @@
       </div>
       <input type="hidden" id="mu-Id">
       <input type="text" id="mu-Name" placeholder="Ürün Adı*">
-      
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; position: relative; z-index: 60;">
-        
+
+      <div
+        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; position: relative; z-index: 60;">
+
         <div class="c-select" id="cs-wrap-mu-CategoryId">
-          <div class="c-select-display" onclick="toggleCSelect('mu-CategoryId', 'Category')" style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-CategoryId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Kategori Seç</span>
+          <div class="c-select-display" onclick="toggleCSelect('mu-CategoryId', 'Category')"
+            style="padding:0.4rem; font-size:0.8rem;">
+            <span id="csd-mu-CategoryId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Kategori
+              Seç</span>
             <span style="font-size:0.6rem; margin-left:2px;">▼</span>
           </div>
           <input type="hidden" id="mu-CategoryId">
           <div class="c-select-menu" id="csm-mu-CategoryId">
-            <input type="text" class="c-select-search" id="css-mu-CategoryId" placeholder="Ara..." onkeyup="renderCSelectList('mu-CategoryId', 'Category', this.value)" onclick="event.stopPropagation()">
+            <input type="text" class="c-select-search" id="css-mu-CategoryId" placeholder="Ara..."
+              onkeyup="renderCSelectList('mu-CategoryId', 'Category', this.value)" onclick="event.stopPropagation()">
             <div class="c-select-list" id="csl-mu-CategoryId"></div>
           </div>
         </div>
 
         <div class="c-select" id="cs-wrap-mu-ProductGroupId">
-          <div class="c-select-display" onclick="toggleCSelect('mu-ProductGroupId', 'ProductGroup')" style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-ProductGroupId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Grup Seç</span>
+          <div class="c-select-display" onclick="toggleCSelect('mu-ProductGroupId', 'ProductGroup')"
+            style="padding:0.4rem; font-size:0.8rem;">
+            <span id="csd-mu-ProductGroupId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Grup
+              Seç</span>
             <span style="font-size:0.6rem; margin-left:2px;">▼</span>
           </div>
           <input type="hidden" id="mu-ProductGroupId">
           <div class="c-select-menu" id="csm-mu-ProductGroupId">
-            <input type="text" class="c-select-search" id="css-mu-ProductGroupId" placeholder="Ara..." onkeyup="renderCSelectList('mu-ProductGroupId', 'ProductGroup', this.value)" onclick="event.stopPropagation()">
+            <input type="text" class="c-select-search" id="css-mu-ProductGroupId" placeholder="Ara..."
+              onkeyup="renderCSelectList('mu-ProductGroupId', 'ProductGroup', this.value)"
+              onclick="event.stopPropagation()">
             <div class="c-select-list" id="csl-mu-ProductGroupId"></div>
           </div>
         </div>
 
         <div class="c-select" id="cs-wrap-mu-BrandId">
-          <div class="c-select-display" onclick="toggleCSelect('mu-BrandId', 'Brand')" style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-BrandId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Marka Seç</span>
+          <div class="c-select-display" onclick="toggleCSelect('mu-BrandId', 'Brand')"
+            style="padding:0.4rem; font-size:0.8rem;">
+            <span id="csd-mu-BrandId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Marka
+              Seç</span>
             <span style="font-size:0.6rem; margin-left:2px;">▼</span>
           </div>
           <input type="hidden" id="mu-BrandId">
           <div class="c-select-menu" id="csm-mu-BrandId">
-            <input type="text" class="c-select-search" id="css-mu-BrandId" placeholder="Ara..." onkeyup="renderCSelectList('mu-BrandId', 'Brand', this.value)" onclick="event.stopPropagation()">
+            <input type="text" class="c-select-search" id="css-mu-BrandId" placeholder="Ara..."
+              onkeyup="renderCSelectList('mu-BrandId', 'Brand', this.value)" onclick="event.stopPropagation()">
             <div class="c-select-list" id="csl-mu-BrandId"></div>
           </div>
         </div>
 
       </div>
-      
+
       <div class="flex gap-2">
         <input type="text" id="mu-BarCode" placeholder="Barkod" inputmode="numeric" pattern="[0-9]*">
-        <button class="icon-btn" onclick="startCam('urun-form')" style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
+        <button class="icon-btn" onclick="startCam('urun-form')"
+          style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
       </div>
-      
-<div style="margin-bottom:0.75rem; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
-        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün Fotoğrafı</label>
-        <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)" style="padding:0.2rem; font-size:0.8rem; margin:0;">
+
+      <div style="margin-bottom:0.75rem; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
+        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün
+          Fotoğrafı</label>
+        <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)"
+          style="padding:0.2rem; font-size:0.8rem; margin:0;">
         <div style="position:relative; display:inline-block; margin-top:8px;">
-          <img id="mu-foto-preview" style="width:100px; height:100px; object-fit:cover; display:none; border-radius:0.4rem; border:1px solid var(--border);">
-          <button id="mu-foto-remove" class="icon-btn" style="position:absolute; top:-10px; right:-10px; background:var(--red); color:white; width:24px; height:24px; font-size:12px; display:none; border-radius:50%; padding:0; justify-content:center; align-items:center;" onclick="removeUrunFoto()">✕</button>
+          <img id="mu-foto-preview"
+            style="width:100px; height:100px; object-fit:cover; display:none; border-radius:0.4rem; border:1px solid var(--border);">
+          <button id="mu-foto-remove" class="icon-btn"
+            style="position:absolute; top:-10px; right:-10px; background:var(--red); color:white; width:24px; height:24px; font-size:12px; display:none; border-radius:50%; padding:0; justify-content:center; align-items:center;"
+            onclick="removeUrunFoto()">✕</button>
         </div>
       </div>
-      
-<div class="grid-2">
-        <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı" inputmode="decimal" onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';" onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
-        <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı" inputmode="decimal" onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';" onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
+
+      <div class="grid-2">
+        <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı" inputmode="decimal"
+          onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
+          onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
+        <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı" inputmode="decimal"
+          onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';"
+          onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
       </div>
-      
+
       <div class="grid-2">
         <input type="number" id="mu-StockQuantity" placeholder="Stok Miktarı" inputmode="decimal">
-        <select id="mu-UnitId"><option value="1">Adet</option><option value="2">Kg</option><option value="3">Gr</option><option value="4">Litre</option><option value="5">Metre</option><option value="6">Paket</option><option value="7">Koli</option></select>
+        <select id="mu-UnitId">
+          <option value="1">Adet</option>
+          <option value="2">Kg</option>
+          <option value="3">Gr</option>
+          <option value="4">Litre</option>
+          <option value="5">Metre</option>
+          <option value="6">Paket</option>
+          <option value="7">Koli</option>
+        </select>
       </div>
-      
+
       <textarea id="mu-Description" placeholder="Açıklama" rows="2"></textarea>
       <button class="btn-primary mt-4" onclick="saveUrun()">Kaydet</button>
     </div>
@@ -430,7 +631,9 @@
         </div>
         <div>
           <div id="ms-SubTotalPrice" style="font-size:0.9rem">₺0,00</div>
-          <div><input type="number" id="ms-DisCount" value="0" inputmode="decimal" style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;" onkeyup="calcSipTotal()"></div>
+          <div><input type="number" id="ms-DisCount" value="0" inputmode="decimal"
+              style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;"
+              onkeyup="calcSipTotal()"></div>
           <div id="ms-TotalPrice" style="font-weight:bold; color:var(--accent); font-size:1.1rem;">₺0,00</div>
         </div>
       </div>
@@ -473,7 +676,9 @@
         </div>
       </div>
 
-      <input type="text" id="mk-Payment" placeholder="İşlem Tutarı*" inputmode="decimal" onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';" onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
+      <input type="text" id="mk-Payment" placeholder="İşlem Tutarı*" inputmode="decimal"
+        onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';"
+        onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
       <textarea id="mk-Description" placeholder="Açıklama" rows="2"></textarea>
       <button class="btn-primary mt-4" onclick="saveKasa()">Kaydet</button>
     </div>
@@ -532,9 +737,14 @@
 
   <div id="mo-urun-tanimi" class="mo" onclick="closeOnOutside(event, 'mo-urun-tanimi')">
     <div class="mo-content" style="max-width: 400px;">
-      <div class="mo-header"><div class="mo-title" id="mut-title">Tanım Yönetimi</div><button class="icon-btn" onclick="closeM('mo-urun-tanimi')">✕</button></div>
+      <div class="mo-header">
+        <div class="mo-title" id="mut-title">Tanım Yönetimi</div><button class="icon-btn"
+          onclick="closeM('mo-urun-tanimi')">✕</button>
+      </div>
       <div id="mut-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
-      <div class="flex gap-2 mb-4"><input type="text" id="mut-new-ad" placeholder="Yeni Kayıt Adı" style="margin-bottom:0;"><button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;" onclick="addTempUrunTanimi()">+</button></div>
+      <div class="flex gap-2 mb-4"><input type="text" id="mut-new-ad" placeholder="Yeni Kayıt Adı"
+          style="margin-bottom:0;"><button class="btn-primary" style="width:auto; padding: 0.6rem 1rem;"
+          onclick="addTempUrunTanimi()">+</button></div>
       <button class="btn-primary" onclick="saveUrunTanimi()">Değişiklikleri Kaydet</button>
     </div>
   </div>
@@ -597,6 +807,34 @@
     </div>
   </div>
 
+  <div id="mo-publish-detail" class="mo" onclick="closeOnOutside(event, 'mo-publish-detail')" style="z-index: 85;">
+    <div class="mo-content" style="max-width: 500px;">
+      <div class="mo-header">
+        <div class="mo-title" id="mpd-title">Ürün Yayın Bilgisi</div>
+        <button class="icon-btn" onclick="closeM('mo-publish-detail')">✕</button>
+      </div>
+      <h4 id="mpd-Name" style="margin-bottom:1rem; font-size:1.1rem;"></h4>
+      <input type="hidden" id="mpd-ProductId">
+      <div class="grid-2">
+        <input type="text" id="mpd-Price" placeholder="Normal Fiyat" inputmode="decimal"
+          onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
+          onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'" oninput="calcSingleDetail('Price')">
+        <input type="text" id="mpd-DiscountRate" placeholder="İndirim %" inputmode="decimal"
+          onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
+          onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'"
+          oninput="calcSingleDetail('DiscountRate')">
+      </div>
+      <div class="grid-2">
+        <input type="text" id="mpd-SalePrice" placeholder="İndirimli Fiyat" inputmode="decimal"
+          onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
+          onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'"
+          oninput="calcSingleDetail('SalePrice')">
+        <input type="number" id="mpd-StockQuantity" placeholder="Satışa Sunulacak Stok" inputmode="numeric">
+      </div>
+      <button class="btn-primary mt-4" onclick="savePublishDetail()">Kaydet ve Yayınla</button>
+    </div>
+  </div>
+
   <div id="mo-sync-config" class="mo" onclick="closeOnOutside(event, 'mo-sync-config')" style="z-index: 400;">
     <div class="mo-content">
       <div class="mo-header">
@@ -613,12 +851,14 @@
       <div id="sync-step-2" class="hidden" style="margin-top: 0.5rem;">
         <p class="text-muted mb-4" style="font-size:0.85rem">Lütfen yapmak istediğiniz yedekleme türünü seçin:</p>
         <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.2rem;">
-          <label style="display: flex; align-items: center; gap: 0.6rem;"><input type="radio" style="margin:0px; width:40px;" name="syncMode"
-              id="sync-mode-update" value="update" checked onchange="toggleSyncMode()"><span
-              style="font-size: 0.95rem; font-weight: 600;">Mevcut Olanı Güncelle</span></label>
-          <label style="display: flex; align-items: center; gap: 0.6rem;"><input type="radio" style="margin:0px; width:40px;" name="syncMode"
-              id="sync-mode-new" value="new" onchange="toggleSyncMode()"><span
-              style="font-size: 0.95rem; font-weight: 600;">Yeni Dosya Oluştur</span></label>
+          <label style="display: flex; align-items: center; gap: 0.6rem;"><input type="radio"
+              style="margin:0px; width:40px;" name="syncMode" id="sync-mode-update" value="update" checked
+              onchange="toggleSyncMode()"><span style="font-size: 0.95rem; font-weight: 600;">Mevcut Olanı
+              Güncelle</span></label>
+          <label style="display: flex; align-items: center; gap: 0.6rem;"><input type="radio"
+              style="margin:0px; width:40px;" name="syncMode" id="sync-mode-new" value="new"
+              onchange="toggleSyncMode()"><span style="font-size: 0.95rem; font-weight: 600;">Yeni Dosya
+              Oluştur</span></label>
         </div>
         <div id="sync-update-container"><select id="sync-file-select"
             style="margin-bottom: 1.5rem; width:100%; padding:0.6rem; border-radius:0.4rem; border:1px solid var(--border);"></select>

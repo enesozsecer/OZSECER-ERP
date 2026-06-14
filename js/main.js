@@ -10,7 +10,10 @@ import * as Kasa from './modules/kasa.js';
 import * as Analiz from './modules/analiz.js';
 import * as Kampanya from './modules/kampanya.js';
 import * as Sistem from './modules/sistem.js';
+import * as Publish from './modules/publish.js';
+import * as FirebaseModule from './core/firebase.js';
 
+Object.assign(window, FirebaseModule);
 Object.assign(window, DBModule);
 Object.assign(window, Utils);
 Object.assign(window, PdfEngine);
@@ -23,7 +26,13 @@ Object.assign(window, Kasa);
 Object.assign(window, Analiz);
 Object.assign(window, Kampanya);
 Object.assign(window, Sistem);
+Object.assign(window, Publish);
 
-window.onload = function() {
+window.onload = async function() {
     Auth.checkAuth();
+    const cloudStatus = await FirebaseModule.initFirebase();
+    if (!cloudStatus || !cloudStatus.includes("ERP")) {
+        FirebaseModule.openErpConfigModal();
+        if (window.showToast) window.showToast("Sistem tutarlılığı için lütfen bulut girişinizi yapın.");
+    }
 };

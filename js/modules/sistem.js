@@ -30,7 +30,6 @@ export function connectAndFetchFiles() {
   try {
     if (cId !== lastUsedClientId || fId !== currentDriveFolderId) { driveAccessToken = null; lastUsedClientId = cId; currentDriveFolderId = fId; }
 
-    // HESAP SEÇİM KURALI (prompt) BURAYA EKLENDİ (MOBİL OS EZEMEZ)
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: cId,
       scope: 'https://www.googleapis.com/auth/drive.file',
@@ -43,7 +42,6 @@ export function connectAndFetchFiles() {
     });
 
     if (!driveAccessToken) {
-      // Parametre initTokenClient'tan alındığı için burası boş bırakıldı
       tokenClient.requestAccessToken();
     } else { fetchFileListFromDrive(); }
   } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
@@ -108,7 +106,7 @@ export async function executePullMergePush() {
       const postRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', { method: 'POST', headers: { 'Authorization': `Bearer ${driveAccessToken}` }, body: form });
       if (!postRes.ok) throw new Error("Yeni dosya başarısız.");
     }
-    saveDB(); hideSpinner(); window.location.reload();
+    saveDB(); hideSpinner(); showCustomAlert("Başarıyla eşitlendi!", true);
   } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
 }
 
@@ -146,7 +144,6 @@ export function verifyClientForReset() {
   try {
     if (cId !== lastUsedClientId || fId !== currentDriveFolderId) { driveAccessToken = null; lastUsedClientId = cId; currentDriveFolderId = fId; }
 
-    // HESAP SEÇİM KURALI BURAYA DA EKLENDİ
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: cId,
       scope: 'https://www.googleapis.com/auth/drive.file',
@@ -184,14 +181,12 @@ export function confirmResetAuth() {
   const u = $('reset-user').value.trim(); const p = $('reset-pass').value.trim();
   const bcrypt = window.dcodeIO ? window.dcodeIO.bcrypt : window.bcrypt;
 
-  // 1. Düz metin olarak girilen E-Posta, kayıtlı Bcrypt Hash ile eşleşiyor mu?
   const isUserValid = bcrypt.compareSync(u, ADMIN_USER_HASH);
-  // 2. Düz metin olarak girilen Şifre, kayıtlı Bcrypt Hash ile eşleşiyor mu?
   const isPassValid = bcrypt.compareSync(p, ADMIN_PASS_HASH);
-  if (!isUserValid || !isPassValid) return showToast('❌ Hatalı kullanıcı adı veya şifre!');
+  if (!isUserValid || !isPassValid) return showToast('Hatalı kullanıcı adı veya şifre!');
   closeM('mo-reset-auth');
-  if (currentResetTarget === 'local') { if (confirm("⚠️ TÜM VERİLER silinecek?")) { DB.Current = []; DB.Product = []; DB.Order = []; DB.OrderItem = []; DB.Payment = []; DB.CurrentGroup = []; DB.ProductGroup = []; DB.Category = []; DB.Brand = []; DB.Offer = []; DB.OfferItem = []; DB.Sector = []; saveDB(); window.location.reload(); } }
-  else if (currentResetTarget === 'drive') { if (confirm("🚨 DRIVE YEDEKLERİ silinecek?")) { executeDriveReset(); } }
+  if (currentResetTarget === 'local') { if (confirm("TÜM VERİLER silinecek?")) { DB.Current = []; DB.Product = []; DB.Order = []; DB.OrderItem = []; DB.Payment = []; DB.CurrentGroup = []; DB.ProductGroup = []; DB.Category = []; DB.Brand = []; DB.Offer = []; DB.OfferItem = []; DB.Sector = []; saveDB(); showToast("Tüm yerel veriler sıfırlandı!"); } }
+  else if (currentResetTarget === 'drive') { if (confirm("DRIVE YEDEKLERİ silinecek?")) { executeDriveReset(); } }
 }
 
 export async function executeDriveReset() {
@@ -236,9 +231,6 @@ export function downloadExcel(withData) {
     function addSheet(sheetName, info) {
       let wsData = [info.headers];
       if (withData && info.db && Array.isArray(info.db)) {
-        
-        // .filter(x => !x.Deleted) filtresi kaldırıldı! 
-        // Böylece silinen (true) datalar da Excel satırlarına eklenecek.
         info.db.forEach(item => { 
           let row = []; 
           info.headers.forEach(h => { 
@@ -250,7 +242,6 @@ export function downloadExcel(withData) {
           }); 
           wsData.push(row); 
         });
-        
       }
       const ws = window.XLSX.utils.aoa_to_sheet(wsData); window.XLSX.utils.book_append_sheet(wb, ws, sheetName);
     }
@@ -274,10 +265,9 @@ export function handleExcelImport(event) {
 
         if (targetDB && Array.isArray(targetDB)) {
           rows.forEach(row => {
-            if (Object.keys(row).length < 2) return; // Boş satırları yoksay
+            if (Object.keys(row).length < 2) return;
             const rowId = row.Id ? String(row.Id).trim() : '';
 
-            // Excel'den gelen "Deleted" (Silindi) durumunu güvenle algıla
             let isDeleted = false;
             if (row.Deleted !== undefined && row.Deleted !== "") {
               isDeleted = String(row.Deleted).toLowerCase() === 'true' || row.Deleted === 1 || row.Deleted === '1';
@@ -286,10 +276,8 @@ export function handleExcelImport(event) {
             if (rowId !== '') {
               const existing = targetDB.find(x => x.Id === rowId);
               if (existing) {
-                // ================= GÜNCELLEME İŞLEMİ =================
                 let degisiklikVar = false;
                 Object.keys(row).forEach(key => {
-                  // Audit (Log) verilerinin Excel tarafından ezilmesini kesin olarak yasakla!
                   const protectedKeys = ['Id', 'Deleted', 'CreatedDate', 'CreatedUser', 'UpdatedDate', 'UpdatedUser', 'DeletedDate', 'DeletedUser'];
                   if (!protectedKeys.includes(key)) {
                     if (key === 'PicturePath' && row[key] === '[SİSTEMDE KAYITLI GÖRSEL]') return;
@@ -300,7 +288,6 @@ export function handleExcelImport(event) {
                   }
                 });
 
-                // Silinme Durumu Excel'den Tetiklendiyse
                 if (isDeleted && !existing.Deleted) {
                   existing.Deleted = true;
                   existing.DeletedDate = tsNow();
@@ -313,7 +300,6 @@ export function handleExcelImport(event) {
                   degisiklikVar = true;
                 }
 
-                // Herhangi bir veri değiştiyse Update loglarını bas
                 if (degisiklikVar) {
                   existing.UpdatedDate = tsNow();
                   existing.UpdatedUser = getCihazAdi();
@@ -321,7 +307,6 @@ export function handleExcelImport(event) {
                 }
               }
               else {
-                // ================= YENİ KAYIT (ID Var ama DB'de Yok) =================
                 if (row.PicturePath === '[SİSTEMDE KAYITLI GÖRSEL]') row.PicturePath = '';
                 row.Deleted = isDeleted;
                 row.CreatedDate = tsNow();
@@ -332,7 +317,6 @@ export function handleExcelImport(event) {
                 targetDB.push(row); eklendi++;
               }
             } else {
-              // ================= YENİ KAYIT (Yepyeni Satır) =================
               if (row.PicturePath === '[SİSTEMDE KAYITLI GÖRSEL]') row.PicturePath = '';
               row.Id = guid();
               row.Deleted = isDeleted;
@@ -346,7 +330,7 @@ export function handleExcelImport(event) {
           });
         }
       });
-      saveDB(); window.location.reload();
+      saveDB(); hideSpinner(); showCustomAlert("Excel başarıyla içe aktarıldı!", true);
     } catch (err) { hideSpinner(); showCustomAlert(err.message, false); }
     event.target.value = '';
   };

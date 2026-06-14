@@ -15,7 +15,7 @@ export function goTo(view) {
   const targetView = $(`view-${view}`); if (targetView) targetView.classList.remove('hidden');
   const targetNav = $(`nav-${view}`); if (targetNav) targetNav.classList.add('active');
 
-  const titles = { home: 'Ana Sayfa', cari: 'Cari Hesaplar', urun: 'Ürünler', sip: 'Siparişler', kasa: 'Kasa', analiz: 'Analiz', ayarlar: 'Sistem Yönetimi' };
+  const titles = { home: 'Ana Sayfa', cari: 'Cari Hesaplar', urun: 'Ürünler', sip: 'Siparişler', kasa: 'Kasa', analiz: 'Analiz', ayarlar: 'Sistem Yönetimi', publish: 'Yayın' };
   const topTitle = $('top-title'); if (topTitle) topTitle.innerText = titles[view] || 'OZSECER ERP';
 
   const fab = $('main-fab');

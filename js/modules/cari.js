@@ -17,17 +17,44 @@ export function openGrupModal(type) {
 }
 
 export function renderGrupList() {
-  const list = $('mg-list'); list.innerHTML = ''; if (tempGruplar.length === 0) { list.innerHTML = '<p class="text-muted">Kayıt yok.</p>'; return; }
-  tempGruplar.forEach((g, idx) => { list.innerHTML += `<div class="flex items-center gap-2 mb-2"><input type="text" value="${g.Name}" onchange="updateTempGrup(${idx}, this.value)" style="margin:0;"><button class="icon-btn text-red" onclick="deleteTempGrup(${idx})">🗑️</button></div>`; });
+  const list = $('mg-list'); list.innerHTML = ''; 
+  const activeItems = tempGruplar.filter(i => !i.Deleted);
+
+  if (activeItems.length === 0) { 
+      list.innerHTML = '<p class="text-muted">Kayıt yok.</p>'; 
+      return; 
+  }
+  
+  // Orijinal diziyi ezmeden ekrana basıyoruz ki indeksler kaymasın
+  tempGruplar.forEach((g, idx) => { 
+      if (!g.Deleted) {
+          list.innerHTML += `<div class="flex items-center gap-2 mb-2">
+            <input type="text" value="${g.Name}" onchange="updateTempGrup(${idx}, this.value)" style="margin:0;">
+            <button class="icon-btn text-red" onclick="deleteTempGrup(${idx})">🗑️</button>
+          </div>`; 
+      }
+  });
 }
 
 export function addTempGrup() { 
-  const name = toTitleCaseTR($('mg-new-ad').value.trim()); if (!name) return; 
+  const name = toTitleCaseTR($('mg-new-ad').value.trim()); 
+  if (!name) return; 
   tempGruplar.push({ Id: guid(), Name: name, Deleted: false, CreatedDate: tsNow(), CreatedUser: getCihazAdi() }); 
-  $('mg-new-ad').value = ''; renderGrupList(); 
+  $('mg-new-ad').value = ''; 
+  renderGrupList(); 
 }
-export function updateTempGrup(idx, val) { tempGruplar[idx].Name = toTitleCaseTR(val.trim()); tempGruplar[idx].UpdatedDate = tsNow(); }
-export function deleteTempGrup(idx) { tempGruplar[idx].Deleted = true; tempGruplar[idx].DeletedDate = tsNow(); renderGrupList(); }
+
+export function updateTempGrup(idx, val) { 
+  tempGruplar[idx].Name = toTitleCaseTR(val.trim()); 
+  tempGruplar[idx].UpdatedDate = tsNow(); 
+}
+
+export function deleteTempGrup(idx) { 
+  tempGruplar[idx].Deleted = true; 
+  tempGruplar[idx].DeletedDate = tsNow(); 
+  tempGruplar[idx].DeletedUser = getCihazAdi();
+  renderGrupList(); 
+}
 
 export function saveGrup() {
   const targetDB = tempGroupType === 'CurrentGroup' ? DB.CurrentGroup : DB.Sector;
