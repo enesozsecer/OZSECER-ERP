@@ -1,5 +1,5 @@
 import { DB, saveDB } from '../core/db.js';
-import { $, guid, tsNow, showToast, openM, closeM, showConfirm, showSpinner, hideSpinner, showCustomAlert, updateSpinner, getCihazAdi } from '../core/utils.js';
+import { $, guid, tsNow, showToast, openM, closeM, showConfirm, showSpinner, hideSpinner, showCustomAlert, updateSpinner, getCihazAdi, toTitleCaseTR } from '../core/utils.js';
 
 export let tokenClient;
 export let driveAccessToken = null;
@@ -267,6 +267,10 @@ export function handleExcelImport(event) {
           rows.forEach(row => {
             if (Object.keys(row).length < 2) return;
             const rowId = row.Id ? String(row.Id).trim() : '';
+
+            if (['CurrentGroup', 'Sector', 'ProductGroup', 'Category', 'Brand'].includes(sheetName) && row.Name) {
+              row.Name = toTitleCaseTR(String(row.Name).trim());
+            }
 
             let isDeleted = false;
             if (row.Deleted !== undefined && row.Deleted !== "") {

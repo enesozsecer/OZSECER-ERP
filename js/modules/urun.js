@@ -155,11 +155,11 @@ export function renderUrun(force = false) {
     let stok = Number(u.StockQuantity || 0); let bClass = stok >= 10 ? 'bg-green' : (stok > 0 ? 'bg-amber' : 'bg-red');
     
     let tagsHtml = '';
-    if(gName) tagsHtml += `<span class="badge" style="border:1px solid var(--accent); color:var(--accent);">${gName}</span>`;
     if(cName) tagsHtml += `<span class="badge" style="border:1px solid var(--green); color:var(--green);">${cName}</span>`;
+    if(gName) tagsHtml += `<span class="badge" style="border:1px solid var(--accent); color:var(--accent);">${gName}</span>`;
     if(bName) tagsHtml += `<span class="badge" style="border:1px solid var(--amber); color:var(--amber);">${bName}</span>`;
 
-    list.innerHTML += `<div class="list-item" onclick="editUrun('${u.Id}')"><div><div style="font-weight:bold; margin-bottom:4px;">${u.Name}</div><div style="display:flex; gap:4px; margin-bottom:4px;">${tagsHtml}</div><div style="font-size:0.75rem; color:var(--text-muted)">Barkod: ${u.BarCode || '-'}</div></div><div style="text-align:right"><div style="font-weight:bold; color:var(--accent)">${fp(u.SalePrice)}</div><span class="badge ${bClass}">${stok} ${getBirimAd(u.UnitId)}</span></div></div>`;
+    list.innerHTML += `<div class="list-item" onclick="editUrun('${u.Id}')"><div><div style="font-weight:bold; margin-bottom:4px;">${u.Name}</div><div style="display:flex; gap:4px; margin-bottom:4px;">${tagsHtml}</div></div><div style="text-align:right"><div style="font-weight:bold; color:var(--accent)">${fp(u.SalePrice)}</div><span class="badge ${bClass}">${stok} ${getBirimAd(u.UnitId)}</span></div></div>`;
   });
 }
 

@@ -494,15 +494,13 @@
       <input type="hidden" id="mu-Id">
       <input type="text" id="mu-Name" placeholder="Ürün Adı*">
 
-      <div
-        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; position: relative; z-index: 60;">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 0.75rem; position: relative; z-index: 60;">
 
-        <div class="c-select" id="cs-wrap-mu-CategoryId">
+<div class="c-select" id="cs-wrap-mu-CategoryId">
           <div class="c-select-display" onclick="toggleCSelect('mu-CategoryId', 'Category')"
             style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-CategoryId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Kategori
-              Seç</span>
-            <span style="font-size:0.6rem; margin-left:2px;">▼</span>
+            <span id="csd-mu-CategoryId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Kategori Seç</span>
+            <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
           </div>
           <input type="hidden" id="mu-CategoryId">
           <div class="c-select-menu" id="csm-mu-CategoryId">
@@ -515,9 +513,8 @@
         <div class="c-select" id="cs-wrap-mu-ProductGroupId">
           <div class="c-select-display" onclick="toggleCSelect('mu-ProductGroupId', 'ProductGroup')"
             style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-ProductGroupId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Grup
-              Seç</span>
-            <span style="font-size:0.6rem; margin-left:2px;">▼</span>
+            <span id="csd-mu-ProductGroupId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Grup Seç</span>
+            <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
           </div>
           <input type="hidden" id="mu-ProductGroupId">
           <div class="c-select-menu" id="csm-mu-ProductGroupId">
@@ -531,9 +528,8 @@
         <div class="c-select" id="cs-wrap-mu-BrandId">
           <div class="c-select-display" onclick="toggleCSelect('mu-BrandId', 'Brand')"
             style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-BrandId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Marka
-              Seç</span>
-            <span style="font-size:0.6rem; margin-left:2px;">▼</span>
+            <span id="csd-mu-BrandId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Marka Seç</span>
+            <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
           </div>
           <input type="hidden" id="mu-BrandId">
           <div class="c-select-menu" id="csm-mu-BrandId">
