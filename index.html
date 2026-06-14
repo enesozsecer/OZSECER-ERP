@@ -74,34 +74,31 @@
 
       <div id="view-home" class="view">
         <div class="grid-2 mb-4">
-          <div class="card card-gradient" onclick="openKatalogModal()"
+          <div class="card card-gradient"
+            onclick="if(window.initKatalogView) window.initKatalogView(); goTo('katalog');"
             style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-bottom:0;">
-            <div class="card-title" style="color: rgba(255,255,255,0.9);">Yeni Kampanya</div>
-            <div class="card-value" style="font-size:1.1rem;">Katalog Hazırla ➔</div>
-          </div>
-          <div class="card" onclick="openKampanyaListeModal()" style="margin-bottom:0;">
-            <div class="card-title">Kayıtlı Kampanyalar</div>
-            <div class="card-value" id="home-kampanya-count" style="font-size:1.1rem;">Geçmiş Kampanyalar ➔</div>
-          </div>
-          <div class="card card-gradient" onclick="initPublishView(); goTo('publish');"
-            style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
-            <div class="card-title" style="color: rgba(255,255,255,0.9);">B2B Vitrin Yayını</div>
-            <div class="card-value" style="font-size:1.2rem;">Yayın ➔</div>
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">Katalog & Kampanya</div>
+            <div class="card-value" style="font-size:1.1rem;">Katalog Yönetimi ➔</div>
           </div>
           <div class="card card-gradient" onclick="goTo('analiz')"
             style="background: linear-gradient(135deg, #8e44ad, #9b59b6); margin-bottom:0;">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Finansal Analiz</div>
             <div class="card-value" style="font-size:1.2rem;">Grafik & Raporlar ➔</div>
           </div>
-          <div class="card card-gradient" onclick="goTo('ayarlar')"
-            style="background: linear-gradient(135deg, #34495e, #2c3e50);">
-            <div class="card-title" style="color: rgba(255,255,255,0.9);">Sistem Yönetimi</div>
-            <div class="card-value" style="font-size:1.2rem;">Sistem &amp; Admin ➔</div>
+          <div class="card card-gradient" onclick="initPublishView(); goTo('publish');"
+            style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">B2B Vitrin Yayını</div>
+            <div class="card-value" style="font-size:1.2rem;">Vitrin & Yayın ➔</div>
           </div>
           <div class="card card-gradient" onclick="initCloudSettingsView(); goTo('cloud-settings');"
             style="background: linear-gradient(135deg, #3498db, #3498db); margin-bottom:0;">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Bulut Bağlantıları</div>
             <div class="card-value" style="font-size:1.2rem;">Bağlantı Ayarları ➔</div>
+          </div>
+          <div class="card card-gradient" onclick="goTo('ayarlar')"
+            style="background: linear-gradient(135deg, #34495e, #2c3e50);">
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">Sistem Yönetimi</div>
+            <div class="card-value" style="font-size:1.2rem;">Sistem &amp; Admin ➔</div>
           </div>
         </div>
       </div>
@@ -339,6 +336,23 @@
 
         </div>
 
+      </div>
+
+      <div id="view-katalog" class="view hidden">
+        <div class="grid-2 mb-4">
+
+          <div class="card card-gradient" onclick="openKatalogModal()"
+            style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-bottom:0;">
+            <div class="card-title" style="color: rgba(255,255,255,0.9);">Yeni Kampanya</div>
+            <div class="card-value" style="font-size:1.1rem;">Katalog Hazırla ➔</div>
+          </div>
+
+          <div class="card" onclick="openKampanyaListeModal()" style="margin-bottom:0;">
+            <div class="card-title">Kayıtlı Kampanyalar</div>
+            <div class="card-value" id="home-kampanya-count" style="font-size:1.1rem;">Geçmiş Kampanyalar ➔</div>
+          </div>
+
+        </div>
       </div>
 
       <div id="mo-erp-config" class="mo" onclick="closeOnOutside(event, 'mo-erp-config')" style="z-index: 95;">

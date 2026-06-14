@@ -5,6 +5,11 @@ import { renderHome } from './home.js';
 
 let tempOfferItems = [];
 
+export function initKatalogView() { 
+    const topTitle = document.getElementById('top-title');
+    if (topTitle) topTitle.innerText = 'Katalog Yönetimi'; 
+}
+
 export function openKatalogModal() {
   $('kat-Id').value = ''; $('kat-Name').value = ''; $('kat-Description').value = ''; $('filter-kat-q').value = ''; 
   $('kat-OfferDate').value = dtLocalNow();
