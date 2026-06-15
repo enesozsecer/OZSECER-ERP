@@ -51,7 +51,11 @@ export async function initPublishView() {
   }
 }
 
-export function renderPublishProducts() {
+let publishLimit = 20;
+
+export function renderPublishProducts(resetLimit = true) {
+  if (resetLimit) publishLimit = 20;
+
   const q = $('filter-pub-q').value.toLowerCase().trim();
   const cat = $('filter-pub-cat').value; const grp = $('filter-pub-group').value; const brn = $('filter-pub-brand').value; const status = $('filter-pub-status').value;
   const list = $('publish-list'); list.innerHTML = '';
@@ -91,6 +95,7 @@ export function renderPublishProducts() {
       }
   });
 
+  // Filtrele
   let filteredList = rawList.filter(item => {
       const pId = item.Id;
       const s = publishState[pId];
@@ -107,7 +112,14 @@ export function renderPublishProducts() {
       return true;
   });
 
-  filteredList.sort((a,b) => publishState[a.Id].Name.localeCompare(publishState[b.Id].Name)).forEach(item => {
+  // Sırala
+  filteredList.sort((a,b) => publishState[a.Id].Name.localeCompare(publishState[b.Id].Name));
+
+  // Sayfala (Kes)
+  let pagedList = filteredList.slice(0, publishLimit);
+
+  // Render
+  pagedList.forEach(item => {
     const pId = item.Id;
     const s = publishState[pId];
     const existingPub = marketPublishItems.find(x => x.ProductId === pId);
@@ -149,8 +161,20 @@ export function renderPublishProducts() {
       </div>`;
   });
   
+  // Tümünü seç checkbox'ı için güncelleme (Sadece render edilenleri baz alır, bu performans/güvenlik için iyidir)
   if($('pub-master-cb')) $('pub-master-cb').checked = visibleProductIds.length > 0 && visibleProductIds.every(id => selectedProductIds.has(id));
+
+  // Daha fazla göster butonu
+  if (filteredList.length > publishLimit) {
+    list.innerHTML += `<button class="btn-outline" style="margin-top:10px; width:100%; padding:0.8rem;" onclick="loadMorePublish()">Daha Fazla Göster (${filteredList.length - publishLimit} Kaldı)</button>`;
+  }
 }
+
+window.loadMorePublish = function() {
+    publishLimit += 20;
+    // resetLimit'i false gönderiyoruz ki limit baştan başlamasın
+    renderPublishProducts(false);
+};
 
 export function openPublishDetailModal(pId) {
     const s = publishState[pId];
@@ -220,13 +244,13 @@ export function openPublishDetailModal(pId) {
             <div>
                 <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Satış Birimi</label>
                 <select id="mpd-UnitId" style="height:40px;">
-                    <option value="1" ${String(s.UnitId) === '1' ? 'selected' : ''}>Adet</option>
+                    <option value="1" ${String(s.UnitId) === '1' ? 'selected' : ''}>Ad</option>
                     <option value="2" ${String(s.UnitId) === '2' ? 'selected' : ''}>Kg</option>
                     <option value="3" ${String(s.UnitId) === '3' ? 'selected' : ''}>Gr</option>
                     <option value="4" ${String(s.UnitId) === '4' ? 'selected' : ''}>Lt</option>
                     <option value="5" ${String(s.UnitId) === '5' ? 'selected' : ''}>Mt</option>
                     <option value="6" ${String(s.UnitId) === '6' ? 'selected' : ''}>Pk</option>
-                    <option value="7" ${String(s.UnitId) === '7' ? 'selected' : ''}>Koli</option>
+                    <option value="7" ${String(s.UnitId) === '7' ? 'selected' : ''}>Kl</option>
                 </select>
             </div>
         </div>

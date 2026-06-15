@@ -2,17 +2,36 @@ import { DB, saveDB } from '../core/db.js';
 import { $, guid, tsNow, dtLocalNow, dtFormat, fp, KASA, toRawTR, formatTR, parseRawTR, getCihazAdi, softDelete, showToast, openM, closeM, showConfirm } from '../core/utils.js';
 import { printKasa } from '../core/pdf.js';
 
-export function renderKasa(force = false) {
-  if (!force) return; const fTur = $('filter-kasa-tur').value; const fCari = $('filter-kasa-cari').value; const fGrup = $('filter-kasa-grup').value; const fStart = $('filter-kasa-start').value; const fEnd = $('filter-kasa-end').value; const list = $('kasa-list'); list.innerHTML = '';
-  DB.Payment.filter(x => !x.Deleted).sort((a, b) => new Date(b.PaymentDate) - new Date(a.PaymentDate)).forEach(t => {
-    const c = DB.Current.find(x => String(x.Id) === String(t.CurrentId)); const cObj = c || { Name: 'Bilinmeyen' };
-    if (fTur && Number(t.PaymentTypeId) !== Number(fTur)) return; if (fCari && String(t.CurrentId) !== String(fCari)) return;
-    if (fGrup) { if (!c || String(c.CurrentGroupId) !== String(fGrup)) return; }
-    if (fStart || fEnd) { const d = new Date(t.PaymentDate); if (fStart && d < new Date(fStart)) return; if (fEnd && d > new Date(fEnd + 'T23:59:59')) return; }
+let kasaLimit = 20;
+export function renderKasa(force = false, resetLimit = true) {
+  if (!force) return; 
+  if (resetLimit) kasaLimit = 20;
+
+  const fTur = $('filter-kasa-tur').value; const fCari = $('filter-kasa-cari').value; const fGrup = $('filter-kasa-grup').value; const fStart = $('filter-kasa-start').value; const fEnd = $('filter-kasa-end').value; const list = $('kasa-list'); list.innerHTML = '';
+  
+  let filtered = DB.Payment.filter(x => !x.Deleted).filter(t => {
+    const c = DB.Current.find(x => String(x.Id) === String(t.CurrentId));
+    if (fTur && Number(t.PaymentTypeId) !== Number(fTur)) return false; 
+    if (fCari && String(t.CurrentId) !== String(fCari)) return false;
+    if (fGrup) { if (!c || String(c.CurrentGroupId) !== String(fGrup)) return false; }
+    if (fStart || fEnd) { const d = new Date(t.PaymentDate); if (fStart && d < new Date(fStart)) return false; if (fEnd && d > new Date(fEnd + 'T23:59:59')) return false; }
+    return true;
+  });
+
+  filtered.sort((a, b) => new Date(b.PaymentDate) - new Date(a.PaymentDate));
+  let pagedList = filtered.slice(0, kasaLimit);
+
+  pagedList.forEach(t => {
+    const cObj = DB.Current.find(x => String(x.Id) === String(t.CurrentId)) || { Name: 'Bilinmeyen' };
     const isTah = Number(t.PaymentTypeId) === KASA.TAHSILAT;
     list.innerHTML += `<div class="list-item" onclick="editKasa('${t.Id}')"><div><div style="font-weight:bold; color:${isTah ? 'var(--green)' : 'var(--red)'}; font-size:0.9rem">${isTah ? '⬇️ Tahsilat' : '⬆️ Ödeme'}</div><div style="font-size:0.85rem">${cObj.Name}</div><div style="font-size:0.75rem; color:var(--text-muted)">${dtFormat(t.PaymentDate)}</div></div><div style="text-align:right; font-weight:bold; font-size:1.1rem">${fp(t.Payment)}</div></div>`;
   });
+
+  if (filtered.length > kasaLimit) {
+    list.innerHTML += `<button class="btn-outline" style="margin-top:10px; width:100%; padding:0.8rem;" onclick="loadMoreKasa()">Daha Fazla Göster (${filtered.length - kasaLimit} Kaldı)</button>`;
+  }
 }
+window.loadMoreKasa = function() { kasaLimit += 20; renderKasa(true, false); };
 
 export function openKasaModal() {
   $('mk-Id').value = ''; $('mk-PaymentTypeId').value = KASA.TAHSILAT; $('mk-PaymentDate').value = dtLocalNow(); $('mk-Payment').value = ''; $('mk-Description').value = ''; $('mk-CurrentId').value = ''; $('csd-mk-CurrentId').innerText = 'Cari Seçiniz...'; $('mk-del').classList.add('hidden'); $('mk-pdf').classList.add('hidden'); openM('mo-kasa');

@@ -22,23 +22,37 @@ export function openKatalogModal() {
   renderKatUrun(); renderKatSepet(); openM('mo-katalog');
 }
 
-export function renderKatUrun() {
+let katUrunLimit = 20;
+
+export function renderKatUrun(resetLimit = true) {
+  if (resetLimit) katUrunLimit = 20;
+
   const q = $('filter-kat-q').value.toLowerCase().trim(); 
-  const fCat = $('filter-kat-grup').value; // Artık kategori ID'sini tutuyor
+  const fCat = $('filter-kat-grup').value; 
   const list = $('kat-urun-list'); list.innerHTML = '';
   
-  let res = DB.Product.filter(x => !x.Deleted);
-  // KATEGORİYE GÖRE FİLTRELE
-  if (fCat) res = res.filter(u => String(u.CategoryId) === String(fCat));
-  if (q) res = res.filter(u => (u.Name + " " + (u.BarCode || "") + " " + (u.Description || "")).toLowerCase().includes(q));
+  let filteredList = DB.Product.filter(x => !x.Deleted);
+  if (fCat) filteredList = filteredList.filter(u => String(u.CategoryId) === String(fCat));
+  if (q) filteredList = filteredList.filter(u => (u.Name + " " + (u.BarCode || "") + " " + (u.Description || "")).toLowerCase().includes(q));
   
-  if (res.length === 0) { list.innerHTML = '<p class="text-muted" style="font-size:0.85rem;">Ürün bulunamadı.</p>'; return; }
+  if (filteredList.length === 0) { list.innerHTML = '<p class="text-muted" style="font-size:0.85rem;">Ürün bulunamadı.</p>'; return; }
   
-  res.forEach(u => {
+  let pagedList = filteredList.slice(0, katUrunLimit);
+
+  pagedList.forEach(u => {
     const isAdded = tempOfferItems.some(k => k.ProductId === u.Id && !k.Deleted);
     list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem; border-bottom:1px solid var(--border);"><div style="font-size:0.85rem; font-weight:bold;">${u.Name} <span style="font-weight:normal; color:var(--text-muted); font-size:0.75rem;">(S.Fiyat: ${fp(u.SalePrice)})</span></div><button class="${isAdded ? 'btn-outline' : 'btn-primary'}" style="width:auto; padding:0.3rem 0.6rem; font-size:0.8rem;" onclick="addKatItem('${u.Id}')" ${isAdded ? 'disabled' : ''}>${isAdded ? 'Eklendi' : '+ Ekle'}</button></div>`;
   });
+
+  if (filteredList.length > katUrunLimit) {
+    list.innerHTML += `<button class="btn-outline" style="margin-top:10px; width:100%; padding:0.6rem; font-size:0.85rem;" onclick="loadMoreKatUrun()">Daha Fazla Göster (${filteredList.length - katUrunLimit} Kaldı)</button>`;
+  }
 }
+
+window.loadMoreKatUrun = function() {
+    katUrunLimit += 20;
+    renderKatUrun(false);
+};
 
 export function addKatItem(id) {
   const u = DB.Product.find(x => x.Id === id); if (!u || tempOfferItems.some(k => k.ProductId === id && !k.Deleted)) return;

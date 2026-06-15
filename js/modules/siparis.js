@@ -7,16 +7,34 @@ export let oldOrderType = null;
 export let camTarget = null;
 export let lastScanTime = 0;
 
-export function renderSip(force = false) {
-  if (!force) return; const fTur = $('filter-sip-tur').value; const fCari = $('filter-sip-cari').value; const fStart = $('filter-sip-start').value; const fEnd = $('filter-sip-end').value; const list = $('sip-list'); list.innerHTML = '';
-  DB.Order.filter(x => !x.Deleted).sort((a, b) => new Date(b.CreatedDate) - new Date(a.CreatedDate)).forEach(s => {
+let sipLimit = 20;
+export function renderSip(force = false, resetLimit = true) {
+  if (!force) return; 
+  if (resetLimit) sipLimit = 20;
+
+  const fTur = $('filter-sip-tur').value; const fCari = $('filter-sip-cari').value; const fStart = $('filter-sip-start').value; const fEnd = $('filter-sip-end').value; const list = $('sip-list'); list.innerHTML = '';
+  
+  let filtered = DB.Order.filter(x => !x.Deleted).filter(s => {
+    if (fTur && Number(s.OrderTypeId) !== Number(fTur)) return false; 
+    if (fCari && String(s.CurrentId) !== String(fCari)) return false;
+    if (fStart || fEnd) { const d = new Date(s.OrderDate); if (fStart && d < new Date(fStart)) return false; if (fEnd && d > new Date(fEnd + 'T23:59:59')) return false; }
+    return true;
+  });
+
+  filtered.sort((a, b) => new Date(b.CreatedDate) - new Date(a.CreatedDate));
+  let pagedList = filtered.slice(0, sipLimit);
+
+  pagedList.forEach(s => {
     const c = DB.Current.find(x => String(x.Id) === String(s.CurrentId)) || { Name: 'Bilinmeyen' };
-    if (fTur && Number(s.OrderTypeId) !== Number(fTur)) return; if (fCari && String(s.CurrentId) !== String(fCari)) return;
-    if (fStart || fEnd) { const d = new Date(s.OrderDate); if (fStart && d < new Date(fStart)) return; if (fEnd && d > new Date(fEnd + 'T23:59:59')) return; }
     const isAlis = Number(s.OrderTypeId) === ISLEM.ALIS;
     list.innerHTML += `<div class="list-item" onclick="editSip('${s.Id}')"><div><div style="font-weight:bold; color:${isAlis ? 'var(--red)' : 'var(--green)'}">${isAlis ? '⬇️ Alış' : '⬆️ Satış'} | ${s.Code}</div><div style="font-size:0.85rem">${c.Name}</div><div style="font-size:0.75rem; color:var(--text-muted)">${dtFormat(s.OrderDate)}</div></div><div style="text-align:right; font-weight:bold; font-size:1.1rem">${fp(s.TotalPrice)}</div></div>`;
   });
+
+  if (filtered.length > sipLimit) {
+    list.innerHTML += `<button class="btn-outline" style="margin-top:10px; width:100%; padding:0.8rem;" onclick="loadMoreSip()">Daha Fazla Göster (${filtered.length - sipLimit} Kaldı)</button>`;
+  }
 }
+window.loadMoreSip = function() { sipLimit += 20; renderSip(true, false); };
 
 export function renderSipItems() {
   const p = $('ms-items'); p.innerHTML = ''; const visibleItems = tempOrderItems.filter(it => !it.Deleted);
@@ -112,6 +130,7 @@ export function saveSip() {
     if(existing) { Object.assign(existing, it, { UpdatedDate: tsNow() }); }
     else { it.Id = it.Id || guid(); DB.OrderItem.push({ ...it, CreatedDate: tsNow(), Deleted: false }); }
     updateStock(it.ProductId, it.Amount, isAlis, true);
+    updatePurchasePrice(it.ProductId, it.UnitPrice, isAlis, true);
   });
 
   saveDB(); closeM('mo-sip'); renderSip(true); renderHome();

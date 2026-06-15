@@ -104,7 +104,7 @@
       </div>
 
       <div id="view-cari" class="view hidden">
-        <div class="card mb-4">
+        <div class="card mb-4" style="cursor: default;">
           <div class="compact-filters" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
             <input type="text" id="filter-cari-q" placeholder="İçerik (İsim, Tel, VKN vb)..."
               onkeypress="if(event.key === 'Enter') renderCari(true)">
@@ -132,7 +132,7 @@
       </div>
 
       <div id="view-urun" class="view hidden">
-        <div class="card mb-4">
+        <div class="card mb-4" style="cursor: default;">
           <div class="compact-filters" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
             <select id="filter-urun-kategori">
               <option value="">Tüm Kategoriler</option>
@@ -162,7 +162,7 @@
       </div>
 
       <div id="view-sip" class="view hidden">
-        <div class="card mb-4">
+        <div class="card mb-4" style="cursor: default;">
           <div class="compact-filters">
             <select id="filter-sip-tur">
               <option value="">Tüm Türler</option>
@@ -193,7 +193,7 @@
       </div>
 
       <div id="view-kasa" class="view hidden">
-        <div class="card mb-4">
+        <div class="card mb-4" style="cursor: default;">
           <div class="compact-filters">
             <select id="filter-kasa-tur">
               <option value="">Tüm Türler</option>
@@ -287,13 +287,13 @@
       </div>
 
       <div id="view-ayarlar" class="view hidden">
-        <div class="card mb-4">
+        <div class="card mb-4" style="cursor: default;">
           <div class="grid-2">
             <button class="btn-primary" style="padding: 1rem;" onclick="openSyncModal()">☁️ Yedekle ve Güncelle</button>
             <button class="btn-outline" style="padding: 1rem;" onclick="exportDB()">⬇️ Verileri İndir</button>
           </div>
         </div>
-        <div class="card mb-4" style="border: 1px solid var(--red);">
+        <div class="card mb-4" style="border: 1px solid var(--red); cursor: default;">
           <h3 style="color: var(--red); margin-bottom: 1rem; font-size: 1.1rem;">⚠️ Tehlikeli İşlemler</h3>
           <p class="text-muted mb-4" style="font-size: 0.85rem;">Bu alandaki butonlar verilerinizi kalıcı olarak siler
             ve bu işlem asla geri alınamaz.</p>
@@ -304,7 +304,7 @@
               onclick="openResetAuthModal('local')">🗑️ Cihaz Verilerini Sil</button>
           </div>
         </div>
-        <div class="card mb-4" style="border: 1px solid var(--green);">
+        <div class="card mb-4" style="border: 1px solid var(--green); cursor: default;">
           <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--green);">📊 Excel Veri Yönetimi</h3>
           <p class="text-muted mb-4" style="font-size: 0.85rem;">Şablon Excel dosyanızı indirebilir, toplu düzenlemeler
             yapıp akıllı eşleştirme (Merge) yöntemiyle sisteme yükleyebilirsiniz.</p>
@@ -416,7 +416,7 @@
       </div>
 
       <div id="view-analiz" class="view hidden">
-        <div class="card mb-4">
+        <div class="card mb-4" style="cursor: default;">
           <div class="compact-filters">
             <select id="filter-an-grup">
               <option value="">Tüm Gruplar</option>
@@ -452,31 +452,60 @@
           <button class="icon-btn" onclick="closeM('mo-cari')">✕</button>
         </div>
       </div>
-      <input type="hidden" id="mc-Id">
-      <input type="text" id="mc-Name" placeholder="Firma / Şahıs Adı*">
-      <div class="grid-2">
-        <select id="mc-CurrentGroupId">
-          <option value="">Grup Yok</option>
-        </select>
-        <select id="mc-SectorId">
-          <option value="">Sektör Yok</option>
-        </select>
+<input type="hidden" id="mc-Id">
+      
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Firma / Şahıs Adı*</label>
+        <input type="text" id="mc-Name" placeholder="Firma / Şahıs Adı*">
       </div>
 
       <div class="grid-2">
-        <input type="tel" id="mc-PhoneNumber" placeholder="Telefon Numarası" inputmode="tel">
-        <input type="email" id="mc-Email" placeholder="E-Posta Adresi">
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Cari Grubu</label>
+          <select id="mc-CurrentGroupId">
+            <option value="">Grup Yok</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sektör</label>
+          <select id="mc-SectorId">
+            <option value="">Sektör Yok</option>
+          </select>
+        </div>
       </div>
 
       <div class="grid-2">
-        <input type="text" id="mc-VKN" placeholder="Vergi Numarası (VKN)" inputmode="numeric">
-        <input type="text" id="mc-IdentityNumber" placeholder="TC Kimlik No" inputmode="numeric">
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Telefon Numarası</label>
+          <input type="tel" id="mc-PhoneNumber" placeholder="Telefon Numarası" inputmode="tel">
+        </div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">E-Posta Adresi</label>
+          <input type="email" id="mc-Email" placeholder="E-Posta Adresi">
+        </div>
       </div>
 
-      <input type="text" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)" inputmode="decimal"
-        onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';"
-        onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
-      <textarea id="mc-Address" placeholder="Açık Adres" rows="2"></textarea>
+      <div class="grid-2">
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Vergi Numarası (VKN)</label>
+          <input type="text" id="mc-VKN" placeholder="Vergi Numarası (VKN)" inputmode="numeric">
+        </div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">TC Kimlik No</label>
+          <input type="text" id="mc-IdentityNumber" placeholder="TC Kimlik No" inputmode="numeric">
+        </div>
+      </div>
+
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Açılış Bakiyesi (Müşteri Borcu) (₺)</label>
+        <input type="text" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)" inputmode="decimal"
+          onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';"
+          onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
+      </div>
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Açık Adres</label>
+        <textarea id="mc-Address" placeholder="Açık Adres" rows="2"></textarea>
+      </div>
 
       <button class="btn-primary mt-4" onclick="saveCari()">Kaydet</button>
     </div>
@@ -492,98 +521,131 @@
         </div>
       </div>
       <input type="hidden" id="mu-Id">
-      <input type="text" id="mu-Name" placeholder="Ürün Adı*">
+
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Ürün Adı*</label>
+        <input type="text" id="mu-Name" placeholder="Ürün Adı*" style="margin-bottom: 0.75rem;">
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+        
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px; align-self:flex-start;">Görsel</label>
+          <div style="position: relative; width: 90px; height: 90px; border: 2px dashed var(--border); border-radius: 0.5rem; background: var(--bg); display:flex; align-items:center; justify-content:center;">
+            
+            <span style="color: var(--text-muted); font-size: 1.8rem; position: absolute; z-index: 1;">📷</span>
+            <img id="mu-foto-preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 0.4rem; position: absolute; top:0; left:0; display: none; z-index: 2; background: var(--bg);">
+            
+            <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)" style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index: 5; margin:0;">
+            
+            <button id="mu-foto-remove" class="icon-btn" onclick="event.preventDefault(); event.stopPropagation(); removeUrunFoto();" style="position: absolute; top: -6px; right: -6px; background: var(--red); color: white; border-radius: 50%; width: 22px; height: 22px; display: none; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.3); padding:0;">✕</button>
+          </div>
+        </div>
+        
+        <div style="flex: 1; display:flex; flex-direction:column;">
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Açıklama</label>
+          <textarea id="mu-Description" placeholder="Açıklama" rows="3" style="margin:0; height:90px; resize:none; padding:0.5rem; font-family:inherit; width: 100%;"></textarea>
+        </div>
+
+      </div>
 
       <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 0.75rem; position: relative; z-index: 60;">
-
-<div class="c-select" id="cs-wrap-mu-CategoryId">
-          <div class="c-select-display" onclick="toggleCSelect('mu-CategoryId', 'Category')"
-            style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-CategoryId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Kategori Seç</span>
-            <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
-          </div>
-          <input type="hidden" id="mu-CategoryId">
-          <div class="c-select-menu" id="csm-mu-CategoryId">
-            <input type="text" class="c-select-search" id="css-mu-CategoryId" placeholder="Ara..."
-              onkeyup="renderCSelectList('mu-CategoryId', 'Category', this.value)" onclick="event.stopPropagation()">
-            <div class="c-select-list" id="csl-mu-CategoryId"></div>
-          </div>
-        </div>
-
-        <div class="c-select" id="cs-wrap-mu-ProductGroupId">
-          <div class="c-select-display" onclick="toggleCSelect('mu-ProductGroupId', 'ProductGroup')"
-            style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-ProductGroupId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Grup Seç</span>
-            <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
-          </div>
-          <input type="hidden" id="mu-ProductGroupId">
-          <div class="c-select-menu" id="csm-mu-ProductGroupId">
-            <input type="text" class="c-select-search" id="css-mu-ProductGroupId" placeholder="Ara..."
-              onkeyup="renderCSelectList('mu-ProductGroupId', 'ProductGroup', this.value)"
-              onclick="event.stopPropagation()">
-            <div class="c-select-list" id="csl-mu-ProductGroupId"></div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Kategori</label>
+          <div class="c-select" id="cs-wrap-mu-CategoryId" style="margin-bottom:0;">
+            <div class="c-select-display" onclick="toggleCSelect('mu-CategoryId', 'Category')"
+              style="padding:0.4rem; font-size:0.8rem;">
+              <span id="csd-mu-CategoryId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
+              <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
+            </div>
+            <input type="hidden" id="mu-CategoryId">
+            <div class="c-select-menu" id="csm-mu-CategoryId">
+              <input type="text" class="c-select-search" id="css-mu-CategoryId" placeholder="Ara..."
+                onkeyup="renderCSelectList('mu-CategoryId', 'Category', this.value)" onclick="event.stopPropagation()">
+              <div class="c-select-list" id="csl-mu-CategoryId"></div>
+            </div>
           </div>
         </div>
 
-        <div class="c-select" id="cs-wrap-mu-BrandId">
-          <div class="c-select-display" onclick="toggleCSelect('mu-BrandId', 'Brand')"
-            style="padding:0.4rem; font-size:0.8rem;">
-            <span id="csd-mu-BrandId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Marka Seç</span>
-            <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
-          </div>
-          <input type="hidden" id="mu-BrandId">
-          <div class="c-select-menu" id="csm-mu-BrandId">
-            <input type="text" class="c-select-search" id="css-mu-BrandId" placeholder="Ara..."
-              onkeyup="renderCSelectList('mu-BrandId', 'Brand', this.value)" onclick="event.stopPropagation()">
-            <div class="c-select-list" id="csl-mu-BrandId"></div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Grup</label>
+          <div class="c-select" id="cs-wrap-mu-ProductGroupId" style="margin-bottom:0;">
+            <div class="c-select-display" onclick="toggleCSelect('mu-ProductGroupId', 'ProductGroup')"
+              style="padding:0.4rem; font-size:0.8rem;">
+              <span id="csd-mu-ProductGroupId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
+              <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
+            </div>
+            <input type="hidden" id="mu-ProductGroupId">
+            <div class="c-select-menu" id="csm-mu-ProductGroupId">
+              <input type="text" class="c-select-search" id="css-mu-ProductGroupId" placeholder="Ara..."
+                onkeyup="renderCSelectList('mu-ProductGroupId', 'ProductGroup', this.value)"
+                onclick="event.stopPropagation()">
+              <div class="c-select-list" id="csl-mu-ProductGroupId"></div>
+            </div>
           </div>
         </div>
 
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Marka</label>
+          <div class="c-select" id="cs-wrap-mu-BrandId" style="margin-bottom:0;">
+            <div class="c-select-display" onclick="toggleCSelect('mu-BrandId', 'Brand')"
+              style="padding:0.4rem; font-size:0.8rem;">
+              <span id="csd-mu-BrandId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
+              <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
+            </div>
+            <input type="hidden" id="mu-BrandId">
+            <div class="c-select-menu" id="csm-mu-BrandId">
+              <input type="text" class="c-select-search" id="css-mu-BrandId" placeholder="Ara..."
+                onkeyup="renderCSelectList('mu-BrandId', 'Brand', this.value)" onclick="event.stopPropagation()">
+              <div class="c-select-list" id="csl-mu-BrandId"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="flex gap-2">
-        <input type="text" id="mu-BarCode" placeholder="Barkod" inputmode="numeric" pattern="[0-9]*">
-        <button class="icon-btn" onclick="startCam('urun-form')"
-          style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0.75rem;">📷</button>
-      </div>
-
-      <div style="margin-bottom:0.75rem; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
-        <label style="font-size:0.8rem; color:var(--text-muted); display:block; margin-bottom:6px;">Ürün
-          Fotoğrafı</label>
-        <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)"
-          style="padding:0.2rem; font-size:0.8rem; margin:0;">
-        <div style="position:relative; display:inline-block; margin-top:8px;">
-          <img id="mu-foto-preview"
-            style="width:100px; height:100px; object-fit:cover; display:none; border-radius:0.4rem; border:1px solid var(--border);">
-          <button id="mu-foto-remove" class="icon-btn"
-            style="position:absolute; top:-10px; right:-10px; background:var(--red); color:white; width:24px; height:24px; font-size:12px; display:none; border-radius:50%; padding:0; justify-content:center; align-items:center;"
-            onclick="removeUrunFoto()">✕</button>
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Barkod</label>
+        <div class="flex gap-2" style="margin-bottom:0.75rem;">
+          <input type="text" id="mu-BarCode" placeholder="Barkod" inputmode="numeric" pattern="[0-9]*" style="margin-bottom: 0;">
+          <button class="icon-btn" onclick="startCam('urun-form')"
+            style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0;">📷</button>
         </div>
       </div>
 
       <div class="grid-2">
-        <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı" inputmode="decimal"
-          onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
-          onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
-        <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı" inputmode="decimal"
-          onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';"
-          onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Alış Fiyatı (₺)</label>
+          <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı" inputmode="decimal"
+            onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
+            onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
+        </div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Satış Fiyatı (₺)</label>
+          <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı" inputmode="decimal"
+            onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';"
+            onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
+        </div>
       </div>
 
       <div class="grid-2">
-        <input type="number" id="mu-StockQuantity" placeholder="Stok Miktarı" inputmode="decimal">
-        <select id="mu-UnitId">
-          <option value="1">Adet</option>
-          <option value="2">Kg</option>
-          <option value="3">Gr</option>
-          <option value="4">Litre</option>
-          <option value="5">Metre</option>
-          <option value="6">Paket</option>
-          <option value="7">Koli</option>
-        </select>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Stok Miktarı</label>
+          <input type="number" id="mu-StockQuantity" placeholder="Stok Miktarı" inputmode="decimal">
+        </div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Satış Birimi</label>
+          <select id="mu-UnitId">
+            <option value="1">Adet</option>
+            <option value="2">Kilogram</option>
+            <option value="3">Gram</option>
+            <option value="4">Litre</option>
+            <option value="5">Metre</option>
+            <option value="6">Paket</option>
+            <option value="7">Koli</option>
+          </select>
+        </div>
       </div>
 
-      <textarea id="mu-Description" placeholder="Açıklama" rows="2"></textarea>
       <button class="btn-primary mt-4" onclick="saveUrun()">Kaydet</button>
     </div>
   </div>
@@ -601,23 +663,32 @@
       <input type="hidden" id="ms-Id">
 
       <div class="grid-2">
-        <select id="ms-OrderTypeId">
-          <option value="2" selected>Satış</option>
-          <option value="1">Alış</option>
-        </select>
-        <input type="datetime-local" id="ms-OrderDate">
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Türü</label>
+          <select id="ms-OrderTypeId">
+            <option value="2" selected>Satış</option>
+            <option value="1">Alış</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Tarihi</label>
+          <input type="datetime-local" id="ms-OrderDate">
+        </div>
       </div>
 
-      <div class="c-select" id="cs-wrap-ms-CurrentId" style="z-index: 70;">
-        <div class="c-select-display" onclick="toggleCSelect('ms-CurrentId', 'Current')">
-          <span id="csd-ms-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
-            Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
-        </div>
-        <input type="hidden" id="ms-CurrentId">
-        <div class="c-select-menu" id="csm-ms-CurrentId">
-          <input type="text" class="c-select-search" id="css-ms-CurrentId" placeholder="Cari Ara (İçeren)..."
-            onkeyup="renderCSelectList('ms-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
-          <div class="c-select-list" id="csl-ms-CurrentId"></div>
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Cari Seçimi</label>
+        <div class="c-select" id="cs-wrap-ms-CurrentId" style="z-index: 70;">
+          <div class="c-select-display" onclick="toggleCSelect('ms-CurrentId', 'Current')">
+            <span id="csd-ms-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+              Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
+          </div>
+          <input type="hidden" id="ms-CurrentId">
+          <div class="c-select-menu" id="csm-ms-CurrentId">
+            <input type="text" class="c-select-search" id="css-ms-CurrentId" placeholder="Cari Ara (İçeren)..."
+              onkeyup="renderCSelectList('ms-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
+            <div class="c-select-list" id="csl-ms-CurrentId"></div>
+          </div>
         </div>
       </div>
 
@@ -648,8 +719,11 @@
         </div>
       </div>
 
-      <textarea id="ms-Description" placeholder="Sipariş Notu" rows="2"></textarea>
-      <button class="btn-primary mt-4" onclick="saveSip()">Siparişi Kaydet</button>
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Notu</label>
+        <textarea id="ms-Description" placeholder="Sipariş Notu" rows="2"></textarea>
+      </div>
+      <button class="btn-primary mt-4" onclick="saveSip()">Kaydet</button>
     </div>
   </div>
 
@@ -666,30 +740,45 @@
       <input type="hidden" id="mk-Id">
 
       <div class="grid-2">
-        <select id="mk-PaymentTypeId">
-          <option value="1" selected>Tahsilat</option>
-          <option value="2">Ödeme</option>
-        </select>
-        <input type="datetime-local" id="mk-PaymentDate">
-      </div>
-
-      <div class="c-select" id="cs-wrap-mk-CurrentId" style="z-index: 70;">
-        <div class="c-select-display" onclick="toggleCSelect('mk-CurrentId', 'Current')">
-          <span id="csd-mk-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
-            Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">İşlem Türü</label>
+          <select id="mk-PaymentTypeId">
+            <option value="1" selected>Tahsilat</option>
+            <option value="2">Ödeme</option>
+          </select>
         </div>
-        <input type="hidden" id="mk-CurrentId">
-        <div class="c-select-menu" id="csm-mk-CurrentId">
-          <input type="text" class="c-select-search" id="css-mk-CurrentId" placeholder="Cari Ara..."
-            onkeyup="renderCSelectList('mk-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
-          <div class="c-select-list" id="csl-mk-CurrentId"></div>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">İşlem Tarihi</label>
+          <input type="datetime-local" id="mk-PaymentDate">
         </div>
       </div>
 
-      <input type="text" id="mk-Payment" placeholder="İşlem Tutarı*" inputmode="decimal"
-        onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';"
-        onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
-      <textarea id="mk-Description" placeholder="Açıklama" rows="2"></textarea>
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Cari Seçimi*</label>
+        <div class="c-select" id="cs-wrap-mk-CurrentId" style="z-index: 70;">
+          <div class="c-select-display" onclick="toggleCSelect('mk-CurrentId', 'Current')">
+            <span id="csd-mk-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+              Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
+          </div>
+          <input type="hidden" id="mk-CurrentId">
+          <div class="c-select-menu" id="csm-mk-CurrentId">
+            <input type="text" class="c-select-search" id="css-mk-CurrentId" placeholder="Cari Ara..."
+              onkeyup="renderCSelectList('mk-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
+            <div class="c-select-list" id="csl-mk-CurrentId"></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">İşlem Tutarı (₺)*</label>
+        <input type="text" id="mk-Payment" placeholder="İşlem Tutarı*" inputmode="decimal"
+          onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';"
+          onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
+      </div>
+      <div>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Açıklama</label>
+        <textarea id="mk-Description" placeholder="Açıklama" rows="2"></textarea>
+      </div>
       <button class="btn-primary mt-4" onclick="saveKasa()">Kaydet</button>
     </div>
   </div>
@@ -703,10 +792,19 @@
       <input type="hidden" id="kat-Id">
       <div style="flex:1; overflow-y:auto; padding-right:5px;">
         <div class="grid-2">
-          <input type="text" id="kat-Name" placeholder="Kampanya / Katalog Adı*">
-          <input type="datetime-local" id="kat-OfferDate">
+          <div>
+            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Kampanya / Katalog Adı*</label>
+            <input type="text" id="kat-Name" placeholder="Kampanya / Katalog Adı*">
+          </div>
+          <div>
+            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Geçerlilik Tarihi</label>
+            <input type="datetime-local" id="kat-OfferDate">
+          </div>
         </div>
-        <textarea id="kat-Description" placeholder="Kampanya Açıklaması" rows="2"></textarea>
+        <div>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Kampanya Açıklaması</label>
+          <textarea id="kat-Description" placeholder="Kampanya Açıklaması" rows="2"></textarea>
+        </div>
 
         <hr style="border:0; border-top:1px solid var(--border); margin:15px 0;">
         <h4 style="margin-bottom:10px;">Ürün Seçimi</h4>

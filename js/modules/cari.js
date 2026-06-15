@@ -88,23 +88,37 @@ export function loadGrupSelects() {
   });
 }
 
-export function renderCari(force = false) {
+let cariLimit = 20;
+
+export function renderCari(force = false, resetLimit = true) {
   if (!force) return; 
+  if (resetLimit) cariLimit = 20;
+
   const q = $('filter-cari-q').value.toLowerCase().trim(); 
   const f = $('filter-cari-durum').value; 
-  const fGrup = $('filter-cari-grup') ? $('filter-cari-grup').value : ''; // YENİ EKLENDİ
+  const fGrup = $('filter-cari-grup') ? $('filter-cari-grup').value : ''; 
   const fSec = $('filter-cari-sector') ? $('filter-cari-sector').value : '';
   const list = $('cari-list'); list.innerHTML = '';
   
-  DB.Current.filter(x => !x.Deleted).sort((a, b) => new Date(b.CreatedDate) - new Date(a.CreatedDate)).forEach(c => {
-    const content = (c.Name + " " + (c.PhoneNumber || "") + " " + (c.VKN || "")).toLowerCase(); if (q && !content.includes(q)) return;
-    
-    if (fGrup && String(c.CurrentGroupId) !== String(fGrup)) return; // YENİ EKLENEN GRUP FİLTRE KONTROLÜ
-    if (fSec && String(c.SectorId) !== String(fSec)) return; 
+  let filteredList = DB.Current.filter(x => !x.Deleted).filter(c => {
+    const content = (c.Name + " " + (c.PhoneNumber || "") + " " + (c.VKN || "")).toLowerCase(); 
+    if (q && !content.includes(q)) return false;
+    if (fGrup && String(c.CurrentGroupId) !== String(fGrup)) return false; 
+    if (fSec && String(c.SectorId) !== String(fSec)) return false; 
     
     const net = calcBalance(c.Id) + (Number(c.Balance) || 0);
-    if (f === 'alacakli' && net >= 0) return; if (f === 'borclu' && net <= 0) return;
-    
+    if (f === 'alacakli' && net >= 0) return false; 
+    if (f === 'borclu' && net <= 0) return false;
+
+    return true;
+  });
+
+  filteredList.sort((a, b) => new Date(b.CreatedDate) - new Date(a.CreatedDate));
+
+  let pagedList = filteredList.slice(0, cariLimit);
+
+  pagedList.forEach(c => {
+    const net = calcBalance(c.Id) + (Number(c.Balance) || 0);
     const gName = c.CurrentGroupId ? (DB.CurrentGroup.find(x => String(x.Id) === String(c.CurrentGroupId))?.Name || '') : '';
     const sName = c.SectorId ? (DB.Sector.find(x => String(x.Id) === String(c.SectorId))?.Name || '') : '';
     
@@ -116,9 +130,18 @@ export function renderCari(force = false) {
     if(gName) tagsHtml += `<span class="badge" style="border:1px solid var(--accent); color:var(--accent);">${gName}</span>`;
     if(sName) tagsHtml += `<span class="badge" style="border:1px solid var(--amber); color:var(--amber);">${sName}</span>`;
 
-    list.innerHTML += `<div class="list-item" onclick="editCari('${c.Id}')"><div><div style="font-weight:bold; margin-bottom:4px;">${c.Name}</div><div style="display:flex; gap:4px; margin-bottom:4px;">${tagsHtml}</div><div style="font-size:0.75rem; color:var(--text-muted)">${c.PhoneNumber || '-'} | VKN: ${c.VKN || '-'}</div></div><div style="text-align:right; font-weight:bold">${netHtml}</div></div>`;
+    list.innerHTML += `<div class="list-item" onclick="editCari('${c.Id}')"><div><div style="font-weight:bold; margin-bottom:4px;">${c.Name}</div><div style="display:flex; gap:4px; margin-bottom:4px;">${tagsHtml}</div></div><div style="text-align:right; font-weight:bold">${netHtml}</div></div>`;
   });
+
+  if (filteredList.length > cariLimit) {
+    list.innerHTML += `<button class="btn-outline" style="margin-top:10px; width:100%; padding:0.8rem;" onclick="loadMoreCari()">Daha Fazla Göster (${filteredList.length - cariLimit} Kaldı)</button>`;
+  }
 }
+
+window.loadMoreCari = function() {
+    cariLimit += 20;
+    renderCari(true, false);
+};
 
 export function openCariModal() {
   $('mc-Id').value = ''; $('mc-Name').value = ''; $('mc-PhoneNumber').value = ''; $('mc-VKN').value = ''; 

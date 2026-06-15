@@ -133,21 +133,36 @@ export function removeUrunFoto() {
 }
 // ==============================================================================
 
-export function renderUrun(force = false) {
+let urunLimit = 20; // YENİ: Sayfalama limiti
+
+export function renderUrun(force = false, resetLimit = true) { // YENİ: resetLimit eklendi
   if (!force) return; 
+  if (resetLimit) urunLimit = 20; // YENİ: Yeni aramada limiti sıfırla
+
   const q = $('filter-urun-q').value.toLowerCase().trim(); 
   const fGrup = $('filter-urun-grup') ? $('filter-urun-grup').value : ''; 
   const fCat = $('filter-urun-kategori') ? $('filter-urun-kategori').value : ''; 
   const fBrand = $('filter-urun-marka') ? $('filter-urun-marka').value : ''; 
   const list = $('urun-list'); list.innerHTML = '';
   
-  DB.Product.filter(x => !x.Deleted).sort((a, b) => new Date(b.CreatedDate) - new Date(a.CreatedDate)).forEach(u => {
+  // 1. Önce Filtrele
+  let filteredList = DB.Product.filter(x => !x.Deleted).filter(u => {
     const content = (u.Name + " " + (u.BarCode || "") + " " + (u.Description || "")).toLowerCase(); 
-    if (q && !content.includes(q)) return;
-    if (fGrup && String(u.ProductGroupId) !== String(fGrup)) return;
-    if (fCat && String(u.CategoryId) !== String(fCat)) return;
-    if (fBrand && String(u.BrandId) !== String(fBrand)) return;
-    
+    if (q && !content.includes(q)) return false;
+    if (fGrup && String(u.ProductGroupId) !== String(fGrup)) return false;
+    if (fCat && String(u.CategoryId) !== String(fCat)) return false;
+    if (fBrand && String(u.BrandId) !== String(fBrand)) return false;
+    return true;
+  });
+
+  // 2. Sırala
+  filteredList.sort((a, b) => new Date(b.CreatedDate) - new Date(a.CreatedDate));
+
+  // 3. Kes (Sayfalama)
+  let pagedList = filteredList.slice(0, urunLimit);
+
+  // 4. Render
+  pagedList.forEach(u => {
     const gName = u.ProductGroupId ? (DB.ProductGroup.find(x => String(x.Id) === String(u.ProductGroupId))?.Name || '') : '';
     const cName = u.CategoryId ? (DB.Category.find(x => String(x.Id) === String(u.CategoryId))?.Name || '') : '';
     const bName = u.BrandId ? (DB.Brand.find(x => String(x.Id) === String(u.BrandId))?.Name || '') : '';
@@ -161,7 +176,18 @@ export function renderUrun(force = false) {
 
     list.innerHTML += `<div class="list-item" onclick="editUrun('${u.Id}')"><div><div style="font-weight:bold; margin-bottom:4px;">${u.Name}</div><div style="display:flex; gap:4px; margin-bottom:4px;">${tagsHtml}</div></div><div style="text-align:right"><div style="font-weight:bold; color:var(--accent)">${fp(u.SalePrice)}</div><span class="badge ${bClass}">${stok} ${getBirimAd(u.UnitId)}</span></div></div>`;
   });
+
+  // 5. Daha Fazla Göster Butonu
+  if (filteredList.length > urunLimit) {
+    list.innerHTML += `<button class="btn-outline" style="margin-top:10px; width:100%; padding:0.8rem;" onclick="loadMoreUrun()">Daha Fazla Göster (${filteredList.length - urunLimit} Kaldı)</button>`;
+  }
 }
+
+// Global scope'a ekliyoruz ki HTML onclick içinden erişilebilsin
+window.loadMoreUrun = function() {
+    urunLimit += 20;
+    renderUrun(true, false);
+};
 
 export function openUrunModal() {
   $('mu-Id').value = ''; $('mu-Name').value = ''; $('mu-BarCode').value = ''; $('mu-PurchasePrice').value = ''; $('mu-SalePrice').value = ''; $('mu-StockQuantity').value = ''; $('mu-UnitId').value = '1'; $('mu-Description').value = ''; 

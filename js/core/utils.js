@@ -2,7 +2,7 @@ import { DB } from './db.js';
 
 export const ISLEM = { ALIS: 1, SATIS: 2 };
 export const KASA = { TAHSILAT: 1, ODEME: 2 };
-export const BIRIM = { 1: 'Ad', 2: 'Kg', 3: 'Gr', 4: 'Lt', 5: 'Mt', 6: 'Pk', 7: 'Koli' };
+export const BIRIM = { 1: 'Ad', 2: 'Kg', 3: 'Gr', 4: 'Lt', 5: 'Mt', 6: 'Pk', 7: 'Kl' };
 
 export function getBirimAd(val) { return BIRIM[val] || val || 'Ad'; }
 export function $(id) { return document.getElementById(id); }
@@ -75,4 +75,16 @@ export function updateStock(productId, amount, isAlis, isAdding) {
   let multiplier = isAlis ? 1 : -1;
   if (!isAdding) multiplier *= -1;
   u.StockQuantity = (Number(u.StockQuantity) || 0) + (Number(amount) * multiplier);
+}
+
+export function updatePurchasePrice(productId, unitPrice, isAlis, isAdding) {
+  // Sadece "Alış" işlemiyse ve işlem "Uygulanıyorsa/Ekleniyorsa" fiyatı güncelleriz.
+  // Eskiyi geri alırken (isAdding = false) eski fiyatı bilemeyeceğimiz için işlem yapmayız.
+  if (isAlis && isAdding) {
+    const u = DB.Product.find(x => String(x.Id) === String(productId));
+    // Promosyon/Bedelsiz ürün girişleri gerçek alış fiyatını 0 yapmasın diye > 0 kontrolü ekliyoruz.
+    if (u && Number(unitPrice) > 0) {
+      u.PurchasePrice = Number(unitPrice);
+    }
+  }
 }
