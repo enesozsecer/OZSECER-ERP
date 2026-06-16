@@ -47,7 +47,7 @@ canvas.drawingBuffer { position: absolute; top: 0; left: 0; width: 100%; height:
 }
 @media (max-width: 768px) {
   .header-titles {
-    top: 220px !important;
+    top: 280px !important;
   }
   .urun-list {
     overflow: visible !important; /* Mobilde sticky'i bozan gizli engelleri kesin ezer */
