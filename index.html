@@ -57,17 +57,19 @@
   <div id="app-container" class="hidden">
     <div class="topbar">
       <div class="nav-brand" style="display: flex; align-items: stretch;">
-        
-        <button onclick="goTo('home')" style="background: transparent; border: none; color: inherit; font-size: 1.6rem; cursor: pointer; padding: 0 15px; margin: -15px 0px -15px -15px; display: flex; align-items: center; justify-content: center; min-height: 60px;"><span class="sol-ok">➔</span>
-</button>
-        
+
+        <button onclick="goTo('home')"
+          style="background: transparent; border: none; color: inherit; font-size: 1.6rem; cursor: pointer; padding: 0 15px; margin: -15px 0px -15px -15px; display: flex; align-items: center; justify-content: center; min-height: 60px;"><span
+            class="sol-ok">➔</span>
+        </button>
+
         <div style="display: flex; align-items: center; gap: 10px;">
           <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
           <h2 id="top-title" style="font-size:1.2rem; margin: 0;">Ana Sayfa</h2>
         </div>
-        
+
       </div>
-      
+
       <div class="flex gap-2" style="display: flex; align-items: center;">
         <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">☀️</button>
         <button class="icon-btn" onclick="logoutConfirm()">🚪</button>
@@ -127,7 +129,7 @@
             </select>
             <button class="btn-primary" onclick="renderCari(true)">Ara</button>
           </div>
-          <div class="grid-2 mt-4">
+          <div class="grid-2 mt-2">
             <button class="btn-outline" style="border-color:var(--accent); color:var(--accent); font-size:0.8rem;"
               onclick="openGrupModal('CurrentGroup')">⚙️ Cari Grupları</button>
             <button class="btn-outline" style="border-color:var(--amber); color:var(--amber); font-size:0.8rem;"
@@ -155,7 +157,7 @@
               style="background:var(--bg); border-radius:0.4rem;">📷</button>
             <button class="btn-primary" onclick="renderUrun(true)">Ara</button>
           </div>
-          <div class="grid-2 mt-4" style="grid-template-columns: 1fr 1fr 1fr;">
+          <div class="grid-2 mt-2" style="grid-template-columns: 1fr 1fr 1fr;">
             <button class="btn-outline" style="border-color:var(--green); color:var(--green); font-size:0.75rem;"
               onclick="openUrunTanimiModal('Category')">⚙️ Kategoriler</button>
             <button class="btn-outline" style="border-color:var(--accent); color:var(--accent); font-size:0.75rem;"
@@ -351,13 +353,16 @@
               onblur="if(!this.value) this.type='text'" onchange="renderKatalog(true)">
             <input type="text" id="filter-katalog-end" placeholder="Bitiş" onfocus="(this.type='date')"
               onblur="if(!this.value) this.type='text'" onchange="renderKatalog(true)">
-            <input type="text" id="filter-katalog-q" placeholder="Katalog / Kampanya Ara..." onkeyup="renderKatalog(true)">
+            <input type="text" id="filter-katalog-q" placeholder="Katalog / Kampanya Ara..."
+              onkeyup="renderKatalog(true)">
           </div>
         </div>
 
-        <div style="background:var(--bg); border:1px solid var(--border); border-radius:0.5rem; padding:0.5rem; margin-bottom: 80px; margin-top: 10px;">
-          
-          <div style="display:flex; gap:0.4rem; font-size:0.75rem; font-weight:bold; color:var(--text-muted); align-items:center; border-bottom:2px solid var(--border); padding-bottom:0.5rem; margin-bottom:0.5rem;">
+        <div
+          style="background:var(--bg); border:1px solid var(--border); border-radius:0.5rem; padding:0.5rem; margin-bottom: 80px; margin-top: 10px;">
+
+          <div
+            style="display:flex; gap:0.4rem; font-size:0.75rem; font-weight:bold; color:var(--text-muted); align-items:center; border-bottom:2px solid var(--border); padding-bottom:0.5rem; margin-bottom:0.5rem;">
             <div style="flex:3; text-align:left;">Kampanya Adı</div>
             <div style="flex:2;">Geçerlilik</div>
             <div style="flex:1.5;">Durum</div>
@@ -822,7 +827,7 @@
 
   <div id="mo-katalog" class="mo" onclick="closeOnOutside(event, 'mo-katalog')" style="z-index: 80;">
     <div class="mo-content" style="max-width: 800px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
-      
+
       <div class="mo-header">
         <div class="mo-title" id="kat-title">Katalog & Kampanya</div>
         <div class="flex gap-2">
@@ -831,17 +836,19 @@
           <button class="icon-btn" onclick="closeM('mo-katalog')">✕</button>
         </div>
       </div>
-      
+
       <input type="hidden" id="kat-Id">
-      
+
       <div style="flex:1; overflow-y:auto; padding-right:5px;">
         <div class="grid-2">
           <div>
-            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Katalog Adı*</label>
+            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Katalog
+              Adı*</label>
             <input type="text" id="kat-Name" placeholder="Kampanya / Katalog Adı*">
           </div>
           <div>
-            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Geçerlilik Tarihi</label>
+            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Geçerlilik
+              Tarihi</label>
             <input type="datetime-local" id="kat-OfferDate">
           </div>
         </div>
@@ -867,7 +874,7 @@
         <h4 style="margin-bottom:10px;">Katalog Sepeti</h4>
         <div id="kat-sepet-list"></div>
       </div>
-      
+
       <div style="margin-top:15px;">
         <button class="btn-primary" onclick="saveKatalog()">Kaydet</button>
       </div>
