@@ -41,7 +41,9 @@ canvas.drawingBuffer { position: absolute; top: 0; left: 0; width: 100%; height:
     display: inline-block;
     transform: scaleX(-1);
 }
-/* Tüm sayfalardaki filtreleri sabitleme ve boşlukları katılaştırma */
+body, html {
+  overflow-x: clip !important; /* hidden yerine clip kullanmak sticky'yi mobilde kurtarır */
+}
 .view > .card:first-child {
   position: sticky;
   top: 89px;
