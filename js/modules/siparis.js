@@ -41,7 +41,7 @@ export function renderSipItems() {
   
   if (visibleItems.length > 0) { 
     // SİHİRLİ DOKUNUŞ: position: sticky, top: 0, z-index: 10 ve background eklendi.
-    p.innerHTML += `<div style="display:flex; gap:0.4rem; padding:0.5rem 0.2rem; font-size:0.8rem; font-weight:bold; color:var(--text-muted); position: sticky; top: 0; background: var(--card); z-index: 10; border-bottom: 1px solid var(--border); margin-bottom: 0.25rem;">
+    p.innerHTML += `<div style="display:flex; gap:0.4rem; padding:0.5rem 0.5rem; font-size:0.8rem; font-weight:bold; color:var(--text-muted); position: sticky; top: 0; background: var(--card); z-index: 10; border-bottom: 1px solid var(--border); margin-bottom: 0.25rem;">
       <div style="flex:3;">Ürün Seç</div>
       <div style="flex:2;">Miktar</div>
       <div style="flex:2;">Birim Fiyat</div>
