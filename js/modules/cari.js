@@ -8,7 +8,7 @@ let tempGruplar = [];
 export function openGrupModal(type) { 
   tempGroupType = type; 
   const targetDB = type === 'CurrentGroup' ? DB.CurrentGroup : DB.Sector;
-  $('mg-title').innerText = type === 'CurrentGroup' ? 'Cari Grupları' : 'Sektör Yönetimi';
+  $('mg-title').innerText = type === 'CurrentGroup' ? 'Cari Grupları' : 'Sektörler';
   
   tempGruplar = JSON.parse(JSON.stringify(targetDB.filter(x=>!x.Deleted))); 
   $('mg-new-ad').value = ''; 
@@ -148,7 +148,7 @@ export function openCariModal() {
   $('mc-IdentityNumber').value = ''; $('mc-Email').value = ''; $('mc-Address').value = ''; $('mc-Balance').value = ''; 
   $('mc-CurrentGroupId').value = ''; $('mc-SectorId').value = '';
   loadGrupSelects();
-  $('mc-title').innerText = 'Yeni Cari'; $('mc-del').classList.add('hidden'); $('mc-ekstre').classList.add('hidden'); openM('mo-cari');
+  $('mc-title').innerText = 'Cari Kartı'; $('mc-del').classList.add('hidden'); $('mc-ekstre').classList.add('hidden'); openM('mo-cari');
 }
 
 export function editCari(id) {
@@ -160,7 +160,7 @@ export function editCari(id) {
   $('mc-SectorId').value = c.SectorId || ''; // Sektörü Doldur
   $('mc-Balance').value = c.Balance ? formatTR(c.Balance) : '';
   
-  $('mc-title').innerText = 'Cari Düzenle'; $('mc-del').classList.remove('hidden'); $('mc-ekstre').classList.remove('hidden');
+  $('mc-title').innerText = 'Cari Kartı'; $('mc-del').classList.remove('hidden'); $('mc-ekstre').classList.remove('hidden');
   $('mc-del').onclick = () => { showConfirm(`${c.Name} silinecek?`, () => { softDelete(DB.Current, id); saveDB(); closeM('mo-cari'); renderCari(true); }, '🗑️', 'Sil'); };
   $('mc-ekstre').onclick = () => { closeM('mo-cari'); printEkstre(c.Id); }; openM('mo-cari');
 }

@@ -56,13 +56,19 @@
 
   <div id="app-container" class="hidden">
     <div class="topbar">
-      <!-- <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
-      <h2 id="top-title" style="font-size:1.2rem;">Ana Sayfa</h2> -->
-      <div class="nav-brand" style="display: flex; align-items: center; gap: 10px;">
-        <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
-        <h2 id="top-title" style="font-size:1.2rem;">Ana Sayfa</h2>
+      <div class="nav-brand" style="display: flex; align-items: stretch;">
+        
+        <button onclick="goTo('home')" style="background: transparent; border: none; color: inherit; font-size: 1.6rem; cursor: pointer; padding: 0 15px; margin: -15px 0px -15px -15px; display: flex; align-items: center; justify-content: center; min-height: 60px;"><span class="sol-ok">➔</span>
+</button>
+        
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <img src="img/logo-192.png" alt="Logo" style="width: 32px; height: 32px; border-radius: 0.4rem;">
+          <h2 id="top-title" style="font-size:1.2rem; margin: 0;">Ana Sayfa</h2>
+        </div>
+        
       </div>
-      <div class="flex gap-2">
+      
+      <div class="flex gap-2" style="display: flex; align-items: center;">
         <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">☀️</button>
         <button class="icon-btn" onclick="logoutConfirm()">🚪</button>
       </div>
@@ -78,27 +84,27 @@
             onclick="if(window.initKatalogView) window.initKatalogView(); goTo('katalog');"
             style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-bottom:0;">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Katalog & Kampanya</div>
-            <div class="card-value" style="font-size:1.1rem;">Katalog Yönetimi ➔</div>
+            <div class="card-value" style="font-size:1.1rem; color: rgba(255,255,255,0.9);">Katalog Yönetimi ➔</div>
           </div>
           <div class="card card-gradient" onclick="goTo('analiz')"
             style="background: linear-gradient(135deg, #8e44ad, #9b59b6); margin-bottom:0;">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Finansal Analiz</div>
-            <div class="card-value" style="font-size:1.2rem;">Grafik & Raporlar ➔</div>
+            <div class="card-value" style="font-size:1.2rem; color: rgba(255,255,255,0.9);">Grafik & Raporlar ➔</div>
           </div>
           <div class="card card-gradient" onclick="initPublishView(); goTo('publish');"
             style="background: linear-gradient(135deg, #27ae60, #2ecc71);">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">B2B Vitrin Yayını</div>
-            <div class="card-value" style="font-size:1.2rem;">Vitrin & Yayın ➔</div>
+            <div class="card-value" style="font-size:1.2rem; color: rgba(255,255,255,0.9);">Vitrin & Yayın ➔</div>
           </div>
           <div class="card card-gradient" onclick="initCloudSettingsView(); goTo('cloud-settings');"
             style="background: linear-gradient(135deg, #3498db, #3498db); margin-bottom:0;">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Bulut Bağlantıları</div>
-            <div class="card-value" style="font-size:1.2rem;">Bağlantı Ayarları ➔</div>
+            <div class="card-value" style="font-size:1.2rem; color: rgba(255,255,255,0.9);">Bağlantı Ayarları ➔</div>
           </div>
           <div class="card card-gradient" onclick="goTo('ayarlar')"
             style="background: linear-gradient(135deg, #34495e, #2c3e50);">
             <div class="card-title" style="color: rgba(255,255,255,0.9);">Sistem Yönetimi</div>
-            <div class="card-value" style="font-size:1.2rem;">Sistem &amp; Admin ➔</div>
+            <div class="card-value" style="font-size:1.2rem; color: rgba(255,255,255,0.9);">Sistem &amp; Admin ➔</div>
           </div>
         </div>
       </div>
@@ -227,8 +233,8 @@
         <div id="kasa-list"></div>
       </div>
 
-      <div id="view-publish" class="view hidden">
-        <div class="card mb-2">
+      <div id="view-publish" class="view hidden" style="cursor: default;">
+        <div class="card mb-4" style="cursor: default;">
           <div class="compact-filters" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
             <select id="filter-pub-cat" onchange="renderPublishProducts()">
               <option value="">Tüm Kategoriler</option>
@@ -339,20 +345,30 @@
       </div>
 
       <div id="view-katalog" class="view hidden">
-        <div class="grid-2 mb-4">
-
-          <div class="card card-gradient" onclick="openKatalogModal()"
-            style="background: linear-gradient(135deg, #e74c3c, #c0392b); margin-bottom:0;">
-            <div class="card-title" style="color: rgba(255,255,255,0.9);">Yeni Kampanya</div>
-            <div class="card-value" style="font-size:1.1rem;">Katalog Hazırla ➔</div>
+        <div class="card mb-4" style="cursor: default;">
+          <div class="compact-filters" style="grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));">
+            <input type="text" id="filter-katalog-start" placeholder="Başlangıç" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'" onchange="renderKatalog(true)">
+            <input type="text" id="filter-katalog-end" placeholder="Bitiş" onfocus="(this.type='date')"
+              onblur="if(!this.value) this.type='text'" onchange="renderKatalog(true)">
+            <input type="text" id="filter-katalog-q" placeholder="Katalog / Kampanya Ara..." onkeyup="renderKatalog(true)">
           </div>
-
-          <div class="card" onclick="openKampanyaListeModal()" style="margin-bottom:0;">
-            <div class="card-title">Kayıtlı Kampanyalar</div>
-            <div class="card-value" id="home-kampanya-count" style="font-size:1.1rem;">Geçmiş Kampanyalar ➔</div>
-          </div>
-
         </div>
+
+        <div style="background:var(--bg); border:1px solid var(--border); border-radius:0.5rem; padding:0.5rem; margin-bottom: 80px; margin-top: 10px;">
+          
+          <div style="display:flex; gap:0.4rem; font-size:0.75rem; font-weight:bold; color:var(--text-muted); align-items:center; border-bottom:2px solid var(--border); padding-bottom:0.5rem; margin-bottom:0.5rem;">
+            <div style="flex:3; text-align:left;">Kampanya Adı</div>
+            <div style="flex:2;">Geçerlilik</div>
+            <div style="flex:1.5;">Durum</div>
+            <div style="flex:1.5;">Kalem</div>
+          </div>
+
+          <div id="katalog-list"></div>
+        </div>
+
+        <button class="icon-btn" onclick="openKatalogModal()"
+          style="position: fixed; bottom: 80px; right: 20px; z-index: 40; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 2rem; display: flex; justify-content: center; align-items: center; padding-bottom: 4px;">+</button>
       </div>
 
       <div id="mo-erp-config" class="mo" onclick="closeOnOutside(event, 'mo-erp-config')" style="z-index: 95;">
@@ -445,17 +461,18 @@
   <div id="mo-cari" class="mo" onclick="closeOnOutside(event, 'mo-cari')">
     <div class="mo-content">
       <div class="mo-header">
-        <div class="mo-title" id="mc-title">Yeni Cari</div>
+        <div class="mo-title" id="mc-title">Cari Kartı</div>
         <div class="flex gap-2">
           <button id="mc-ekstre" class="icon-btn hidden">⬇️</button>
           <button id="mc-del" class="icon-btn text-red hidden">🗑️</button>
           <button class="icon-btn" onclick="closeM('mo-cari')">✕</button>
         </div>
       </div>
-<input type="hidden" id="mc-Id">
-      
+      <input type="hidden" id="mc-Id">
+
       <div>
-        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Firma / Şahıs Adı*</label>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Firma / Şahıs
+          Adı*</label>
         <input type="text" id="mc-Name" placeholder="Firma / Şahıs Adı*">
       </div>
 
@@ -476,18 +493,21 @@
 
       <div class="grid-2">
         <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Telefon Numarası</label>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Telefon
+            Numarası</label>
           <input type="tel" id="mc-PhoneNumber" placeholder="Telefon Numarası" inputmode="tel">
         </div>
         <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">E-Posta Adresi</label>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">E-Posta
+            Adresi</label>
           <input type="email" id="mc-Email" placeholder="E-Posta Adresi">
         </div>
       </div>
 
       <div class="grid-2">
         <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Vergi Numarası (VKN)</label>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Vergi Numarası
+            (VKN)</label>
           <input type="text" id="mc-VKN" placeholder="Vergi Numarası (VKN)" inputmode="numeric">
         </div>
         <div>
@@ -497,7 +517,8 @@
       </div>
 
       <div>
-        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Açılış Bakiyesi (Müşteri Borcu) (₺)</label>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Açılış Bakiyesi
+          (Müşteri Borcu) (₺)</label>
         <input type="text" id="mc-Balance" placeholder="Açılış Bakiyesi (Müşteri Borcu) (₺)" inputmode="decimal"
           onfocus="var v=parseRawTR(this.value); this.value=v?toRawTR(v):'';"
           onblur="var v=parseRawTR(this.value); this.value=v?formatTR(v):';'">
@@ -514,7 +535,7 @@
   <div id="mo-urun" class="mo" onclick="closeOnOutside(event, 'mo-urun')">
     <div class="mo-content">
       <div class="mo-header">
-        <div class="mo-title">Ürün Detayı</div>
+        <div class="mo-title">Ürün Kartı</div>
         <div class="flex gap-2">
           <button id="mu-del" class="icon-btn text-red hidden">🗑️</button>
           <button class="icon-btn" onclick="closeM('mo-urun')">✕</button>
@@ -528,34 +549,43 @@
       </div>
 
       <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
-        
+
         <div style="display:flex; flex-direction:column; align-items:center;">
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px; align-self:flex-start;">Görsel</label>
-          <div style="position: relative; width: 90px; height: 90px; border: 2px dashed var(--border); border-radius: 0.5rem; background: var(--bg); display:flex; align-items:center; justify-content:center;">
-            
+          <label
+            style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px; align-self:flex-start;">Görsel</label>
+          <div
+            style="position: relative; width: 90px; height: 90px; border: 2px dashed var(--border); border-radius: 0.5rem; background: var(--bg); display:flex; align-items:center; justify-content:center;">
+
             <span style="color: var(--text-muted); font-size: 1.8rem; position: absolute; z-index: 1;">📷</span>
-            <img id="mu-foto-preview" style="width: 100%; height: 100%; object-fit: cover; border-radius: 0.4rem; position: absolute; top:0; left:0; display: none; z-index: 2; background: var(--bg);">
-            
-            <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)" style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index: 5; margin:0;">
-            
-            <button id="mu-foto-remove" class="icon-btn" onclick="event.preventDefault(); event.stopPropagation(); removeUrunFoto();" style="position: absolute; top: -6px; right: -6px; background: var(--red); color: white; border-radius: 50%; width: 22px; height: 22px; display: none; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.3); padding:0;">✕</button>
+            <img id="mu-foto-preview"
+              style="width: 100%; height: 100%; object-fit: cover; border-radius: 0.4rem; position: absolute; top:0; left:0; display: none; z-index: 2; background: var(--bg);">
+
+            <input type="file" id="mu-PicturePath-input" accept="image/*" onchange="previewUrunFoto(event)"
+              style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index: 5; margin:0;">
+
+            <button id="mu-foto-remove" class="icon-btn"
+              onclick="event.preventDefault(); event.stopPropagation(); removeUrunFoto();"
+              style="position: absolute; top: -6px; right: -6px; background: var(--red); color: white; border-radius: 50%; width: 22px; height: 22px; display: none; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.3); padding:0;">✕</button>
           </div>
         </div>
-        
+
         <div style="flex: 1; display:flex; flex-direction:column;">
           <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Açıklama</label>
-          <textarea id="mu-Description" placeholder="Açıklama" rows="3" style="margin:0; height:90px; resize:none; padding:0.5rem; font-family:inherit; width: 100%;"></textarea>
+          <textarea id="mu-Description" placeholder="Açıklama" rows="3"
+            style="margin:0; height:90px; resize:none; padding:0.5rem; font-family:inherit; width: 100%;"></textarea>
         </div>
 
       </div>
 
-      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 0.75rem; position: relative; z-index: 60;">
+      <div
+        style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 0.75rem; position: relative; z-index: 60;">
         <div>
           <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Kategori</label>
           <div class="c-select" id="cs-wrap-mu-CategoryId" style="margin-bottom:0;">
             <div class="c-select-display" onclick="toggleCSelect('mu-CategoryId', 'Category')"
               style="padding:0.4rem; font-size:0.8rem;">
-              <span id="csd-mu-CategoryId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
+              <span id="csd-mu-CategoryId"
+                style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
               <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
             </div>
             <input type="hidden" id="mu-CategoryId">
@@ -572,7 +602,8 @@
           <div class="c-select" id="cs-wrap-mu-ProductGroupId" style="margin-bottom:0;">
             <div class="c-select-display" onclick="toggleCSelect('mu-ProductGroupId', 'ProductGroup')"
               style="padding:0.4rem; font-size:0.8rem;">
-              <span id="csd-mu-ProductGroupId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
+              <span id="csd-mu-ProductGroupId"
+                style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
               <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
             </div>
             <input type="hidden" id="mu-ProductGroupId">
@@ -590,7 +621,8 @@
           <div class="c-select" id="cs-wrap-mu-BrandId" style="margin-bottom:0;">
             <div class="c-select-display" onclick="toggleCSelect('mu-BrandId', 'Brand')"
               style="padding:0.4rem; font-size:0.8rem;">
-              <span id="csd-mu-BrandId" style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
+              <span id="csd-mu-BrandId"
+                style="flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Seç</span>
               <span style="font-size:0.6rem; margin-left:4px; flex-shrink:0;">▼</span>
             </div>
             <input type="hidden" id="mu-BrandId">
@@ -606,7 +638,8 @@
       <div>
         <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Barkod</label>
         <div class="flex gap-2" style="margin-bottom:0.75rem;">
-          <input type="text" id="mu-BarCode" placeholder="Barkod" inputmode="numeric" pattern="[0-9]*" style="margin-bottom: 0;">
+          <input type="text" id="mu-BarCode" placeholder="Barkod" inputmode="numeric" pattern="[0-9]*"
+            style="margin-bottom: 0;">
           <button class="icon-btn" onclick="startCam('urun-form')"
             style="border:1px solid var(--border); border-radius:0.4rem; padding: 0 1rem; margin-bottom:0;">📷</button>
         </div>
@@ -614,13 +647,15 @@
 
       <div class="grid-2">
         <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Alış Fiyatı (₺)</label>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Alış Fiyatı
+            (₺)</label>
           <input type="text" id="mu-PurchasePrice" placeholder="Alış Fiyatı" inputmode="decimal"
             onfocus="var vfa=parseRawTR(this.value); this.value=vfa?toRawTR(vfa):'';"
             onblur="var vfb=parseRawTR(this.value); this.value=vfb?formatTR(vfb):';'">
         </div>
         <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Satış Fiyatı (₺)</label>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Satış Fiyatı
+            (₺)</label>
           <input type="text" id="mu-SalePrice" placeholder="Satış Fiyatı" inputmode="decimal"
             onfocus="var vfc=parseRawTR(this.value); this.value=vfc?toRawTR(vfc):'';"
             onblur="var vfd=parseRawTR(this.value); this.value=vfd?formatTR(vfd):';'">
@@ -671,7 +706,8 @@
           </select>
         </div>
         <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Tarihi</label>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş
+            Tarihi</label>
           <input type="datetime-local" id="ms-OrderDate">
         </div>
       </div>
@@ -770,7 +806,8 @@
       </div>
 
       <div>
-        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">İşlem Tutarı (₺)*</label>
+        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">İşlem Tutarı
+          (₺)*</label>
         <input type="text" id="mk-Payment" placeholder="İşlem Tutarı*" inputmode="decimal"
           onfocus="var vf=parseRawTR(this.value); this.value=vf?toRawTR(vf):'';"
           onblur="var vb=parseRawTR(this.value); this.value=vb?formatTR(vb):';'">
@@ -785,15 +822,22 @@
 
   <div id="mo-katalog" class="mo" onclick="closeOnOutside(event, 'mo-katalog')" style="z-index: 80;">
     <div class="mo-content" style="max-width: 800px; width: 95%; height: 90vh; display: flex; flex-direction: column;">
+      
       <div class="mo-header">
-        <div class="mo-title">Katalog & Kampanya Hazırla</div>
-        <button class="icon-btn" onclick="closeM('mo-katalog')">✕</button>
+        <div class="mo-title" id="kat-title">Katalog & Kampanya</div>
+        <div class="flex gap-2">
+          <button id="kat-pdf" class="icon-btn hidden" onclick="printCurrentKatalog()">⬇️</button>
+          <button id="kat-del" class="icon-btn text-red hidden" onclick="deleteKatalog()">🗑️</button>
+          <button class="icon-btn" onclick="closeM('mo-katalog')">✕</button>
+        </div>
       </div>
+      
       <input type="hidden" id="kat-Id">
+      
       <div style="flex:1; overflow-y:auto; padding-right:5px;">
         <div class="grid-2">
           <div>
-            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Kampanya / Katalog Adı*</label>
+            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Katalog Adı*</label>
             <input type="text" id="kat-Name" placeholder="Kampanya / Katalog Adı*">
           </div>
           <div>
@@ -802,7 +846,7 @@
           </div>
         </div>
         <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Kampanya Açıklaması</label>
+          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Açıklama</label>
           <textarea id="kat-Description" placeholder="Kampanya Açıklaması" rows="2"></textarea>
         </div>
 
@@ -810,7 +854,7 @@
         <h4 style="margin-bottom:10px;">Ürün Seçimi</h4>
         <div class="compact-filters" style="grid-template-columns: 1fr 2fr auto;">
           <select id="filter-kat-grup" onchange="renderKatUrun()">
-            <option value="">Tüm Gruplar</option>
+            <option value="">Tüm Kategoriler</option>
           </select>
           <input type="text" id="filter-kat-q" placeholder="Ürün Ara..." onkeyup="renderKatUrun()">
           <button class="btn-outline" onclick="selectAllKat()">Tümünü Ekle</button>
@@ -823,8 +867,9 @@
         <h4 style="margin-bottom:10px;">Katalog Sepeti</h4>
         <div id="kat-sepet-list"></div>
       </div>
+      
       <div style="margin-top:15px;">
-        <button class="btn-primary" onclick="saveAndPrintKatalog()">Kaydet ve PDF İndir</button>
+        <button class="btn-primary" onclick="saveKatalog()">Kaydet</button>
       </div>
     </div>
   </div>

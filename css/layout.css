@@ -37,7 +37,10 @@ canvas.drawingBuffer { position: absolute; top: 0; left: 0; width: 100%; height:
 #login-screen img {
     animation: fadeIn 1s ease-in-out;
 }
-
+.sol-ok {
+    display: inline-block;
+    transform: scaleX(-1);
+}
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
