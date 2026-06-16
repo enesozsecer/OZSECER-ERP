@@ -213,6 +213,59 @@ export function listenToCloudChanges() {
     });
 }
 
+// YENİ: Market DB'sini Önbellek (Cache) ile dinleyen özel fonksiyon
+export function listenToMarketCollection(colName) {
+    if (!marketDB || !fs || activeListeners.has("mkt_" + colName)) return;
+    activeListeners.add("mkt_" + colName);
+
+    const colRef = fs.collection(marketDB, colName);
+    fs.onSnapshot(colRef, (snapshot) => {
+        let hasUpdates = false;
+        snapshot.docChanges().forEach((change) => {
+            const data = change.doc.data();
+            if (!data || !data.Id) return;
+            const index = DB[colName].findIndex(x => x.Id === data.Id);
+
+            if (change.type === "added") {
+                if (index > -1) {
+                    if (JSON.stringify(DB[colName][index]) !== JSON.stringify(data)) {
+                        DB[colName][index] = data; hasUpdates = true;
+                    }
+                } else {
+                    DB[colName].push(data); hasUpdates = true;
+                    // Eğer yeni bir ürün markette yayına alındıysa, checkbox'ını otomatik işaretle
+                    if (colName === 'PublishItem' && window.addPublishSelection) window.addPublishSelection(data.ProductId);
+                }
+            } else if (change.type === "modified") {
+                if (index > -1) {
+                    if (JSON.stringify(DB[colName][index]) !== JSON.stringify(data)) {
+                        DB[colName][index] = data; hasUpdates = true;
+                    }
+                } else {
+                    DB[colName].push(data); hasUpdates = true;
+                }
+            } else if (change.type === "removed") {
+                if (index > -1) {
+                    DB[colName].splice(index, 1); hasUpdates = true;
+                    // Eğer ürün marketten silindiyse, checkbox'ın işaretini kaldır
+                    if (colName === 'PublishItem' && window.removePublishSelection) window.removePublishSelection(data.ProductId);
+                }
+            }
+        });
+        
+        if (hasUpdates) {
+            CloudMirror[colName] = JSON.parse(JSON.stringify(DB[colName]));
+            localStorage.setItem('e3_' + colName, JSON.stringify(DB[colName]));
+            const currentView = document.querySelector('.view:not(.hidden)');
+            // Eğer Yayın sayfasındaysak listeyi anında güncelle
+            if (currentView && currentView.id === 'view-publish' && typeof window.renderPublishProducts === 'function') {
+                window.renderPublishProducts(false); 
+            }
+        }
+    });
+}
+window.listenToMarketCollection = listenToMarketCollection;
+
 export function initCloudSettingsView() { if ($('global-page-title')) $('global-page-title').innerText = 'Bulut Ayarları'; }
 
 export function openErpConfigModal() {

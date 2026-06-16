@@ -4,12 +4,12 @@ import { $, tsNow, guid, getCihazAdi, showToast, openM, closeM, showConfirm, for
 let selectedProductIds = new Set();
 let publishState = {}; 
 let visibleProductIds = []; 
-let marketPublishItems = []; 
+
+// YENİ: Firebase MarketDB'den tetiklendiğinde checkbox durumlarını günceller
+window.addPublishSelection = function(pId) { selectedProductIds.add(pId); };
+window.removePublishSelection = function(pId) { selectedProductIds.delete(pId); };
 
 export async function initPublishView() {
-  if (window.listenToCollection) {
-      window.listenToCollection('PublishItem');
-  }
   const catSel = $('filter-pub-cat'); const grpSel = $('filter-pub-group'); const brnSel = $('filter-pub-brand');
   if (catSel) { catSel.innerHTML = '<option value="">Tüm Kategoriler</option>'; DB.Category.filter(x=>!x.Deleted).forEach(c => catSel.innerHTML += `<option value="${c.Id}">${c.Name}</option>`); }
   if (grpSel) { grpSel.innerHTML = '<option value="">Tüm Gruplar</option>'; DB.ProductGroup.filter(x=>!x.Deleted).forEach(c => grpSel.innerHTML += `<option value="${c.Id}">${c.Name}</option>`); }
@@ -17,7 +17,6 @@ export async function initPublishView() {
   
   if ($('global-page-title')) $('global-page-title').innerText = 'Yayın';
   
-  // 🚀 YENİ KONTROL: Eğer marketDB henüz yüklenmemişse ama şifreler girilmişse bekle. Yoksa Popup aç!
   if (!window.marketDB) {
       if (localStorage.getItem('e3_firebase_market')) {
           showToast("Market bulutuna bağlanılıyor, veriler birazdan ekrana düşecek...");
@@ -31,27 +30,18 @@ export async function initPublishView() {
       }
   }
 
-  try {
-      showSpinner("Market (e-esnaf) verileri canlı sorgulanıyor...");
-      const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
-      
-      const querySnapshot = await getDocs(collection(window.marketDB, "PublishItem"));
-      marketPublishItems = [];
-      querySnapshot.forEach((doc) => {
-          marketPublishItems.push(doc.data());
-      });
-      hideSpinner();
-      
-      selectedProductIds.clear();
-      marketPublishItems.forEach(x => {
-          selectedProductIds.add(x.ProductId);
-      });
-      
-      renderPublishProducts();
-  } catch (err) {
-      hideSpinner();
-      showCustomAlert("Market verileri çekilemedi: " + err.message, false);
+  // YENİ: Market veritabanını Önbellek (Cache) ile dinlemeye başlar! Her girişte sıfırdan yavaş okuma yapmaz.
+  if (window.listenToMarketCollection) {
+      window.listenToMarketCollection('PublishItem');
   }
+
+  // Ön bellekteki (veya RAM'deki) hazır verilerle seçili olanları işaretle (Bekleme süresi sıfır)
+  selectedProductIds.clear();
+  (DB.PublishItem || []).forEach(x => {
+      selectedProductIds.add(x.ProductId);
+  });
+
+  renderPublishProducts();
 }
 
 let publishLimit = 20;
@@ -65,12 +55,13 @@ export function renderPublishProducts(resetLimit = true) {
   visibleProductIds = []; 
   
   let rawList = [];
+  const mktItems = DB.PublishItem || []; // YENİ: Direkt önbellekten çekilir
 
   DB.Product.filter(x => !x.Deleted).forEach(p => {
       rawList.push({ Id: p.Id, IsOrphaned: false, ERP_Prod: p });
   });
 
-  marketPublishItems.forEach(pubItem => {
+  mktItems.forEach(pubItem => {
     if (!rawList.some(x => x.Id === pubItem.ProductId)) {
       rawList.push({ Id: pubItem.ProductId, IsOrphaned: true, ERP_Prod: null });
     }
@@ -79,7 +70,7 @@ export function renderPublishProducts(resetLimit = true) {
   rawList.forEach(item => {
       const pId = item.Id;
       const origProd = item.ERP_Prod || DB.Product.find(x => x.Id === pId);
-      const existingPub = marketPublishItems.find(x => x.ProductId === pId);
+      const existingPub = mktItems.find(x => x.ProductId === pId);
 
       if (!publishState[pId]) {
           publishState[pId] = {
@@ -98,11 +89,10 @@ export function renderPublishProducts(resetLimit = true) {
       }
   });
 
-  // Filtrele
   let filteredList = rawList.filter(item => {
       const pId = item.Id;
       const s = publishState[pId];
-      const existingPub = marketPublishItems.find(x => x.ProductId === pId);
+      const existingPub = mktItems.find(x => x.ProductId === pId);
 
       if (q && !s.Name.toLowerCase().includes(q)) return false;
       if (cat && String(s.CategoryId) !== String(cat)) return false;
@@ -115,17 +105,13 @@ export function renderPublishProducts(resetLimit = true) {
       return true;
   });
 
-  // Sırala
   filteredList.sort((a,b) => publishState[a.Id].Name.localeCompare(publishState[b.Id].Name));
-
-  // Sayfala (Kes)
   let pagedList = filteredList.slice(0, publishLimit);
 
-  // Render
   pagedList.forEach(item => {
     const pId = item.Id;
     const s = publishState[pId];
-    const existingPub = marketPublishItems.find(x => x.ProductId === pId);
+    const existingPub = mktItems.find(x => x.ProductId === pId);
     
     visibleProductIds.push(pId); 
 
@@ -143,39 +129,39 @@ export function renderPublishProducts(resetLimit = true) {
 
     list.innerHTML += `
       <div onclick="openPublishDetailModal('${pId}')" style="${bgClass} border-radius:0.4rem; padding:0.4rem; margin-bottom:0.4rem; display:flex; gap:0.4rem; align-items:center; cursor:pointer;">
-        
         <div style="width:24px; display:flex; justify-content:center;" onclick="event.stopPropagation()">
           <input type="checkbox" id="cb-${pId}" ${isSelected ? 'checked' : ''} onclick="toggleSelectPublish('${pId}', this.checked)" style="width:18px; height:18px; accent-color:var(--green); cursor:pointer; margin:0;">
         </div>
-
         <div style="flex:3; text-align:left; overflow:hidden;">
           <div style="margin-top:2px;">${badgeTxt}</div>
           <div style="font-weight:bold; font-size:0.8rem; white-space:nowrap; text-overflow:ellipsis;" title="${displayName}">${displayName}</div>
         </div>
-        
         <div style="flex:2;" onclick="event.stopPropagation()"><input type="text" value="${formatTR(s.Price)}" inputmode="decimal" onfocus="focusPub(this, '${pId}', 'Price')" onblur="blurPub(this, '${pId}', 'Price')" oninput="calcPublishRow('${pId}', 'Price', this.value)" style="margin:0; padding:0.3rem; font-size:0.8rem; width:100%; box-sizing:border-box;"></div>
-        
         <div style="flex:1.5;" onclick="event.stopPropagation()"><input type="text" id="pub-yuz-${pId}" value="${formatTR(s.DiscountRate)}" inputmode="decimal" onfocus="focusPub(this, '${pId}', 'DiscountRate')" onblur="blurPub(this, '${pId}', 'DiscountRate')" oninput="calcPublishRow('${pId}', 'DiscountRate', this.value)" style="margin:0; padding:0.3rem; font-size:0.8rem; width:100%; box-sizing:border-box;"></div>
-        
         <div style="flex:2;" onclick="event.stopPropagation()"><input type="text" id="pub-ind-${pId}" value="${formatTR(s.SalePrice)}" inputmode="decimal" onfocus="focusPub(this, '${pId}', 'SalePrice')" onblur="blurPub(this, '${pId}', 'SalePrice')" oninput="calcPublishRow('${pId}', 'SalePrice', this.value)" style="margin:0; padding:0.3rem; font-size:0.8rem; width:100%; box-sizing:border-box;"></div>
-        
         <div style="flex:1.5;" onclick="event.stopPropagation()"><input type="number" value="${s.StockQuantity}" inputmode="numeric" oninput="calcPublishRow('${pId}', 'StockQuantity', this.value)" style="margin:0; padding:0.3rem; font-size:0.8rem; width:100%; box-sizing:border-box;"></div>
-        
       </div>`;
   });
   
-  // Tümünü seç checkbox'ı için güncelleme (Sadece render edilenleri baz alır, bu performans/güvenlik için iyidir)
   if($('pub-master-cb')) $('pub-master-cb').checked = visibleProductIds.length > 0 && visibleProductIds.every(id => selectedProductIds.has(id));
 
-  // Daha fazla göster butonu
   if (filteredList.length > publishLimit) {
     list.innerHTML += `<button class="btn-outline" style="margin-top:10px; width:100%; padding:0.8rem;" onclick="loadMorePublish()">Daha Fazla Göster (${filteredList.length - publishLimit} Kaldı)</button>`;
   }
+
+  // Sütun başlıklarının mobilde sabitlenmesi (Önceki yazdığımız akıllı kod)
+  setTimeout(() => {
+    const card = document.querySelector('#view-publish .card');
+    const titles = document.querySelector('#view-publish .header-titles');
+    if (card && titles) {
+        const marginB = parseInt(window.getComputedStyle(card).marginBottom) || 0;
+        titles.style.top = (88 + card.offsetHeight + marginB) + 'px';
+    }
+  }, 50);
 }
 
 window.loadMorePublish = function() {
     publishLimit += 20;
-    // resetLimit'i false gönderiyoruz ki limit baştan başlamasın
     renderPublishProducts(false);
 };
 
@@ -186,39 +172,30 @@ export function openPublishDetailModal(pId) {
     const modal = $('mo-publish-detail');
     if (!modal) return;
 
-    // 🚀 YENİ TASARIM: Çarpı (✕) ikonu eklendi, Ad ve Açıklama alanları şık şekilde yer değiştirdi
     modal.innerHTML = `
       <div class="modal-card" style="background: var(--card); color: var(--text); padding: 1.5rem; border-radius: 0.6rem; width: 95%; max-width: 500px; max-height: 85vh; overflow-y: auto; position: relative; margin: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-        
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
             <h3 style="margin: 0; color: var(--accent); font-size:1.1rem;">🛍️ Vitrin Düzenleyici</h3>
             <button onclick="closeM('mo-publish-detail')" style="background: transparent; border: none; color: var(--text); font-size: 1.4rem; cursor: pointer; padding:0 5px;">✕</button>
         </div>
-        
         <input type="hidden" id="mpd-ProductId" value="${pId}">
-        
         <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
             <div style="display:flex; flex-direction:column; align-items:center;">
                 <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px; align-self:flex-start;">Görsel</label>
                 <div style="position: relative; width: 90px; height: 90px; border: 2px dashed var(--border); border-radius: 0.5rem; background: var(--bg); display:flex; align-items:center; justify-content:center;">
-                    
                     <img id="mpd-PicturePreview" src="${s.PicturePath || ''}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 0.4rem; position: absolute; top:0; left:0; display: ${s.PicturePath ? 'block' : 'none'};">
                     <span id="mpd-PicturePlaceholder" style="color: var(--text-muted); font-size: 1.8rem; position: absolute; display: ${s.PicturePath ? 'none' : 'block'};">📷</span>
                     <input type="file" id="mpd-PictureInput" accept="image/*" style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index: 5;" onchange="previewPublishFoto(event)">
-                    
                     <div id="mpd-PictureRemove" onclick="removePublishFoto(event)" style="position: absolute; top: -6px; right: -6px; background: var(--red); color: white; border-radius: 50%; width: 22px; height: 22px; display: ${s.PicturePath ? 'flex' : 'none'}; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">✕</div>
                 </div>
             </div>
-            
             <div style="flex: 1; display:flex; flex-direction:column; justify-content:center;">
                 <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Vitrin Ürün Açıklaması</label>
                 <textarea id="mpd-Description" rows="3" placeholder="Web sitenizde görünecek detaylı açıklama..." style="margin:0; height:90px; resize:none; padding:0.5rem; font-family:inherit;">${s.Description || ''}</textarea>
             </div>
         </div>
-        
         <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px; margin-top: 5px;">Vitrin Ürün Adı</label>
         <input type="text" id="mpd-Name" value="${s.Name || ''}" placeholder="Web sitesinde görünecek ad" style="margin-bottom: 1rem; width: 100%; box-sizing: border-box;">
-        
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
             <div>
                 <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Kategori</label>
@@ -235,7 +212,6 @@ export function openPublishDetailModal(pId) {
                 </select>
             </div>
         </div>
-
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
             <div>
                 <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Marka</label>
@@ -257,7 +233,6 @@ export function openPublishDetailModal(pId) {
                 </select>
             </div>
         </div>
-
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
             <div>
                 <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Normal Fiyat (₺)</label>
@@ -268,7 +243,6 @@ export function openPublishDetailModal(pId) {
                 <input type="text" id="mpd-DiscountRate" value="${formatTR(s.DiscountRate)}" inputmode="decimal" oninput="calcSingleDetail('DiscountRate')">
             </div>
         </div>
-
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
             <div>
                 <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">İndirimli Fiyat (₺)</label>
@@ -279,7 +253,6 @@ export function openPublishDetailModal(pId) {
                 <input type="number" id="mpd-StockQuantity" value="${s.StockQuantity}" inputmode="numeric">
             </div>
         </div>
-        
         <button class="btn-primary" onclick="savePublishDetail()" style="height:44px; font-size:0.95rem; background: var(--accent);">
             💾 Bilgileri Güncelle &amp; Listeye Ekle
         </button>
@@ -338,7 +311,7 @@ export function previewPublishFoto(event) {
 }
 
 export function removePublishFoto(e) {
-    if(e) e.stopPropagation(); // Çarpıya basınca arka plandaki dosya seçici penceresinin de açılmasını engeller
+    if(e) e.stopPropagation(); 
     
     const previewObj = $('mpd-PicturePreview');
     if(previewObj) { previewObj.src = ''; previewObj.style.display = 'none'; }
@@ -433,6 +406,7 @@ export function removePopupPublishItem(pId) {
 
 export function renderPublishCartList() {
     const list = $('publish-cart-list'); list.innerHTML = '';
+    const mktItems = DB.PublishItem || []; // YENİ: Direkt önbellekten çekilir
     
     if (selectedProductIds.size === 0) {
         list.innerHTML = `
@@ -446,7 +420,7 @@ export function renderPublishCartList() {
 
     selectedProductIds.forEach(pId => {
         const p = DB.Product.find(x => x.Id === pId);
-        const oldItem = marketPublishItems.find(x => x.ProductId === pId);
+        const oldItem = mktItems.find(x => x.ProductId === pId);
         const isDeletedProduct = !p || p.Deleted;
         const s = publishState[pId];
         
@@ -484,8 +458,9 @@ export function publishAction() {
             showSpinner("Market veritabanı doğrudan eşitleniyor...");
             const { writeBatch, doc } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
             const batch = writeBatch(window.marketDB);
+            const mktItems = DB.PublishItem || [];
             
-            marketPublishItems.forEach(dbItem => {
+            mktItems.forEach(dbItem => {
                 if (!selectedProductIds.has(dbItem.ProductId)) {
                     const docRef = doc(window.marketDB, "PublishItem", String(dbItem.ProductId));
                     batch.delete(docRef);
@@ -495,7 +470,7 @@ export function publishAction() {
             selectedProductIds.forEach(pId => {
                 const s = publishState[pId];
                 const p = DB.Product.find(x => x.Id === pId);
-                const oldItem = marketPublishItems.find(x => x.ProductId === pId);
+                const oldItem = mktItems.find(x => x.ProductId === pId);
                 
                 const docData = {
                     Id: oldItem ? oldItem.Id : guid(),
@@ -526,7 +501,6 @@ export function publishAction() {
             closeM('mo-publish-list');
             showToast('🚀 e-esnaf Vitrin veritabanı canlı olarak güncellendi!');
             
-            initPublishView();
         } catch (err) {
             hideSpinner();
             showCustomAlert("Market veritabanına doğrudan yazılamadı: " + err.message, false);
