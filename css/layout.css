@@ -47,7 +47,7 @@ canvas.drawingBuffer { position: absolute; top: 0; left: 0; width: 100%; height:
 }
 @media (max-width: 768px) {
   .header-titles {
-    top: 400px !important;
+    top: 800px !important;
   }
 }
 .nav-brand {
