@@ -690,9 +690,10 @@
     </div>
   </div>
 
-  <div id="mo-sip" class="mo" onclick="closeOnOutside(event, 'mo-sip')">
-    <div class="mo-content" style="max-width: 650px;">
-      <div class="mo-header">
+  <div id="mo-sip" class="mo" onclick="closeOnOutside(event, 'mo-sip')" style="z-index: 80;">
+    <div class="mo-content" style="max-width: 650px; width: 95%; height: 85vh; display: flex; flex-direction: column;">
+      
+      <div class="mo-header" style="flex-shrink: 0;">
         <div class="mo-title" id="ms-title">Sipariş Formu</div>
         <div class="flex gap-2">
           <button id="ms-pdf" class="icon-btn hidden">⬇️</button>
@@ -700,71 +701,83 @@
           <button class="icon-btn" onclick="closeM('mo-sip')">✕</button>
         </div>
       </div>
+      
       <input type="hidden" id="ms-Id">
 
-      <div class="grid-2">
-        <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Türü</label>
-          <select id="ms-OrderTypeId">
-            <option value="2" selected>Satış</option>
-            <option value="1">Alış</option>
-          </select>
-        </div>
-        <div>
-          <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş
-            Tarihi</label>
-          <input type="datetime-local" id="ms-OrderDate">
-        </div>
-      </div>
-
-      <div>
-        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Cari Seçimi</label>
-        <div class="c-select" id="cs-wrap-ms-CurrentId" style="z-index: 70;">
-          <div class="c-select-display" onclick="toggleCSelect('ms-CurrentId', 'Current')">
-            <span id="csd-ms-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
-              Seçiniz...</span><span style="font-size:0.7rem; margin-left:8px;">▼</span>
+      <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+        
+        <div style="flex-shrink: 0;">
+          <div class="grid-2">
+            <div>
+              <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Türü</label>
+              <select id="ms-OrderTypeId">
+                <option value="2" selected>Satış</option>
+                <option value="1">Alış</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Tarihi</label>
+              <input type="datetime-local" id="ms-OrderDate">
+            </div>
           </div>
-          <input type="hidden" id="ms-CurrentId">
-          <div class="c-select-menu" id="csm-ms-CurrentId">
-            <input type="text" class="c-select-search" id="css-ms-CurrentId" placeholder="Cari Ara (İçeren)..."
-              onkeyup="renderCSelectList('ms-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
-            <div class="c-select-list" id="csl-ms-CurrentId"></div>
+
+          <div style="margin-top: 0.75rem;">
+            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Cari Seçimi</label>
+            <div class="c-select" id="cs-wrap-ms-CurrentId" style="z-index: 70;">
+              <div class="c-select-display" onclick="toggleCSelect('ms-CurrentId', 'Current')">
+                <span id="csd-ms-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span>
+                <span style="font-size:0.7rem; margin-left:8px;">▼</span>
+              </div>
+              <input type="hidden" id="ms-CurrentId">
+              <div class="c-select-menu" id="csm-ms-CurrentId">
+                <input type="text" class="c-select-search" id="css-ms-CurrentId" placeholder="Cari Ara (İçeren)..."
+                  onkeyup="renderCSelectList('ms-CurrentId', 'Current', this.value)" onclick="event.stopPropagation()">
+                <div class="c-select-list" id="csl-ms-CurrentId"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center mt-3 mb-2">
+            <h4 style="font-size:0.95rem; margin: 0;">Kalemler</h4>
+            <div class="flex gap-2">
+              <button class="btn-outline" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="startCam('sip-item')">📷 Seri Okut</button>
+              <button class="btn-primary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="addSipItem()">+ Ürün Ekle</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="flex justify-between items-center mt-4 mb-2">
-        <h4 style="font-size:0.95rem;">Kalemler</h4>
-        <div class="flex gap-2">
-          <button class="btn-outline" style="padding:0.4rem 0.5rem; font-size:0.8rem;" onclick="startCam('sip-item')">📷
-            Seri Okut</button>
-          <button class="btn-primary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;"
-            onclick="addSipItem()">+ Ekle</button>
+        <div id="ms-items" style="flex: 1; overflow-y: auto; padding-right: 5px;"></div>
+
+        <div style="flex-shrink: 0; padding-top: 10px; margin-top: 10px; border-top: 1px solid var(--border);">
+          <div class="flex justify-end gap-4 mb-2 text-right">
+            <div>
+              <div class="text-muted" style="font-size:0.8rem">Ara Toplam:</div>
+              <div class="text-muted" style="font-size:0.8rem; margin-top: 12px;">İndirim:</div>
+              <div style="font-weight:bold; font-size:1.1rem; margin-top:10px">Genel Toplam:</div>
+            </div>
+            <div>
+              <div id="ms-SubTotalPrice" style="font-size:0.9rem">₺0,00</div>
+              <div>
+                <input type="number" id="ms-DisCount" value="0" inputmode="decimal"
+                  style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;"
+                  onkeyup="calcSipTotal()">
+              </div>
+              <div id="ms-TotalPrice" style="font-weight:bold; color:var(--accent); font-size:1.1rem; margin-top: 4px;">₺0,00</div>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Notu</label>
+            <textarea id="ms-Description" placeholder="Sipariş Notu" rows="2" style="margin-bottom: 0;"></textarea>
+          </div>
         </div>
+
       </div>
 
-      <div id="ms-items" class="mb-4" style="max-height: 35vh; overflow-y: auto; overflow-x: hidden; padding-right: 5px;"></div>
-
-      <div class="flex justify-end gap-4 mb-4 text-right">
-        <div>
-          <div class="text-muted" style="font-size:0.8rem">Ara Toplam:</div>
-          <div class="text-muted" style="font-size:0.8rem">İndirim:</div>
-          <div style="font-weight:bold; font-size:1.1rem; margin-top:4px">Genel Toplam:</div>
-        </div>
-        <div>
-          <div id="ms-SubTotalPrice" style="font-size:0.9rem">₺0,00</div>
-          <div><input type="number" id="ms-DisCount" value="0" inputmode="decimal"
-              style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;"
-              onkeyup="calcSipTotal()"></div>
-          <div id="ms-TotalPrice" style="font-weight:bold; color:var(--accent); font-size:1.1rem;">₺0,00</div>
-        </div>
+      <div style="margin-top:15px; flex-shrink: 0;">
+        <button class="btn-primary" onclick="saveSip()" style="margin: 0; width: 100%;">Siparişi Kaydet</button>
       </div>
 
-      <div>
-        <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Notu</label>
-        <textarea id="ms-Description" placeholder="Sipariş Notu" rows="2"></textarea>
-      </div>
-      <button class="btn-primary mt-4" onclick="saveSip()">Kaydet</button>
     </div>
   </div>
 

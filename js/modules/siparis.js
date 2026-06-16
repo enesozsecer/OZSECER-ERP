@@ -38,7 +38,18 @@ window.loadMoreSip = function() { sipLimit += 20; renderSip(true, false); };
 
 export function renderSipItems() {
   const p = $('ms-items'); p.innerHTML = ''; const visibleItems = tempOrderItems.filter(it => !it.Deleted);
-  if (visibleItems.length > 0) { p.innerHTML += `<div style="display:flex; gap:0.4rem; padding:0 0.5rem; font-size:0.8rem; font-weight:bold; color:var(--text-muted);"><div style="flex:3;">Ürün Seç</div><div style="flex:2;">Miktar</div><div style="flex:2;">Birim Fiyat</div><div style="flex:2;">Toplam Fiyat</div><div style="width:1.1rem;"></div></div>`; }
+  
+  if (visibleItems.length > 0) { 
+    // SİHİRLİ DOKUNUŞ: position: sticky, top: 0, z-index: 10 ve background eklendi.
+    p.innerHTML += `<div style="display:flex; gap:0.4rem; padding:0.5rem 0.2rem; font-size:0.8rem; font-weight:bold; color:var(--text-muted); position: sticky; top: 0; background: var(--card); z-index: 10; border-bottom: 1px solid var(--border); margin-bottom: 0.25rem;">
+      <div style="flex:3;">Ürün Seç</div>
+      <div style="flex:2;">Miktar</div>
+      <div style="flex:2;">Birim Fiyat</div>
+      <div style="flex:2;">Toplam Fiyat</div>
+      <div style="width:1.1rem;"></div>
+    </div>`; 
+  }
+  
   visibleItems.forEach((it) => {
     const product = DB.Product.find(x => x.Id === it.ProductId); const pName = product ? product.Name : (it._TempName || ''); 
     p.innerHTML += `<div style="display:flex; gap:0.4rem; margin-top:0.5rem; align-items:center; background:var(--bg); padding:0.5rem; border-radius:0.4rem;">
@@ -57,7 +68,9 @@ export function renderSipItems() {
       </div>
       <button class="icon-btn text-red" style="padding:0; font-size:1.1rem;" onclick="delSipItem('${it.Id}')">✕</button>
     </div>`;
-  }); calcSipTotal();
+  }); 
+  
+  calcSipTotal();
 }
 
 export function ddUrunSearch(itemId, inp) {
