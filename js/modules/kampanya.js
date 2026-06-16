@@ -55,7 +55,7 @@ export function renderKatalog(force = false, resetLimit = true) {
       : `<span style="color:var(--green); font-weight:bold; font-size:0.65rem;">Aktif</span>`;
       
     list.innerHTML += `
-      <div onclick="editKatalog('${k.Id}')" style="background-color: var(--bg); border: 1px solid var(--border); border-radius:0.4rem; padding:0.6rem; margin-bottom:0.4rem; display:flex; gap:0.4rem; align-items:center; cursor:pointer;">
+      <div onclick="editKatalog('${k.Id}')" class="list-item">
         <div style="flex:3; text-align:left; overflow:hidden;">
           <div style="font-weight:bold; font-size:0.8rem; white-space:nowrap; text-overflow:ellipsis;" title="${k.Name}">${k.Name}</div>
           <div style="font-size:0.65rem; color:var(--text-muted); white-space:nowrap; text-overflow:ellipsis;">${k.Description || '-'}</div>

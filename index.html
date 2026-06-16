@@ -256,11 +256,9 @@
           </div>
         </div>
 
-        <div
-          style="background:var(--bg); border:1px solid var(--border); border-radius:0.5rem; padding:0.5rem; margin-bottom: 80px; margin-top: 10px;">
+        <div class="urun-list">
 
-          <div
-            style="display:flex; gap:0.4rem; font-size:0.75rem; font-weight:bold; color:var(--text-muted); align-items:center; border-bottom:2px solid var(--border); padding-bottom:0.5rem; margin-bottom:0.5rem;">
+          <div class="header-titles">
             <div style="width:24px; display:flex; justify-content:center;">
               <input type="checkbox" id="pub-master-cb" onclick="toggleAllPublish(this.checked)"
                 style="width:18px; height:18px; accent-color:var(--green); cursor:pointer; margin:0;">
@@ -275,8 +273,7 @@
           <div id="publish-list"></div>
         </div>
 
-        <button class="icon-btn" onclick="openPublishListModal()"
-          style="position: fixed; bottom: 80px; right: 20px; z-index: 40; width: 60px; height: 60px; background: var(--green); color: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 1.5rem; display: flex; justify-content: center; align-items: center;">🚀</button>
+        <button class="fab" onclick="openPublishListModal()" style="display: flex; background: var(--green);">🚀</button>
       </div>
 
       <div id="mo-publish-list" class="mo" onclick="closeOnOutside(event, 'mo-publish-list')" style="z-index: 80;">
@@ -358,11 +355,9 @@
           </div>
         </div>
 
-        <div
-          style="background:var(--bg); border:1px solid var(--border); border-radius:0.5rem; padding:0.5rem; margin-bottom: 80px; margin-top: 10px;">
+        <div class="urun-list">
 
-          <div
-            style="display:flex; gap:0.4rem; font-size:0.75rem; font-weight:bold; color:var(--text-muted); align-items:center; border-bottom:2px solid var(--border); padding-bottom:0.5rem; margin-bottom:0.5rem;">
+          <div class="header-titles" style="padding-right: 20px; padding-left: 10px;">
             <div style="flex:3; text-align:left;">Kampanya Adı</div>
             <div style="flex:2;">Geçerlilik</div>
             <div style="flex:1.5;">Durum</div>
@@ -372,8 +367,7 @@
           <div id="katalog-list"></div>
         </div>
 
-        <button class="icon-btn" onclick="openKatalogModal()"
-          style="position: fixed; bottom: 80px; right: 20px; z-index: 40; width: 60px; height: 60px; background: var(--accent); color: white; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 2rem; display: flex; justify-content: center; align-items: center; padding-bottom: 4px;">+</button>
+        <button class="fab" onclick="openKatalogModal()" style="display: flex;">+</button>
       </div>
 
       <div id="mo-erp-config" class="mo" onclick="closeOnOutside(event, 'mo-erp-config')" style="z-index: 95;">
