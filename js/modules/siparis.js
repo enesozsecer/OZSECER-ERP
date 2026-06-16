@@ -9,6 +9,11 @@ export let lastScanTime = 0;
 
 let sipLimit = 20;
 export function renderSip(force = false, resetLimit = true) {
+  if (window.listenToCollection) {
+      window.listenToCollection('Order');
+      window.listenToCollection('OrderItem');
+  }
+  
   if (!force) return; 
   if (resetLimit) sipLimit = 20;
 

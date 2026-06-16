@@ -8,6 +8,12 @@ let katalogLimit = 20;
 let katUrunLimit = 20; // YENİ: Modal içindeki ürün pagination limiti
 
 export function initKatalogView() { 
+    // Sayfaya girildiği an Kampanya/Katalog verilerini Firebase'den çeker
+    if (window.listenToCollection) {
+        window.listenToCollection('Offer');
+        window.listenToCollection('OfferItem');
+    }
+    
     const topTitle = document.getElementById('top-title');
     if (topTitle) topTitle.innerText = 'Katalog Yönetimi'; 
     renderKatalog(true); 
@@ -134,8 +140,13 @@ export function saveKatalog() {
       DB.Offer.push({ Id: id, ...kData, CreatedDate: tsNow(), Deleted: false }); 
   }
 
+  // SİLİNEN ÜRÜNLERİ GÜNCELLEME HATASI BURADA DÜZELTİLDİ (UpdatedDate eklendi)
   const currentItemIds = tempOfferItems.map(x => x.Id);
-  DB.OfferItem.filter(x => x.OfferId === id && (!currentItemIds.includes(x.Id) || tempOfferItems.find(t=>t.Id===x.Id).Deleted)).forEach(x => { x.Deleted=true; x.DeletedDate = tsNow(); });
+  DB.OfferItem.filter(x => x.OfferId === id && (!currentItemIds.includes(x.Id) || tempOfferItems.find(t=>t.Id===x.Id).Deleted)).forEach(x => { 
+      x.Deleted = true; 
+      x.DeletedDate = tsNow(); 
+      x.UpdatedDate = tsNow(); 
+  });
   
   finalItems.forEach(it => {
     it.OfferId = id; const existing = DB.OfferItem.find(x => x.Id === it.Id);
@@ -155,7 +166,17 @@ export function deleteKatalog() {
   if(!id) return;
   showConfirm("Bu kampanyayı silmek istediğinize emin misiniz?", () => { 
       const k = DB.Offer.find(x => x.Id === id); 
-      if(k) k.Deleted = true; 
+      if(k) {
+          k.Deleted = true; 
+          k.UpdatedDate = tsNow(); // SİHİRLİ DOKUNUŞ: Firebase'in değişikliği anlaması için şart
+      }
+      
+      // Katalog silindiğinde içindeki ürünlerin de silindiğini buluta kesin olarak bildiriyoruz:
+      DB.OfferItem.filter(x => x.OfferId === id).forEach(it => {
+          it.Deleted = true;
+          it.UpdatedDate = tsNow();
+      });
+      
       saveDB(); 
       closeM('mo-katalog');
       renderKatalog(true); 

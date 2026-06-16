@@ -12,6 +12,7 @@ export let marketStorage = null;
 let fs = null;
 let isListening = false;
 let isPushing = false;
+const activeListeners = new Set(); // YENİ: Hangi tabloların o an dinlendiğini takip eder
 
 export function isErpConnected() {
     return erpApp !== null;
@@ -39,7 +40,16 @@ export async function initFirebase(forceErp = false, forceMarket = false) {
                     if (forceErp && erpApp) { await deleteApp(erpApp); erpApp = null; }
                     if (!erpApp) {
                         erpApp = initializeApp(erpConf, "ERP_APP");
-                        erpDB = fs.getFirestore(erpApp);
+                        
+                        // YENİ: Firebase Yerel Önbellek (Local Cache) Aktifleştirme (OKUMA LİMİTİ ÇÖZÜMÜ)
+                        try {
+                            erpDB = fs.initializeFirestore(erpApp, {
+                                localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() })
+                            });
+                        } catch (e) {
+                            erpDB = fs.getFirestore(erpApp);
+                        }
+                        
                         erpStorage = getStorage(erpApp);
                     }
                     
@@ -67,7 +77,16 @@ export async function initFirebase(forceErp = false, forceMarket = false) {
                     if (forceMarket && marketApp) { await deleteApp(marketApp); marketApp = null; }
                     if (!marketApp) {
                         marketApp = initializeApp(mktConf, "MARKET_APP");
-                        marketDB = fs.getFirestore(marketApp);
+                        
+                        // YENİ: Market için de Cache Aktifleştirme
+                        try {
+                            marketDB = fs.initializeFirestore(marketApp, {
+                                localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() })
+                            });
+                        } catch(e) {
+                            marketDB = fs.getFirestore(marketApp);
+                        }
+                        
                         marketStorage = getStorage(marketApp);
                     }
                     
@@ -142,37 +161,55 @@ export async function pushChangesToCloud() {
     } finally { isPushing = false; }
 }
 
+// YENİ: İstenilen tabloyu sadece ihtiyaç duyulduğunda çekmek için özel fonksiyon
+export function listenToCollection(colName) {
+    if (!erpDB || !fs || activeListeners.has(colName)) return;
+    activeListeners.add(colName);
+    
+    const colRef = fs.collection(erpDB, colName);
+    fs.onSnapshot(colRef, (snapshot) => {
+        let hasUpdates = false;
+        snapshot.docChanges().forEach((change) => {
+            const data = change.doc.data();
+            if (!data || !data.Id) return;
+            const index = DB[colName].findIndex(x => x.Id === data.Id);
+            if (change.type === "added" || change.type === "modified") {
+                if (index > -1) {
+                    if (JSON.stringify(DB[colName][index]) !== JSON.stringify(data)) {
+                        DB[colName][index] = data; hasUpdates = true;
+                    }
+                } else { DB[colName].push(data); hasUpdates = true; }
+            } else if (change.type === "removed") {
+                if (index > -1) { DB[colName].splice(index, 1); hasUpdates = true; }
+            }
+        });
+        if (hasUpdates) {
+            CloudMirror[colName] = JSON.parse(JSON.stringify(DB[colName]));
+            localStorage.setItem('e3_' + colName, JSON.stringify(DB[colName]));
+            const currentView = document.querySelector('.view:not(.hidden)');
+            if (currentView) {
+                if (currentView.id === 'view-urun' && typeof window.renderUrun === 'function') window.renderUrun();
+                if (currentView.id === 'view-cari' && typeof window.renderCari === 'function') window.renderCari(true);
+                if (currentView.id === 'view-publish' && typeof window.renderPublishProducts === 'function') window.renderPublishProducts();
+                if (currentView.id === 'view-siparis' && typeof window.renderSip === 'function') window.renderSip(true);
+                if (currentView.id === 'view-kasa' && typeof window.renderKasa === 'function') window.renderKasa(true);
+                if (currentView.id === 'view-katalog' && typeof window.renderKatalog === 'function') window.renderKatalog(true);
+            }
+        }
+    });
+}
+window.listenToCollection = listenToCollection; // Sayfalardan çağrılabilmesi için eklendi
+
+// ESKİ: Tüm DB'yi indiren kod --> YENİ: Sadece Uygulama İskeletini Çeker
 export function listenToCloudChanges() {
     if (!erpDB || !fs) return;
     isListening = true;
-    const collections = Object.keys(DB);
-    collections.forEach(colName => {
-        const colRef = fs.collection(erpDB, colName);
-        fs.onSnapshot(colRef, (snapshot) => {
-            let hasUpdates = false;
-            snapshot.docChanges().forEach((change) => {
-                const data = change.doc.data();
-                if (!data || !data.Id) return;
-                const index = DB[colName].findIndex(x => x.Id === data.Id);
-                if (change.type === "added" || change.type === "modified") {
-                    if (index > -1) {
-                        if (JSON.stringify(DB[colName][index]) !== JSON.stringify(data)) {
-                            DB[colName][index] = data; hasUpdates = true;
-                        }
-                    } else { DB[colName].push(data); hasUpdates = true; }
-                } else if (change.type === "removed") {
-                    if (index > -1) { DB[colName].splice(index, 1); hasUpdates = true; }
-                }
-            });
-            if (hasUpdates) {
-                CloudMirror[colName] = JSON.parse(JSON.stringify(DB[colName]));
-                localStorage.setItem('e3_' + colName, JSON.stringify(DB[colName]));
-                const currentView = document.querySelector('.view:not(.hidden)');
-                if (currentView && currentView.id === 'view-urun' && typeof window.renderUrun === 'function') window.renderUrun();
-                if (currentView && currentView.id === 'view-cari' && typeof window.renderCari === 'function') window.renderCari(true);
-                if (currentView && currentView.id === 'view-publish' && typeof window.renderPublishProducts === 'function') window.renderPublishProducts();
-            }
-        });
+    
+    // Ağır olan Order (Sipariş) ve Payment (Kasa) tablolarını sistem açılışında ÇEKMİYORUZ.
+    const coreCollections = ['Product', 'Category', 'Current', 'Brand', 'CurrentGroup', 'ProductGroup', 'Sector'];
+    
+    coreCollections.forEach(colName => {
+        listenToCollection(colName);
     });
 }
 
@@ -227,7 +264,6 @@ export async function saveErpConfig() {
         } else throw new Error();
     } catch (err) {
         if (oldBackup) localStorage.setItem('e3_firebase_erp', oldBackup); else localStorage.removeItem('e3_firebase_erp');
-        
         if (err && err.code && err.code.includes('auth/')) {
             showToast("HATA: E-Posta veya Şifre geçersiz!");
         } else {
@@ -253,15 +289,10 @@ export async function saveMarketConfig() {
         if (res && res.includes("Market")) { 
             closeM('mo-market-config'); 
             showToast("Market Bağlantısı Doğrulandı!"); 
-            
-            // 🔥 YENİ: Bağlantı başarıyla sağlandığı an Yayın sayfasının canlı veri motorunu anında tetikliyoruz!
-            if (typeof window.initPublishView === 'function') {
-                window.initPublishView();
-            }
+            if (typeof window.initPublishView === 'function') { window.initPublishView(); }
         } else throw new Error();
     } catch (err) {
         if (oldBackup) localStorage.setItem('e3_firebase_market', oldBackup); else localStorage.removeItem('e3_firebase_market');
-        
         if (err && err.code && err.code.includes('auth/')) {
             showToast("HATA: E-Posta veya Şifre geçersiz!");
         } else {
@@ -273,7 +304,6 @@ export async function saveMarketConfig() {
 export function disconnectErp() {
     const isConnected = localStorage.getItem('e3_firebase_erp');
     if (!isConnected) return showToast("Zaten bir ERP bağlantısı yok.");
-    
     if (confirm("🚨 ERP bulut bağlantısını koparmak istediğinize emin misiniz?\n\nBağlantı kesildiğinde, veri tutarsızlığını önlemek için yeni buluta bağlanana kadar sisteme veri eklemeniz durdurulacaktır.")) {
         localStorage.removeItem('e3_firebase_erp');
         showToast("🔌 ERP Bulut bağlantısı başarıyla koparıldı!");
@@ -284,7 +314,6 @@ export function disconnectErp() {
 export function disconnectMarket() {
     const isConnected = localStorage.getItem('e3_firebase_market');
     if (!isConnected) return showToast("Zaten bir Market bağlantısı yok.");
-    
     if (confirm("🚨 Market bulut bağlantısını koparmak istediğinize emin misiniz?")) {
         localStorage.removeItem('e3_firebase_market');
         showToast("🔌 Market bağlantısı başarıyla koparıldı!");

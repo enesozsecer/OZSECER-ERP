@@ -4,6 +4,10 @@ import { printKasa } from '../core/pdf.js';
 
 let kasaLimit = 20;
 export function renderKasa(force = false, resetLimit = true) {
+  if (window.listenToCollection) {
+      window.listenToCollection('Payment');
+  }
+  
   if (!force) return; 
   if (resetLimit) kasaLimit = 20;
 

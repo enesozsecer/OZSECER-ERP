@@ -2,6 +2,12 @@ import { DB } from '../core/db.js';
 import { $, fp, ISLEM, KASA, calcBalance } from '../core/utils.js';
 
 export function renderAnaliz(force = false) {
+  if (window.listenToCollection) {
+      window.listenToCollection('Order');
+      window.listenToCollection('OrderItem');
+      window.listenToCollection('Payment');
+  }
+  
   if (!force) return;
   const start = $('an-start').value; const end = $('an-end').value; const fGrup = $('filter-an-grup').value;
   let ss = DB.Order.filter(x => !x.Deleted);

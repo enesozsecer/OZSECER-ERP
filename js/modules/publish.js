@@ -7,6 +7,9 @@ let visibleProductIds = [];
 let marketPublishItems = []; 
 
 export async function initPublishView() {
+  if (window.listenToCollection) {
+      window.listenToCollection('PublishItem');
+  }
   const catSel = $('filter-pub-cat'); const grpSel = $('filter-pub-group'); const brnSel = $('filter-pub-brand');
   if (catSel) { catSel.innerHTML = '<option value="">Tüm Kategoriler</option>'; DB.Category.filter(x=>!x.Deleted).forEach(c => catSel.innerHTML += `<option value="${c.Id}">${c.Name}</option>`); }
   if (grpSel) { grpSel.innerHTML = '<option value="">Tüm Gruplar</option>'; DB.ProductGroup.filter(x=>!x.Deleted).forEach(c => grpSel.innerHTML += `<option value="${c.Id}">${c.Name}</option>`); }
