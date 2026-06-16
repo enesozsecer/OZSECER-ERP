@@ -52,7 +52,7 @@ body, html {
   background: var(--card);
   box-shadow: 
     0 -20px 0 0 var(--bg),
-    0 10px 0 0 var(--bg),
+    0 5px 0 0 var(--bg),
     0 22px 10px -10px rgba(0,0,0,0.15);
 }
 @keyframes fadeIn {
