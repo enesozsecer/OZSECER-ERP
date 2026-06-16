@@ -45,9 +45,17 @@ canvas.drawingBuffer { position: absolute; top: 0; left: 0; width: 100%; height:
         0 5px 0 0 var(--bg),
         0 22px 10px -10px rgba(0,0,0,0.15);
 }
+/* SADECE TELEFON EKRANLARI İÇİN DEVREYE GİRER */
 @media (max-width: 768px) {
   .header-titles {
-    top: 800px !important;
+    /* Filtre alanı mobilde uzadığı için başlığı onun altından kurtarıp aşağı itiyoruz */
+    top: 250px !important; 
+  }
+  
+  /* Mobil tarayıcıların (iOS Safari vb.) sticky'yi bozmasını kesin olarak engeller */
+  .urun-list, 
+  #view-publish > div {
+    overflow: visible !important;
   }
 }
 .nav-brand {
