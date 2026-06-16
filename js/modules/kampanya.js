@@ -137,21 +137,20 @@ export function saveKatalog() {
   if ($('kat-Id').value) { 
       Object.assign(DB.Offer.find(x => x.Id === id), kData, { UpdatedDate: tsNow() }); 
   } else { 
-      DB.Offer.push({ Id: id, ...kData, CreatedDate: tsNow(), Deleted: false }); 
+      DB.Offer.push({ Id: id, ...kData, CreatedDate: tsNow(), UpdatedDate: tsNow(), Deleted: false }); 
   }
 
-  // SİLİNEN ÜRÜNLERİ GÜNCELLEME HATASI BURADA DÜZELTİLDİ (UpdatedDate eklendi)
   const currentItemIds = tempOfferItems.map(x => x.Id);
   DB.OfferItem.filter(x => x.OfferId === id && (!currentItemIds.includes(x.Id) || tempOfferItems.find(t=>t.Id===x.Id).Deleted)).forEach(x => { 
       x.Deleted = true; 
       x.DeletedDate = tsNow(); 
-      x.UpdatedDate = tsNow(); 
+      x.UpdatedDate = tsNow(); // HATA BURADAYDI, EKLENDİ
   });
   
   finalItems.forEach(it => {
     it.OfferId = id; const existing = DB.OfferItem.find(x => x.Id === it.Id);
     if(existing) { Object.assign(existing, it, { UpdatedDate: tsNow() }); } 
-    else { DB.OfferItem.push({ ...it, CreatedDate: tsNow(), Deleted: false }); }
+    else { DB.OfferItem.push({ ...it, CreatedDate: tsNow(), UpdatedDate: tsNow(), Deleted: false }); }
   });
 
   saveDB(); 
@@ -168,15 +167,17 @@ export function deleteKatalog() {
       const k = DB.Offer.find(x => x.Id === id); 
       if(k) {
           k.Deleted = true; 
-          k.UpdatedDate = tsNow(); // SİHİRLİ DOKUNUŞ: Firebase'in değişikliği anlaması için şart
+          k.UpdatedDate = tsNow(); // SİHİRLİ DOKUNUŞ: Firebase bu tarih değişmezse veriyi itmez
+          k.DeletedDate = tsNow();
       }
-      
-      // Katalog silindiğinde içindeki ürünlerin de silindiğini buluta kesin olarak bildiriyoruz:
-      DB.OfferItem.filter(x => x.OfferId === id).forEach(it => {
+
+      // SİHİRLİ DOKUNUŞ 2: Kampanyaya ait ürün kalemlerini (OfferItem) de buluttan ve yerelden sil:
+      DB.OfferItem.filter(x => String(x.OfferId) === String(id)).forEach(it => {
           it.Deleted = true;
           it.UpdatedDate = tsNow();
+          it.DeletedDate = tsNow();
       });
-      
+
       saveDB(); 
       closeM('mo-katalog');
       renderKatalog(true); 
