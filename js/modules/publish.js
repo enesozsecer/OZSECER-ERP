@@ -16,32 +16,47 @@ export async function initPublishView() {
   if (brnSel) { brnSel.innerHTML = '<option value="">Tüm Markalar</option>'; DB.Brand.filter(x=>!x.Deleted).forEach(c => brnSel.innerHTML += `<option value="${c.Id}">${c.Name}</option>`); }
   
   if ($('global-page-title')) $('global-page-title').innerText = 'Yayın';
-  
+
+  // 1. KONTROL: Kullanıcı hiç giriş yapmış mı? (Config var mı?)
+  const hasConfig = localStorage.getItem('e3_firebase_market');
+  if (!hasConfig) {
+      showToast("⚠️ Market bulutuna bağlı değilsiniz!");
+      if (typeof window.openMarketConfigModal === 'function') window.openMarketConfigModal();
+      return; // BAĞLANTI YOKSA VERİ DE YOK. KOD BURADA DURUR!
+  }
+
+  // 2. KONTROL: Config var ama uygulama yeni açıldığı için Firebase henüz "bağlanma" aşamasında mı?
   if (!window.marketDB) {
-      if (localStorage.getItem('e3_firebase_market')) {
-          showToast("Market bulutuna bağlanılıyor, veriler birazdan ekrana düşecek...");
-          return;
-      } else {
-          showToast("⚠️ Market bulutuna bağlı değilsiniz!");
-          if (typeof window.openMarketConfigModal === 'function') {
-              window.openMarketConfigModal();
+      showSpinner("Market bağlantısı kuruluyor...");
+      const waitForDB = setInterval(() => {
+          if (window.marketDB) {
+              clearInterval(waitForDB); // Bağlandığını gördüğü an döngüyü sonsuza dek kırar
+              hideSpinner();
+              loadMarketData(); // Veriyi bas ve dinlemeye başla
           }
-          return;
-      }
+      }, 200);
+      return;
   }
 
-  // YENİ: Market veritabanını Önbellek (Cache) ile dinlemeye başlar! Her girişte sıfırdan yavaş okuma yapmaz.
-  if (window.listenToMarketCollection) {
-      window.listenToMarketCollection('PublishItem');
-  }
+  // 3. DURUM: Zaten bağlıyız ve her şey hazır. Sıfır sorgu, sıfır bekleme!
+  loadMarketData();
+}
 
-  // Ön bellekteki (veya RAM'deki) hazır verilerle seçili olanları işaretle (Bekleme süresi sıfır)
-  selectedProductIds.clear();
-  (DB.PublishItem || []).forEach(x => {
-      selectedProductIds.add(x.ProductId);
-  });
-
-  renderPublishProducts();
+// YARDIMCI FONKSİYON: Sadece bağlantı onaylandığında çalışır
+function loadMarketData() {
+    // 1. Önbellekteki verilerle seçili olanları hızlıca işaretle
+    selectedProductIds.clear();
+    (DB.PublishItem || []).forEach(x => {
+        selectedProductIds.add(x.ProductId);
+    });
+    
+    // 2. Sıfır saniye bekleme ile ekrana bas
+    renderPublishProducts(); 
+    
+    // 3. Akıllı dinleyiciyi başlat (Arka planda sessizce değişiklik arar, gereksiz okuma yapmaz)
+    if (window.listenToMarketCollection) {
+        window.listenToMarketCollection('PublishItem');
+    }
 }
 
 let publishLimit = 20;
