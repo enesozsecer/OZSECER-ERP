@@ -42,17 +42,18 @@ canvas.drawingBuffer { position: absolute; top: 0; left: 0; width: 100%; height:
     transform: scaleX(-1);
 }
 body, html {
-  overflow-x: clip !important; /* hidden yerine clip kullanmak sticky'yi mobilde kurtarır */
+  overflow-x: clip !important;
 }
 .view > .card:first-child {
+  position: -webkit-sticky;
   position: sticky;
   top: 89px;
   z-index: 5;
   background: var(--card);
   box-shadow: 
-    0 -20px 0 0 var(--bg),  /* 1. Üstteki boşluğu sayfa rengiyle doldurur (Topbar'ı ezmez) */
-    0 15px 0 0 var(--bg),   /* 2. Itemlarla filtre arasındaki boşluğu sayfa rengiyle korur */
-    0 22px 10px -10px rgba(0,0,0,0.15); /* 3. En alta şık bir gölge efekti bırakır */
+    0 -20px 0 0 var(--bg),
+    0 15px 0 0 var(--bg),
+    0 22px 10px -10px rgba(0,0,0,0.15);
 }
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
