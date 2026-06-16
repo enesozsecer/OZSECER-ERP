@@ -49,6 +49,9 @@ canvas.drawingBuffer { position: absolute; top: 0; left: 0; width: 100%; height:
   .header-titles {
     top: 197px !important;
   }
+  .urun-list {
+    overflow: visible !important; /* Mobilde sticky'i bozan gizli engelleri kesin ezer */
+  }
 }
 .nav-brand {
     font-weight: bold;
