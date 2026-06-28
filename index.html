@@ -273,7 +273,8 @@
           <div id="publish-list"></div>
         </div>
 
-        <button class="fab" onclick="openPublishListModal()" style="display: flex; background: var(--green);">🚀</button>
+        <button class="fab" onclick="openPublishListModal()"
+          style="display: flex; background: var(--green);">🚀</button>
       </div>
 
       <div id="mo-publish-list" class="mo" onclick="closeOnOutside(event, 'mo-publish-list')" style="z-index: 80;">
@@ -287,6 +288,9 @@
           <div style="margin-top:15px; border-top:1px solid var(--border); padding-top:10px;">
             <button class="btn-primary" onclick="publishAction()" style="background: var(--green);">Web Sitesinde
               Yayınla / Güncelle</button>
+                          <button class="btn-primary" onclick="publishCategoriesAndBrands()" style="background: var(--green); margin-top:5px;">
+              📂 Filtreleri Yayınla
+            </button>
           </div>
         </div>
       </div>
@@ -686,7 +690,7 @@
 
   <div id="mo-sip" class="mo" onclick="closeOnOutside(event, 'mo-sip')" style="z-index: 80;">
     <div class="mo-content" style="max-width: 650px; width: 95%; height: 85vh; display: flex; flex-direction: column;">
-      
+
       <div class="mo-header" style="flex-shrink: 0;">
         <div class="mo-title" id="ms-title">Sipariş Formu</div>
         <div class="flex gap-2">
@@ -695,22 +699,24 @@
           <button class="icon-btn" onclick="closeM('mo-sip')">✕</button>
         </div>
       </div>
-      
+
       <input type="hidden" id="ms-Id">
 
       <div style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
-        
+
         <div style="flex-shrink: 0;">
           <div class="grid-2">
             <div>
-              <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Türü</label>
+              <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş
+                Türü</label>
               <select id="ms-OrderTypeId">
                 <option value="2" selected>Satış</option>
                 <option value="1">Alış</option>
               </select>
             </div>
             <div>
-              <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Tarihi</label>
+              <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş
+                Tarihi</label>
               <input type="datetime-local" id="ms-OrderDate">
             </div>
           </div>
@@ -719,7 +725,8 @@
             <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Cari Seçimi</label>
             <div class="c-select" id="cs-wrap-ms-CurrentId" style="z-index: 70;">
               <div class="c-select-display" onclick="toggleCSelect('ms-CurrentId', 'Current')">
-                <span id="csd-ms-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari Seçiniz...</span>
+                <span id="csd-ms-CurrentId" style="overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Cari
+                  Seçiniz...</span>
                 <span style="font-size:0.7rem; margin-left:8px;">▼</span>
               </div>
               <input type="hidden" id="ms-CurrentId">
@@ -734,8 +741,10 @@
           <div class="flex justify-between items-center mt-3 mb-2">
             <h4 style="font-size:0.95rem; margin: 0;">Kalemler</h4>
             <div class="flex gap-2">
-              <button class="btn-outline" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="startCam('sip-item')">📷 Seri Okut</button>
-              <button class="btn-primary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="addSipItem()">+ Ürün Ekle</button>
+              <button class="btn-outline" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;"
+                onclick="startCam('sip-item')">📷 Seri Okut</button>
+              <button class="btn-primary" style="width:auto; padding:0.4rem 0.8rem; font-size:0.8rem;"
+                onclick="addSipItem()">+ Ürün Ekle</button>
             </div>
           </div>
         </div>
@@ -756,12 +765,14 @@
                   style="width:80px; padding:0.2rem; margin:2px 0; text-align:right; font-size:0.9rem;"
                   onkeyup="calcSipTotal()">
               </div>
-              <div id="ms-TotalPrice" style="font-weight:bold; color:var(--accent); font-size:1.1rem; margin-top: 4px;">₺0,00</div>
+              <div id="ms-TotalPrice" style="font-weight:bold; color:var(--accent); font-size:1.1rem; margin-top: 4px;">
+                ₺0,00</div>
             </div>
           </div>
 
           <div>
-            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş Notu</label>
+            <label style="font-weight: bold; font-size: 0.8rem; display: block; margin-bottom: 4px;">Sipariş
+              Notu</label>
             <textarea id="ms-Description" placeholder="Sipariş Notu" rows="2" style="margin-bottom: 0;"></textarea>
           </div>
         </div>

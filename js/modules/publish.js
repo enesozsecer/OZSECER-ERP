@@ -1,6 +1,7 @@
 import { DB, saveDB } from '../core/db.js';
 import { $, tsNow, guid, getCihazAdi, showToast, openM, closeM, showConfirm, formatTR, parseRawTR, toRawTR, showSpinner, hideSpinner, showCustomAlert } from '../core/utils.js';
 
+
 let selectedProductIds = new Set();
 let publishState = {}; 
 let visibleProductIds = []; 
@@ -529,3 +530,44 @@ export function focusPub(el, pId, field) {
 export function blurPub(el, pId, field) { 
     el.value = formatTR(publishState[pId][field]); 
 }
+
+export function publishCategoriesAndBrands() {
+    if (!window.marketDB) return showToast("⚠️ Market bulut bağlantısı yok!");
+
+    showConfirm('Kategori, Marka ve Ürün Grupları e-esnaf vitrinine aktarılacaktır. Onaylıyor musunuz?', async () => {
+        try {
+            showSpinner("Market veritabanına aktarılıyor...");
+            const { writeBatch, doc } = await import('https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js');
+            const batch = writeBatch(window.marketDB);
+            
+            // 1. Kategorileri Ekle
+            DB.Category.filter(x => !x.Deleted).forEach(c => {
+                const docRef = doc(window.marketDB, "Category", String(c.Id));
+                batch.set(docRef, c);
+            });
+
+            // 2. Markaları Ekle
+            DB.Brand.filter(x => !x.Deleted).forEach(b => {
+                const docRef = doc(window.marketDB, "Brand", String(b.Id));
+                batch.set(docRef, b);
+            });
+
+            // 3. Ürün Gruplarını Ekle
+            DB.ProductGroup.filter(x => !x.Deleted).forEach(g => {
+                const docRef = doc(window.marketDB, "ProductGroup", String(g.Id));
+                batch.set(docRef, g);
+            });
+
+            // Tek seferde Firebase'e bas
+            await batch.commit();
+            
+            hideSpinner();
+            showToast('🚀 Tanımlar (Kategori, Marka, Grup) başarıyla aktarıldı!');
+            
+        } catch (err) {
+            hideSpinner();
+            showCustomAlert("Aktarım hatası: " + err.message, false);
+        }
+    }, '📂', 'Evet, Aktar');
+}
+window.publishCategoriesAndBrands = publishCategoriesAndBrands;
